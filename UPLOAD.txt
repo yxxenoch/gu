@@ -1,0 +1,1 @@
+将本压缩包解压，上传其中全部8个HTML文件至GitHub仓库根目录，并替换同名文件。不要只上传ZIP，也不要只上传index.html。旧的index-1.html与oplusdownload文件不参与此版本运行。源码不含APK签名或用户上传的照片字体。
