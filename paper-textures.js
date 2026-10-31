@@ -28,5 +28,16 @@ if(theme){const baseGlass=glass;glass=function(g,W,H){const selected=state.paper
 if(dark){const beforeClear=$('#clearBackground').onclick;$('#clearBackground').onclick=(...args)=>{beforeClear(...args);paintPicker();};const beforeUpload=$('#backgroundFile').onchange;$('#backgroundFile').onchange=async(...args)=>{try{await beforeUpload(...args);}catch(e){message(e.message);}paintPicker();};const originalSync=syncInputs;syncInputs=function(...args){originalSync(...args);restore();};}
 if(book){const original=syncMaterialUI;syncMaterialUI=function(...args){original(...args);paintPicker();};}
 document.addEventListener('change',e=>{if(['bg-input','backgroundFile','paperfile','restore'].includes(e.target.id)){ticket++;busy=false;paintPicker();}},true);document.addEventListener('click',e=>{if(e.target.closest('[data-action="clearBg"]')){ticket++;busy=false;paintPicker();}},true);
+
+if(common&&$('#mag-left-status')){
+ const galleries=[];
+ for(const side of ['left','right']){
+  const box=document.createElement('details');box.className='paper-library';const heading=document.createElement('summary'),grid=document.createElement('div');grid.className='paper-grid-new';box.append(heading,grid);$('#mag-'+side+'-status').before(box);const buttons=[];
+  for(const m of MATERIALS){const b=document.createElement('button');b.type='button';b.className='paper-choice-new';const img=document.createElement('img');img.src=m.thumb;img.loading='lazy';img.alt='';const name=document.createElement('span');name.textContent=m.name;b.append(img,name);grid.append(b);buttons.push([m,b]);b.onclick=async()=>{const page=state.mag.page,block=currentSpread(),request=++ticket;for(const [,button]of buttons)button.disabled=true;try{const id=assetID(m);if(!assets.has(id))await addAsset(await materialBlob(m),id,true);if(request!==ticket||page!==state.mag.page||currentSpread()!==block)return;commit(()=>{block[side+'Asset']=id;block[side+'Zoom']=100;block[side+'X']=block[side+'Y']=0;block[side+'Fit']='cover';if(side==='left')block.leftAlpha=100;});toast('已应用到当前区块'+(side==='left'?'左页':'右页'));}catch(e){toast(e.message||'纸纹加载失败');}finally{for(const [,button]of buttons)button.disabled=false;paintPages();}};}
+  galleries.push({side,heading,buttons});
+ }
+ function paintPages(){for(const {side,heading,buttons}of galleries){const id=currentSpread()?.[side+'Asset'],material=MATERIALS.find(m=>assetID(m)===id);heading.textContent='选择通用纸纹'+(material?' · '+material.name:' · 15 款');for(const [m,b]of buttons)b.setAttribute('aria-pressed',String(assetID(m)===id));}}
+ const previousSync=sync;sync=function(...args){previousSync(...args);paintPages();};document.addEventListener('change',e=>{if(['mag-left-input','mag-right-input','mag-background-page','mag-text-page','mag-page'].includes(e.target.id))ticket++;},true);paintPages();
+}
 restore();
 })();
