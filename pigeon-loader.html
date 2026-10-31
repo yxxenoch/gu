@@ -1,0 +1,17 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>小鸽子加载动画</title><style>html,body{margin:0;width:100%;height:100%;background:#faf9f6}body{display:grid;place-items:center}.pigeon-loader{width:min(340px,90vw);text-align:center;font:14px system-ui,sans-serif;color:#88818b}.pigeon-loader canvas{display:block;width:100%;height:auto}.pigeon-loader p{margin:0;letter-spacing:2px}@media(prefers-reduced-motion:reduce){.pigeon-loader canvas{opacity:.9}}</style></head><body><div class="pigeon-loader" role="status" aria-label="正在加载"><canvas id="pigeon" width="680" height="360" aria-hidden="true"></canvas><p>正在加载 · · ·</p></div><script>
+(()=>{const c=document.getElementById('pigeon'),ctx=c.getContext('2d');let frame=0,prints=[],last=0;const fps=24,dt=1000/fps;function ellipse(x,y,rx,ry,color){ctx.fillStyle=color;ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2);ctx.fill()}function line(points,color,width){ctx.strokeStyle=color;ctx.lineWidth=width;ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();points.forEach((p,i)=>i?ctx.lineTo(...p):ctx.moveTo(...p));ctx.stroke()}function foot(x,y,rot,alpha){ctx.save();ctx.translate(x,y);ctx.rotate(rot);ctx.globalAlpha=alpha;line([[0,6],[0,-4]],'#b59aa0',3.4);line([[0,-4],[-8,-10]],'#b59aa0',3.4);line([[0,-4],[0,-13]],'#b59aa0',3.4);line([[0,-4],[8,-10]],'#b59aa0',3.4);ctx.restore()}function draw(){ctx.clearRect(0,0,680,360);const t=frame/24,phase=t*7.5;const x=340+Math.sin(t*.75)*104;const dir=Math.cos(t*.75)>=0?1:-1;const bob=Math.abs(Math.sin(phase))*5;const ground=264;ellipse(x,ground+4,88,10,'rgba(91,79,89,.07)');for(const p of prints){foot(p.x,p.y,p.rot,Math.max(0,1-(frame-p.birth)/95)*.45)}prints=prints.filter(p=>frame-p.birth<95);if(frame%10===0)prints.push({x:x-dir*36,y:ground+5+(frame%20?3:-3),rot:dir*.25,birth:frame});ctx.save();ctx.translate(x,ground-74-bob);ctx.scale(dir,1); // pigeon
+// tail
+ellipse(-75,20,34,16,'#858092');ellipse(-81,12,27,11,'#9d98aa');
+// body
+ellipse(0,10,79,64,'#e7e4eb');ellipse(16,20,59,48,'#f8f7f6');
+// neck and head
+ellipse(44,-36,40,45,'#c7c1d1');ellipse(51,-51,35,34,'#e3dfe7');ellipse(38,-21,24,21,'#b5c8bf');
+// wing
+ellipse(-26,18,45,32,'#f7f5f6');ellipse(-47,24,21,16,'#d4d0db');line([[-65,23],[-51,35],[-38,40]],'#8e899d',5);line([[-55,12],[-41,26],[-27,31]],'#a19bad',5);
+// cheek eye beak
+ellipse(62,-41,9,7,'#edb4b5');ellipse(66,-61,4.6,5,'#342f39');ellipse(82,-44,12,6,'#dc9a80');
+// leaf stem
+line([[88,-45],[121,-58]],'#789765',3);ctx.save();ctx.translate(107,-59);ctx.rotate(-.35+Math.sin(t*4)*.08);ellipse(0,-8,12,6,'#95b874');ellipse(13,4,11,6,'#8eae6d');ctx.restore();
+// feet animated stepping
+const a=Math.sin(phase),b=Math.sin(phase+Math.PI);for(const [offset,s] of [[-29,a],[28,b]]){let lift=Math.max(0,s)*14;line([[offset,64],[offset+10*s,80-lift]],'#c47d7f',5);line([[offset+10*s,80-lift],[offset+23*s+7,83-lift]],'#c47d7f',5);line([[offset+10*s,80-lift],[offset+23*s-4,87-lift]],'#c47d7f',4)}ctx.restore();frame++}function loop(now){if(now-last>=dt){draw();last=now}requestAnimationFrame(loop)}if(matchMedia('(prefers-reduced-motion: reduce)').matches){draw()}else requestAnimationFrame(loop)})();
+</script></body></html>
