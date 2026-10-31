@@ -224,7 +224,7 @@ for(const m of state.modules){const box=$('#module-'+m.id),row=box.querySelector
 const baseSyncModules=syncModules;syncModules=function(){baseSyncModules();for(const m of state.modules){const el=$('#module-'+m.id+' [data-scale]');if(el)el.value=m.width+'%';}};
 const scope=document.createElement('label');scope.className='field';scope.innerHTML='<span>样式修改范围</span><select id="style-scope"><option value="all">统一全部文字</option><option value="one">仅当前文字 · DIY</option></select><button id="apply-all" type="button">将当前字体、字号、颜色一键应用全部</button>';$('#active-text').closest('label').before(scope);
 styleChange=function(key,prop,value){const all=$('#style-scope').value==='all';for(const [id,t]of Object.entries(state.texts))if(all||id===key)t[prop]=value;for(const p of ['font','color','size'])state.follow[p]={owner:null,on:all};changed();syncStyle();};
-followDescription=function(){return $('#style-scope').value==='all'?'修改字体、字号、颜色会同步所有文字；选择「仅当前文字」可单独 DIY。':'只修改当前文字，其他文字保持各自设置。';};
+followDescription=function(){return $('#style-scope').value==='all'?'修改字体、字号、颜色会同步所有文字；选择「仅当前文字」可单独 DIY。':'默认单独调整；需要统一时，可选择「全部文字」或使用一键统一。';};
 $('#apply-all').onclick=()=>{const s=state.texts[activeText];for(const t of Object.values(state.texts))for(const p of ['font','color','size'])t[p]=s[p];changed();syncStyle();toast('已统一全部文字的字体、字号和颜色');};$('#style-scope').onchange=syncStyle;$('#reset-follow').onclick=()=>{$('#style-scope').value='all';syncStyle();};$('#reset-follow').textContent='切回统一全部文字';
 updateHistory();
 
@@ -314,4 +314,4 @@ if(isBook){let inks={};try{inks=JSON.parse(localStorage.getItem('gu-book-inks-v1
  window.StudioColors={hsvToHex,hexToHSV,refresh,init};
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
-</script><script src="preview-workspace.js?v=1.10.1"></script><script src="interaction-trial.js?v=1.10.1"></script><script src="layout-polish.js?v=1.10.1"></script></body></html>
+</script><script src="preview-workspace.js?v=1.10.1"></script><script src="interaction-trial.js?v=text-one-1"></script><script src="layout-polish.js?v=1.10.1"></script></body></html>
