@@ -29,7 +29,7 @@ window.GuDesign={grid,dominant};})();
   function request(){dirty=true;if(!active()||frame||timer)return;frame=requestAnimationFrame(flush);}
   function flush(now){frame=0;if(!active()){dirty=false;return;}const remaining=interval-(now-last);
    if(remaining>0){timer=setTimeout(()=>{timer=0;if(dirty)request();},remaining);return;}
-   dirty=false;last=now;render(now);window.guPreviewReady();if(dirty)request();
+   dirty=false;last=now;if(render(now)!==false)window.guPreviewReady();if(dirty)request();
   }
   return {request,cancel};
  }
@@ -351,7 +351,7 @@ function renderSceneTo(g,outW,outH,progress,scene){
  }finally{ctx=previousContext}
 }
 function renderPreview(progress){
- if(!bookActive||document.hidden||!bookFontsReady())return;if(!sceneCache||!sceneCache.preview)sceneCache=prepareScene(true);const scale=1,w=Math.round(sceneCache.W*scale),h=Math.round(sceneCache.H*scale);if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h}renderSceneTo(ctx,w,h,progress,sceneCache);$('openprogress').value=Math.round(progress*100);syncFloatingPreview();
+ if(!bookActive||document.hidden||!bookFontsReady())return false;if(!sceneCache||!sceneCache.preview)sceneCache=prepareScene(true);const scale=1,w=Math.round(sceneCache.W*scale),h=Math.round(sceneCache.H*scale);if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h}renderSceneTo(ctx,w,h,progress,sceneCache);$('openprogress').value=Math.round(progress*100);syncFloatingPreview();
 }
 function stopPlayback(){playing=false;playbackToken++;$('pauseanimation').textContent='暂停';}
 function draw(){if(exporting)return;stopPlayback();sceneCache=null;bookDraw.request();}
