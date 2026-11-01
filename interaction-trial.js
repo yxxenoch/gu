@@ -24,7 +24,7 @@ if(common){const panel=$('#panel-text'),list=$('#text-list'),select=document.cre
 if(theme){const scope=$('#style-scope');scope.value='one';scope.options[0].textContent='全部文字';scope.options[1].textContent='单独调整';scope.closest('label').classList.add('ux-scope-card');scope.closest('label').querySelector('span').textContent='样式范围 · 字体 / 字号 / 颜色';$('#apply-all').textContent='用当前样式统一全部';$('#reset-follow').hidden=true;$('#active-text').closest('label').querySelector('span').textContent='内容位置';const upload=$('#font-file').closest('label'),library=details('字体管理 · 上传','ux-font-manager');library.append(upload);$('#font').closest('.row').after(library);
  const controls=$('.gu-page-controls'),tabs=document.createElement('div');tabs.className='ux-page-tabs';tabs.setAttribute('role','tablist');tabs.setAttribute('aria-label','主题预览页面');const image=button('图片',()=>selectPanel(0)),text=button('文字',()=>selectPanel(1));for(const b of[image,text])b.setAttribute('role','tab');tabs.append(image,text);controls.prepend(tabs);$('#prev').hidden=$('#next').hidden=$('#page-name').hidden=true;const originalSelect=selectPanel;function syncPage(){image.setAttribute('aria-selected',String(state.panel===0));text.setAttribute('aria-selected',String(state.panel===1));}selectPanel=function(...args){originalSelect(...args);syncPage();};syncPage();}
 if(dark){const panel=$('[data-panel="text"]'),scope=document.createElement('select'),target=document.createElement('select'),card=document.createElement('div');card.className='ux-scope-card';scope.add(new Option('全部文字','all'));scope.add(new Option('单独调整','one'));for(const[k,n]of[['title','主标题'],['subtitle','副标题'],['cloud','正文／氛围文字']])target.add(new Option(n,k));card.append(field('字体与普通文字颜色',scope));const targetField=field('当前文字',target);card.append(targetField);const note=document.createElement('p');note.className='ux-scope-note';note.textContent='主标题、副标题、正文可分别选择字体；切换「全部文字」后，任一字体选择会应用到三处。字号仍单独设置。';card.append(note);panel.prepend(card);const fontFields=['title','subtitle','cloud'].map(k=>$('#'+k+'Font').closest('label')),colorFields=['titleColor','subtitleColor','cloudColor'].map(id=>$('#'+id).closest('label'));
-function paint(){const all=scope.value==='all',index=['title','subtitle','cloud'].indexOf(target.value);targetField.hidden=all;fontFields.forEach(el=>el.hidden=false);colorFields.forEach((el,i)=>el.hidden=i!==(all?0:index));fontFields.forEach((el,i)=>el.querySelector('span').textContent=['主标题字体','副标题字体','正文／氛围文字字体'][i]);}
+function paint(){const all=scope.value==='all',index=['title','subtitle','cloud'].indexOf(target.value);targetField.hidden=true;fontFields.forEach(el=>el.hidden=false);colorFields.forEach(el=>el.hidden=false);fontFields.forEach((el,i)=>el.querySelector('span').textContent=['主标题字体','副标题字体','正文／氛围文字字体'][i]);}
 function bindFonts(){for(const key of['title','subtitle','cloud']){const native=$('#'+key+'Font');native.onchange=async()=>{const id=native.value;try{await ensureFont(id);for(const k of scope.value==='all'?['title','subtitle','cloud']:[key])state[k+'Font']=id;save();start();for(const k of['title','subtitle','cloud'])$('#'+k+'Font').value=state[k+'Font'];}catch(e){native.value=state[key+'Font'];toast('字体未能应用：'+e.message);}};}paint();}
 const originalRefresh=refreshFonts;refreshFonts=async function(){await originalRefresh();bindFonts();};refreshFonts().catch(()=>{});bindFonts();
 const originalUpload=$('#fontFile').onchange;$('#fontFile').onchange=async e=>{const old=Object.fromEntries(['title','subtitle','cloud'].map(k=>[k,state[k+'Font']])),selected=target.value,individual=scope.value==='one';await originalUpload(e);const changed=['title','subtitle','cloud'].some(k=>state[k+'Font']!==old[k]);if(individual&&changed){const font=state.titleFont;for(const k of['title','subtitle','cloud'])state[k+'Font']=k===selected?font:old[k];await refreshFonts();save();start();}};
@@ -44,6 +44,35 @@ const modal=$('#export-modal,#exportModal');if(modal){const dialog=modal.querySe
  }else if(dark){hasMotion=true;const staticParams=$('#size').closest('.grid2'),gifParams=$('#gifSize').closest('.grid2');still.append(staticParams,$('#makeStill'));motion.append(gifParams,$('#makeGif'));for(const n of existing)if(n.tagName==='HR')n.hidden=true;$('#makeStill').textContent='生成图片预览';$('#makeGif').textContent='生成动图预览';}
  function setMode(gif){still.hidden=gif;motion.hidden=!gif;imageTab.setAttribute('aria-selected',String(!gif));gifTab.setAttribute('aria-selected',String(gif));}if(!hasMotion){tabs.hidden=true;motion.hidden=true;}setMode(false);tabs.addEventListener('keydown',e=>{if(!hasMotion||!['ArrowLeft','ArrowRight'].includes(e.key))return;e.preventDefault();const next=e.key==='ArrowRight'?gifTab:imageTab;if(!next.disabled){next.click();next.focus();}});if(dark){const lock=()=>{const busy=$('#makeStill').disabled||$('#makeGif').disabled;imageTab.disabled=gifTab.disabled=busy;};for(const id of['makeStill','makeGif'])new MutationObserver(lock).observe($('#'+id),{attributes:true,attributeFilter:['disabled']});}
 }
+
+if(common){
+ const panel=$('#panel-text'),native=$('#text-content'),advanced=native.closest('.section'),cards=document.createElement('div');
+ cards.className='ux-direct-titles';
+ const entries=[];
+ function activate(key){activeText=key;syncText();}
+ for(const key of ['title','subtitle']){if(!state.text[key])continue;
+  const box=document.createElement('section');box.className='ux-scope-card';
+  const input=document.createElement('input');input.maxLength=native.maxLength;input.setAttribute('aria-label',TEXT_NAMES[key]+'内容');
+  input.onfocus=()=>activate(key);input.oninput=()=>{activate(key);native.value=input.value;native.dispatchEvent(new Event('input',{bubbles:true}));};
+  box.append(field(TEXT_NAMES[key],input));
+  const font=document.createElement('select');font.setAttribute('aria-label',TEXT_NAMES[key]+'字体');font.onchange=()=>chooseTextFont(font.value,key);
+  box.append(field('字体',font));
+  const range=document.createElement('input'),out=document.createElement('output');range.type='range';range.setAttribute('aria-label',TEXT_NAMES[key]+'字号');
+  const source=$('#text-size');range.min=source?.min||1;range.max=source?.max||160;range.step=source?.step||1;
+  range.oninput=()=>{const value=range.value;activate(key);const n=$('#text-size');n.value=value;n.dispatchEvent(new Event('input',{bubbles:true}));};
+  const size=field('字号',range);size.append(out);box.append(size);
+  const color=button('文字颜色',()=>{activate(key);$('#text-color').click();});box.append(color);
+  entries.push({key,input,font,range,out,color});cards.append(box);
+ }
+ panel.prepend(cards);
+ const fold=details('更多文字样式 · 位置 / 字距','ux-font-manager');advanced.before(fold);fold.append(advanced);
+ const target=$('#ux-text-target');if(target)target.closest('label').hidden=true;
+ const oldSync=syncText;syncText=function(){oldSync();for(const e of entries){const t=state.text[e.key];if(document.activeElement!==e.input)e.input.value=t.content;
+ const nativeFont=$('#font-select');e.font.replaceChildren(...[...nativeFont.options].map(o=>new Option(o.text,o.value)));e.font.value=t.font;e.range.value=t.size;e.out.value=t.size+' px';e.color.textContent='文字颜色 '+t.color;e.color.style.borderColor=t.color;}};
+ syncText();
+}
+if(dark){const target=$('.ux-scope-card select');const original=syncInputs;syncInputs=function(){original();for(const id of ['titleColor','subtitleColor','cloudColor'])$('#'+id).closest('label').hidden=false;};for(const id of ['titleColor','subtitleColor','cloudColor'])$('#'+id).closest('label').hidden=false;const card=$('.ux-scope-card');if(card){const fields=card.querySelectorAll('label');if(fields[1])fields[1].hidden=true;}}
+
 window.GuUX={showGenerated(blob,name,kind){const output=$('#ux-'+kind+'-output');if(!output)return;for(const img of output.querySelectorAll('img'))if(img.dataset.url)URL.revokeObjectURL(img.dataset.url);output.replaceChildren();const url=URL.createObjectURL(blob),img=new Image();img.src=url;img.dataset.url=url;img.alt='已生成的动图预览';const save=button('保存动图',()=>StudioNative.save(blob,name));output.append(img,save);}};
 })();
 ;(()=>{
