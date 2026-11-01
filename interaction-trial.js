@@ -1,6 +1,6 @@
 (()=>{'use strict';
 if(typeof TEXT_NAMES!=='undefined'){TEXT_NAMES.title='主题名';TEXT_NAMES.subtitle='制作者';}
-const rename=s=>s.replace(/主标题/g,'主题名').replace(/副标题/g,'制作者').replace(/封面書名/g,'主题名').replace(/书名字号/g,'主题名字号').replace(/当前景标题/g,'当前景主题名').replace(/当前景注释/g,'当前景制作者');
+const rename=s=>s.replace(/批量上传返图/g,'批量上传图片').replace(/主标题/g,'主题名').replace(/副标题/g,'制作者').replace(/封面書名/g,'主题名').replace(/书名字号/g,'主题名字号').replace(/当前景标题/g,'当前景主题名').replace(/当前景注释/g,'当前景制作者');
 function update(root){if(root.nodeType===3){if(root.parentElement?.closest('script,style,textarea,[contenteditable]'))return;const next=rename(root.nodeValue);if(next!==root.nodeValue)root.nodeValue=next;return;}if(root.nodeType!==1)return;if(root.matches('script,style,textarea,[contenteditable]'))return;for(const key of ['aria-label','title'])if(root.hasAttribute(key)){const old=root.getAttribute(key),next=rename(old);if(next!==old)root.setAttribute(key,next);}for(const child of root.childNodes)update(child);}
 update(document.body);new MutationObserver(rows=>{for(const row of rows){if(row.type==='characterData')update(row.target);else for(const node of row.addedNodes)update(node);}}).observe(document.body,{subtree:true,childList:true,characterData:true});
 })();
