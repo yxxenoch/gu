@@ -339,7 +339,7 @@ $('#sticker-input').onchange=e=>fileTask(e.target,async files=>{const room=12-st
 let fontRenderEpoch=0,fontChoiceEpoch=0;const pendingFontIDs=new Set();
 async function fontBlob(entry){if(entry.blob)return entry.blob;const saved=entry.sharedId&&await StudioFontLibrary.get(entry.sharedId);if(!saved)throw Error('字体缓存已不存在，请重新导入');entry.blob=saved.blob||new Blob([saved.buffer],{type:'application/octet-stream'});entry.transientBlob=true;return entry.blob;}
 function usedFontIDs(){const ids=new Set(Object.values(state.text).filter(t=>t.visible).map(t=>t.font));if(state.labels)ids.add(state.text.subtitle.font);return ids;}
-function releaseUnusedFonts(all=false){const used=all?new Set():usedFontIDs();for(const f of fontRecords.values())if(!used.has(f.id)&&!f.pinning&&!pendingFontIDs.has(f.id)){if(f.face){document.fonts.delete(f.face);f.face=null;}if(f.transientBlob&&!f.loading)f.blob=null;}}
+function releaseUnusedFonts(all=false){if(foodGIFExporting||foodPNGExporting)return;const used=all?new Set():usedFontIDs();for(const f of fontRecords.values())if(!used.has(f.id)&&!f.pinning&&!pendingFontIDs.has(f.id)){if(f.face){document.fonts.delete(f.face);f.face=null;}if(f.transientBlob&&!f.loading)f.blob=null;}}
 async function ensureFont(id){const f=fontRecords.get(id);if(!f){if(!FONT_FAMILIES[id])throw Error('字体记录不存在，请重新导入');return;}if(f.face&&document.fonts.has(f.face))return f.face;if(f.loading)return f.loading;
  f.loading=(async()=>{const blob=await fontBlob(f),data=await blob.arrayBuffer(),face=new FontFace(id,data);await face.load();document.fonts.add(face);f.face=face;fontRenderEpoch++;return face;})().finally(()=>{f.loading=null;});return f.loading;
 }
