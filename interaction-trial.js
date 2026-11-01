@@ -46,29 +46,18 @@ const modal=$('#export-modal,#exportModal');if(modal){const dialog=modal.querySe
 }
 
 if(common){
- const panel=$('#panel-text'),native=$('#text-content'),advanced=native.closest('.section'),cards=document.createElement('div');
- cards.className='ux-direct-titles';
- const entries=[];
- function activate(key){activeText=key;syncText();}
- for(const key of ['title','subtitle']){if(!state.text[key])continue;
-  const box=document.createElement('section');box.className='ux-scope-card';
-  const input=document.createElement('input');input.maxLength=native.maxLength;input.setAttribute('aria-label',TEXT_NAMES[key]+'内容');
-  input.onfocus=()=>activate(key);input.oninput=()=>{activate(key);native.value=input.value;native.dispatchEvent(new Event('input',{bubbles:true}));};
-  box.append(field(TEXT_NAMES[key],input));
-  const font=document.createElement('select');font.setAttribute('aria-label',TEXT_NAMES[key]+'字体');font.onchange=()=>chooseTextFont(font.value,key);
-  box.append(field('字体',font));
-  const range=document.createElement('input'),out=document.createElement('output');range.type='range';range.setAttribute('aria-label',TEXT_NAMES[key]+'字号');
-  const source=$('#text-size');range.min=source?.min||1;range.max=source?.max||160;range.step=source?.step||1;
-  range.oninput=()=>{const value=range.value;activate(key);const n=$('#text-size');n.value=value;n.dispatchEvent(new Event('input',{bubbles:true}));};
-  const size=field('字号',range);size.append(out);box.append(size);
-  const color=button('文字颜色',()=>{activate(key);$('#text-color').click();});box.append(color);
-  entries.push({key,input,font,range,out,color});cards.append(box);
- }
- panel.prepend(cards);
- const fold=details('更多文字样式 · 位置 / 字距','ux-font-manager');advanced.before(fold);fold.append(advanced);
- const target=$('#ux-text-target');if(target)target.closest('label').hidden=true;
- const oldSync=syncText;syncText=function(){oldSync();for(const e of entries){const t=state.text[e.key];if(document.activeElement!==e.input)e.input.value=t.content;
- const nativeFont=$('#font-select');e.font.replaceChildren(...[...nativeFont.options].map(o=>new Option(o.text,o.value)));e.font.value=t.font;e.range.value=t.size;e.out.value=t.size+' px';e.color.textContent='文字颜色 '+t.color;e.color.style.borderColor=t.color;}};
+ const native=$('#text-content'),editor=native.closest('.section'),list=$('#text-list'),fields=[];
+ native.closest('label').hidden=true;
+ $('#ux-text-target')?.closest('label').remove();
+ for(const key of ['title','subtitle']){if(!state.text[key])continue;const input=document.createElement('input');input.maxLength=native.maxLength;input.setAttribute('aria-label',TEXT_NAMES[key]+'内容');const row=field(TEXT_NAMES[key],input);fields.push({key,input,row});
+ input.onfocus=()=>{activeText=key;syncText();};
+ input.oninput=()=>{const value=input.value;activeText=key;native.value=value;native.dispatchEvent(new Event('input',{bubbles:true}));};}
+ editor.prepend(...fields.map(e=>e.row));
+ list.hidden=false;const caption=document.createElement('p');caption.className='hint';caption.textContent='选择下方标题，调整对应的字体、字号、颜色与位置。';
+ if(list.children.length){fields.at(-1)?.row.after(caption,list);}
+ const original=syncText;syncText=function(){original();for(const {key,input} of fields)if(document.activeElement!==input)input.value=state.text[key].content;};
+ const labels=$('#show-labels'),upload=$('label[for="photos-input"]'),photo=$('#panel-photo');
+ if(labels&&photo){const row=labels.closest('.row')||labels.closest('label');if(row){if(upload)upload.after(row);else photo.prepend(row);}}
  syncText();
 }
 if(dark){const target=$('.ux-scope-card select');const original=syncInputs;syncInputs=function(){original();for(const id of ['titleColor','subtitleColor','cloudColor'])$('#'+id).closest('label').hidden=false;};for(const id of ['titleColor','subtitleColor','cloudColor'])$('#'+id).closest('label').hidden=false;const card=$('.ux-scope-card');if(card){const fields=card.querySelectorAll('label');if(fields[1])fields[1].hidden=true;}}
