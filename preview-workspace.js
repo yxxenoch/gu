@@ -58,5 +58,16 @@ if(collapseToggle||tools||book){
  new MutationObserver(syncRecovery).observe(floating,{attributes:true,attributeFilter:['class','hidden']});
  document.addEventListener('click',syncRecovery);window.addEventListener('message',()=>syncRecovery());syncRecovery();
 }
+// Editors use both document scrolling and nested workspaces.
+const topButton=button('↑ 回顶部',()=>{
+ const nodes=scrollRoots();
+ for(const el of nodes)if(el.scrollTop||el.scrollLeft)el.scrollTo({top:0,left:0,behavior:'auto'});
+ window.scrollTo({top:0,left:0,behavior:'auto'});syncTopButton();schedule();
+});topButton.className='gu-back-top';topButton.hidden=true;body.append(topButton);
+const topStyle=document.createElement('style');topStyle.textContent=`.gu-back-top[hidden]{display:none!important}.gu-back-top{position:fixed!important;right:14px!important;bottom:calc(18px + env(safe-area-inset-bottom))!important;z-index:479!important;width:auto!important;min-height:44px!important;margin:0!important;padding:10px 16px!important;border:1px solid #819887!important;border-radius:24px!important;background:#faf9f4!important;color:#294d3e!important;box-shadow:0 5px 20px #18382a22;font:14px system-ui!important;touch-action:manipulation}.gu-back-top.gu-above-reopen{bottom:calc(72px + env(safe-area-inset-bottom))!important}`;document.head.append(topStyle);
+function scrollRoots(){return [...new Set([document.scrollingElement,...document.querySelectorAll('.workbench,.work,.layout,.ukiyo-workbench,.editor,.panel,main')])].filter(Boolean);}
+function syncTopButton(){topButton.hidden=!active||!lightbox.hidden||!((window.scrollY||0)>180||scrollRoots().some(el=>el.scrollTop>180));const rescue=$('.gu-preview-reopen');topButton.classList.toggle('gu-above-reopen',!!rescue&&!rescue.hidden);}
+let topQueued=false;function queueTop(){if(topQueued)return;topQueued=true;requestAnimationFrame(()=>{topQueued=false;syncTopButton();});}
+document.addEventListener('scroll',queueTop,{capture:true,passive:true});document.addEventListener('click',queueTop);window.addEventListener('resize',queueTop);window.addEventListener('message',queueTop);document.addEventListener('visibilitychange',queueTop);new MutationObserver(queueTop).observe(lightbox,{attributes:true,attributeFilter:['hidden']});syncTopButton();
 if(typeof IntersectionObserver!=='undefined')new IntersectionObserver(()=>schedule(),{threshold:[0,.5,1]}).observe(pane);if(typeof ResizeObserver!=='undefined')new ResizeObserver(()=>{schedule();refresh(true);}).observe(main);schedule();
 })();
