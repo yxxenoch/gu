@@ -36,5 +36,27 @@ let tools=$('.preview-tools');if(theme||dark){body.classList.add('gu-preview-wor
 const auto=button('自动悬浮',()=>{enabled=!enabled;auto.setAttribute('aria-pressed',String(enabled));auto.textContent=enabled?'自动悬浮':'悬浮已关';try{localStorage.setItem(pref,enabled?'on':'off');}catch{}evaluate(false);},'根据主预览可见范围自动显隐悬浮窗');auto.classList.add('gu-auto-switch');auto.setAttribute('aria-pressed',String(enabled));auto.textContent=enabled?'自动悬浮':'悬浮已关';if(tools)tools.append(auto);
 if(book){$('#floatingpreview').style.setProperty('display','none','important');$('#floatreopen')?.style.setProperty('display','none','important');const legacy=$('#showfloat');if(legacy){legacy.textContent='自动悬浮';legacy.onclick=()=>auto.click();}if(typeof syncFloatingPreview==='function')syncFloatingPreview=()=>refresh();}
 document.addEventListener('scroll',()=>schedule(true),true);window.addEventListener('resize',()=>{if(!floating.hidden)clampWindow();schedule();refresh(true);});window.visualViewport?.addEventListener('resize',()=>schedule());document.addEventListener('visibilitychange',()=>schedule());window.addEventListener('message',e=>{if(e.source!==parent||e.origin!==(typeof studioOrigin==='string'?studioOrigin:location.origin)||e.data?.type!=='studio-active')return;active=!!e.data.active;schedule();});
+// Keep a restore action outside clipped preview panels and view menus.
+const collapseToggle=$('[data-action="compact"],#collapse-preview')||[...(tools?.querySelectorAll('button')||[])].find(b=>['收起','展开'].includes(b.textContent.trim()));
+if(collapseToggle||tools||book){
+ collapseToggle?.classList.add('gu-collapse-toggle');
+ const recoveryStyle=document.createElement('style');recoveryStyle.textContent=`
+ .gu-preview-reopen[hidden]{display:none!important}.gu-preview-reopen{position:fixed!important;right:14px!important;bottom:calc(18px + env(safe-area-inset-bottom))!important;z-index:480!important;width:auto!important;min-height:44px!important;margin:0!important;padding:10px 16px!important;border:1px solid #819887!important;border-radius:24px!important;background:#294d3e!important;color:#fffbee!important;box-shadow:0 5px 20px #18382a33;font:14px system-ui!important;touch-action:manipulation}
+ @media(max-width:700px){.mobile-workspace.preview-collapsed .preview-column{height:auto!important;min-height:64px!important;padding:8px 12px!important}.mobile-workspace.preview-collapsed .preview-heading{display:none!important}.mobile-workspace.preview-collapsed .preview-footer{min-height:44px;flex-wrap:wrap;gap:6px}.mobile-workspace.preview-collapsed .preview-tools{flex-wrap:wrap}.mobile-workspace.preview-collapsed .preview-footer>span{max-width:100%;flex:1 1 100%}.mobile-workspace.preview-collapsed .tabs{top:0!important}}
+ `;document.head.append(recoveryStyle);
+ const reopen=button('展开预览 ↑',()=>{
+  if(isCollapsed()&&collapseToggle)collapseToggle.click();
+  else{enabled=true;dismissed=false;wanted=true;floating.classList.remove('mini');floating.querySelector('[data-fold]').textContent='▁';floating.hidden=false;auto.setAttribute('aria-pressed','true');auto.textContent='自动悬浮';try{localStorage.setItem(pref,'on');}catch{}clampWindow();}
+  const panel=main.closest('.preview-column,.preview-col,.preview');
+  panel?.scrollIntoView({block:'start',behavior:'auto'});
+  schedule();refresh(true);
+ });reopen.className='gu-preview-reopen';reopen.hidden=true;body.append(reopen);
+ function isCollapsed(){return body.classList.contains('preview-collapsed')||body.classList.contains('gu-preview-collapsed');}
+ function syncRecovery(){const collapsed=isCollapsed(),floatClosed=dismissed||!enabled||floating.classList.contains('mini');reopen.hidden=!(collapsed||floatClosed)||!active||!lightbox.hidden;reopen.textContent=collapsed?'展开预览 ↑':'打开悬浮预览';collapseToggle?.setAttribute('aria-expanded',String(!collapsed));collapseToggle?.setAttribute('aria-label',collapsed?'展开预览':'收起预览');if(collapseToggle)collapseToggle.title=collapsed?'展开预览':'收起预览';}
+ new MutationObserver(syncRecovery).observe(body,{attributes:true,attributeFilter:['class']});
+ new MutationObserver(syncRecovery).observe(lightbox,{attributes:true,attributeFilter:['hidden']});
+ new MutationObserver(syncRecovery).observe(floating,{attributes:true,attributeFilter:['class','hidden']});
+ document.addEventListener('click',syncRecovery);window.addEventListener('message',()=>syncRecovery());syncRecovery();
+}
 if(typeof IntersectionObserver!=='undefined')new IntersectionObserver(()=>schedule(),{threshold:[0,.5,1]}).observe(pane);if(typeof ResizeObserver!=='undefined')new ResizeObserver(()=>{schedule();refresh(true);}).observe(main);schedule();
 })();
