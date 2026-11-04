@@ -69,3 +69,5 @@ let drag=null;cv.addEventListener('pointerdown',e=>{if(playing||exporting)return
 // Fit the whole sheet inside the preview stage, including the bottom labels.
 function fitPreview(){let stage=cv.closest('.stage-wrap'),shell=cv.closest('.canvas-shell');if(!stage||!shell)return;let r=stage.getBoundingClientRect(),st=getComputedStyle(stage),w=r.width-parseFloat(st.paddingLeft)-parseFloat(st.paddingRight),h=r.height-parseFloat(st.paddingTop)-parseFloat(st.paddingBottom);if(w>0&&h>0){shell.style.width=Math.floor(Math.min(w,h*4/3))+'px';shell.style.height='auto';cv.style.width='100%';cv.style.height='auto'}}
 if(typeof ResizeObserver!=='undefined')new ResizeObserver(fitPreview).observe(cv.closest('.stage-wrap'));window.addEventListener('resize',fitPreview);requestAnimationFrame(fitPreview);
+
+document.addEventListener('click',e=>{let menu=$('project-menu');if(!menu.contains(e.target)||e.target.closest('.ux-menu-body button'))menu.open=false});document.addEventListener('keydown',e=>{if(e.key==='Escape')$('project-menu').open=false});
