@@ -333,6 +333,11 @@ function projectPaper(g,image,a,b){
  drawTriangle(g,image,[[sx0,0],[sx1,0],[sx1,image.height]],[[x0,top0],[x1,top1],[x1,bottom1]]);drawTriangle(g,image,[[sx0,0],[sx1,image.height],[sx0,image.height]],[[x0,top0],[x1,bottom1],[x0,bottom0]]);
  }
 }
+// Export reuses the full-resolution prepared scene. renderSceneTo scales it to GIF dimensions.
+function prepareExportScene(scene,width,height){
+ if(!scene||!scene.bg||!scene.leaves||!width||!height)throw Error('GIF 场景准备失败');
+ return scene;
+}
 function renderSceneTo(g,outW,outH,progress,scene){
  const previousContext=ctx;ctx=g;try{
   g.save();g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,outW,outH);g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';g.drawImage(scene.bg,0,0,outW,outH);g.scale(outW/scene.W,outH/scene.H);
