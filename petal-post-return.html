@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#f5f1e8">
-<title>花里有信 · 返图模板</title>
+<title>折花寄影 · 返图模板</title>
 <style>
 :root{color-scheme:light;--ink:#352b27;--muted:#6d5e55;--line:#ded5c7;--cream:#f5f1e8;--accent:#854c61;--serif:"Iowan Old Style","Palatino Linotype","Noto Serif CJK SC","Songti SC",serif}
 *{box-sizing:border-box}body{margin:0;background:var(--cream);color:var(--ink);font:14px/1.6 system-ui,sans-serif}button,textarea,input{font:inherit}button{cursor:pointer}button:focus-visible,textarea:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:3px}main{width:min(1180px,calc(100% - 64px));margin:auto}.mast{display:flex;justify-content:space-between;align-items:center;height:70px;border-bottom:1px solid var(--line)}.brand{font-family:var(--serif);letter-spacing:.13em;font-size:15px}.stamp{width:25px;height:25px;display:inline-grid;place-items:center;border:1px solid #9c7c73;border-radius:50%;color:var(--accent);margin-right:9px}.tag,.steps,.bottom{font:11px/1.4 ui-monospace,monospace;letter-spacing:.15em;color:var(--muted)}.hero{padding:25px 0 23px;display:flex;align-items:end;justify-content:space-between;gap:24px}.hero h1{font:500 clamp(43px,6.1vw,83px)/1.08 var(--serif);margin:0;letter-spacing:.055em}.hero h1 em{font:italic 400 .48em Georgia,serif;letter-spacing:-.035em;color:#8e5e6c;display:inline-block;margin-left:15px}.hero p:last-child{margin:0 0 4px;color:var(--muted);max-width:265px}
@@ -46,6 +46,12 @@
 .font-upload{display:flex;align-items:center;gap:8px;margin-bottom:10px}
 .floating-grip{display:block;text-align:center;font-size:11px;color:var(--muted);padding:4px;cursor:grab;touch-action:none;user-select:none}
 .floating-grip:active{cursor:grabbing}
+.material-grid{grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:8px}
+.material-card{min-width:0;display:grid;justify-items:center;align-content:start;gap:5px;padding:5px;border-radius:10px;border:1px solid #ddd1c4;background:#fffaf3;color:inherit;font:inherit;font-size:12px;text-align:center;overflow-wrap:anywhere}
+.material-card[aria-pressed="true"]{border-color:var(--accent,#65384b);box-shadow:0 0 0 1px var(--accent,#65384b)}
+.material-card img,.material-sample{display:block;width:100%;height:58px;object-fit:contain;border-radius:6px;background:#f4ece3}
+#note-materials img{object-fit:cover}
+.material-sample{background:repeating-linear-gradient(28deg,#f7e9d9 0 3px,#f5e5d4 4px,#f7e9d9 6px)}
 </style>
 <script src="studio-font-library.js?v=1"></script>
 <script src="gif-codec.js?v=adaptive-2"></script>
@@ -55,7 +61,7 @@
 <main>
 <header class="mast"><div class="brand"><span class="stamp" aria-hidden="true">✿</span>返图试验室</div></header>
 <section class="hero">
-<div><h1>花里有信 <em>Petal Post</em></h1></div>
+<div><h1>折花寄影 <em>Petal Post</em></h1></div>
 <p>把你的截图藏进折纸里。<br>点开封面，看看返图沿着斜折慢慢铺开。</p>
 </section>
 <div class="studio">
@@ -87,14 +93,15 @@
 </div></div>
 <div class="section uploads" aria-label="自定义图片"><div class="label">自定义图片</div>
 <div class="upload-row">
-<strong>合拢首图</strong><label class="upload-file">选图<input type="file" data-image="flower" accept="image/*" aria-label="替换合拢图案"></label>
-<div class="presets"><select class="cover-preset" id="cover-preset" aria-label="首图预设"><option value="blue-flower" selected>预设 · 深蓝花</option><option value="flower">预设 · 压花</option><option value="butterfly">预设 · 纸蝶</option></select></div>
-<div class="upload-meta"><span data-caption="flower" data-default="透明底 PNG 会自动去掉透明留白">透明底 PNG 会自动去掉透明留白</span><button type="button" class="reset-image" data-reset="flower" aria-label="恢复默认合拢图案" hidden>恢复默认</button></div>
+<strong id="cover-materials-label">封面</strong>
+<div id="cover-materials" class="material-grid" role="group" aria-labelledby="cover-materials-label"></div>
+<div class="upload-meta"><span data-caption="flower" data-default="合拢时显示，也会出现在 GIF 开头">合拢时显示，也会出现在 GIF 开头</span><button type="button" class="reset-image" data-reset="flower" aria-label="恢复默认合拢图案" hidden>恢复默认</button></div>
 <div class="flower-size" id="flower-size-control" hidden><label for="flower-size">图案大小</label><input id="flower-size" type="range" min="75" max="140" value="100"><output id="flower-size-value" for="flower-size">100%</output></div>
 </div>
 <div class="upload-row">
-<strong>信纸底图</strong><label class="upload-file">选图<input type="file" data-image="note" accept="image/*" aria-label="替换信纸底图"></label>
-<div class="upload-meta"><span data-caption="note" data-default="铺在返图照片的纸面下方">铺在返图照片的纸面下方</span><button type="button" class="reset-image" data-reset="note" aria-label="恢复默认信纸底图" hidden>恢复默认</button></div>
+<strong id="note-materials-label">花纹</strong>
+<div id="note-materials" class="material-grid" role="group" aria-labelledby="note-materials-label"></div>
+<div class="upload-meta"><span data-caption="note" data-default="展开后铺在返图照片下方">展开后铺在返图照片下方</span><button type="button" class="reset-image" data-reset="note" aria-label="恢复默认信纸底图" hidden>恢复默认</button></div>
 </div>
 <div class="upload-row">
 <strong>画布背景</strong><label class="upload-file">选图<input type="file" data-image="stage" accept="image/*" aria-label="替换画布背景"></label>
@@ -104,7 +111,7 @@
 <div class="section" aria-label="首图文字">
 <label class="editor-field">左侧 · 模板名<input id="cover-title" type="text" maxlength="24"></label>
 <label class="editor-field">右侧 · 制作者<input id="cover-author" type="text" maxlength="24"></label>
-<label class="editor-field">右侧 · 制作者的话<textarea id="message" maxlength="70" rows="2"></textarea></label>
+<label class="editor-field">右侧 · 制作者的话<textarea id="message" maxlength="70" rows="2" placeholder="选填，留空时成品不显示"></textarea></label>
 <details class="cover-type">
 <summary>文字样式</summary>
 <label class="editor-field">字体<select id="cover-font"><option value="serif">宋体风格</option><option value="sans">无衬线</option><option value="hand">楷体风格</option></select></label>
@@ -223,7 +230,10 @@ const coverPresets=[
   {id:"flower",label:"压花"},
   {id:"butterfly",label:"纸蝶"}
 ];
-let coverStyle="flower",collage=[],photoRequest=0,presetRequest=0;
+const notePresets=[
+  {id:"plain",label:"原版纸纹"}
+];
+let coverStyle="flower",collage=[],photoRequest=0;
 const imageRequests = {flower: 0, note: 0, stage: 0};
 
 function drawFitted(c, image, width, height, mode) {
@@ -471,7 +481,7 @@ const coverFonts={
   hand:'"Kaiti SC",KaiTi,STKaiti,serif'
 };
 const coverTextDefaults={
-  title:"花里有信",author:"咕の返图",message:"把喜欢的画面，折进这一朵花。"
+  title:"折花寄影",author:"咕の返图"
 };
 const customTextColors=new Set();
 const loadedCoverFonts=new Map();
@@ -562,7 +572,8 @@ function layoutCoverLabels(c,half,canvasHalfWidth,canvasHalfHeight,paperHalf,t) 
   const maxHeight=closedLabelHeight+(openLabelHeight-closedLabelHeight)*move;
   const groups=[
     {side:-1,items:[["title",$("cover-title").value]]},
-    {side:1,items:[["author",$("cover-author").value],["message",message.value]]}
+    {side:1,items:[["author",$("cover-author").value],["message",message.value]]
+      .filter(([key,input])=>key!=="message" || input.trim())}
   ];
   c.save();
   const layout=groups.map(({side,items})=>{
@@ -912,7 +923,8 @@ function updateImageControls(key){
   const caption=document.querySelector('[data-caption="'+key+'"]');
   caption.textContent=imageNames[key] || caption.dataset.default;
   caption.title=imageNames[key];
-  document.querySelector('[data-reset="'+key+'"]').hidden=!images[key];
+  document.querySelector('[data-reset="'+key+'"]').hidden=
+    key==="stage"?!images[key]:materialSelection[key]===defaultMaterial[key];
   if(key==="flower")$("flower-size-control").hidden=!images[key];
 }
 
@@ -956,7 +968,7 @@ async function loadImage(file, key) {
   }
 }
 
-document.querySelectorAll("[data-image]").forEach(input=>{
+document.querySelectorAll('[data-image="stage"]').forEach(input=>{
   input.addEventListener("change",async()=>{
     const file=input.files[0];
     if(!file)return;
@@ -980,13 +992,16 @@ document.querySelectorAll("[data-reset]").forEach(button=>{
   button.addEventListener("click",()=>{
     const key=button.dataset.reset;
     if(key==="flower"){
-      selectCoverPreset(coverStyle);
+      selectMaterial("flower",defaultMaterial.flower);
+    }else if(key==="note"){
+      selectMaterial("note","plain");
     }else{
       ++imageRequests[key];
       updateImage(key,null,"");
     }
     $("notice").textContent=button.getAttribute("aria-label")+"。";
-    document.querySelector('[data-image="'+key+'"]').focus();
+    if(key==="stage")document.querySelector('[data-image="stage"]').focus();
+    else materialGrids[key].querySelector("button").focus();
   });
 });
 $("flower-size").addEventListener("input",()=>{
@@ -1043,35 +1058,80 @@ $("reset-photos").addEventListener("click",()=>{
   ++photoRequest;collage=[];updatePhotoList();updateNote();recordEdit();
   $("photos").focus();
 });
-const coverSelect=$("cover-preset");
-for(const preset of coverPresets){
-  if(!Array.from(coverSelect.options).some(option=>option.value===preset.id)){
-    coverSelect.add(new Option("预设 · "+preset.label,preset.id));
+const materialGrids={flower:$("cover-materials"),note:$("note-materials")};
+const defaultMaterial={flower:"blue-flower",note:"plain"};
+const materialSelection={...defaultMaterial};
+const materials={flower:coverPresets,note:notePresets};
+
+function syncMaterialCards(key){
+  for(const button of materialGrids[key].querySelectorAll("button")){
+    button.setAttribute("aria-pressed",String(button.dataset.material===materialSelection[key]));
   }
 }
-async function selectCoverPreset(id){
-  const preset=coverPresets.find(item=>item.id===id);
-  if(!preset)return;
-  const request=++presetRequest;
-  const customRequest=++imageRequests.flower;
-  if(!preset.src){
-    coverStyle=coverSelect.value=preset.id;updateImage("flower",null,"");return;
-  }
-  try{
-    const response=await fetch(preset.src);
-    if(!response.ok)throw Error("Cover preset unavailable");
-    const image=await loadImage(await response.blob(),"flower");
-    if(request!==presetRequest || customRequest!==imageRequests.flower)return;
-    coverStyle=coverSelect.value=preset.id;
-    updateImage("flower",image,preset.label);
-  }catch{
-    if(request===presetRequest && customRequest===imageRequests.flower){
-      coverSelect.value=coverStyle;
-      $("notice").textContent="这张预设暂时无法读取。";
+
+function renderMaterialCards(){
+  for(const [key,presets] of Object.entries(materials)){
+    for(const preset of presets){
+      const button=document.createElement("button");
+      button.type="button";
+      button.className="material-card";
+      button.dataset.material=preset.id;
+      let thumbnail=preset.thumb||preset.src;
+      if(key==="flower"&&!thumbnail){
+        coverStyle=preset.id;
+        makeFlower();
+        const preview=document.createElement("canvas");
+        preview.width=preview.height=116;
+        preview.getContext("2d").drawImage(flower,0,0,116,116);
+        thumbnail=preview.toDataURL();
+      }
+      if(thumbnail){
+        const image=document.createElement("img");
+        image.src=thumbnail;image.alt="";
+        button.append(image);
+      }else{
+        const sample=document.createElement("span");
+        sample.className="material-sample";
+        sample.setAttribute("aria-hidden","true");
+        button.append(sample);
+      }
+      button.append(preset.label);
+      button.addEventListener("click",async()=>{
+        if(await selectMaterial(key,preset.id)){
+          const destination=key==="flower"?0:1;
+          if(target!==destination)toggle();
+        }
+      });
+      materialGrids[key].append(button);
     }
+    syncMaterialCards(key);
+  }
+  coverStyle="flower";
+}
+
+async function selectMaterial(key,id){
+  const preset=materials[key].find(item=>item.id===id);
+  if(!preset)return;
+  const request=++imageRequests[key];
+  try{
+    let image=null;
+    if(preset.src){
+      const response=await fetch(preset.src);
+      if(!response.ok)throw Error("Material unavailable");
+      image=await loadImage(await response.blob(),key);
+    }
+    if(request!==imageRequests[key])return;
+    if(key==="flower")coverStyle=id;
+    materialSelection[key]=id;
+    syncMaterialCards(key);
+    updateImage(key,image,image?preset.label:"");
+    return true;
+  }catch{
+    if(request!==imageRequests[key])return;
+    $("notice").textContent="这张素材暂时无法读取。";
   }
 }
-coverSelect.addEventListener("change",()=>selectCoverPreset(coverSelect.value));
+renderMaterialCards();
 
 const historyFields=[
   "cover-title","cover-author","message","cover-font","flower-size","paper-finish",
@@ -1084,7 +1144,7 @@ let editIndex=-1;
 function editorState(){
   return {
     fields:historyFields.map(input=>input.value),
-    customColors:[...customTextColors].sort(),theme,coverStyle,
+    customColors:[...customTextColors].sort(),theme,coverStyle,materialSelection:{...materialSelection},
     images:{...images},imageNames:{...imageNames},collage:collage.slice()
   };
 }
@@ -1099,6 +1159,7 @@ function recordEdit(){
   const previous=edits[editIndex], next=editorState();
   const unchanged=(left,right)=>left.length===right.length && left.every((item,i)=>item===right[i]);
   if(previous.theme===next.theme && previous.coverStyle===next.coverStyle &&
+    unchanged(Object.values(previous.materialSelection),Object.values(next.materialSelection)) &&
     unchanged(previous.fields,next.fields) && unchanged(previous.customColors,next.customColors) &&
     unchanged(previous.collage,next.collage) && unchanged(Object.values(previous.images),Object.values(next.images)) &&
     unchanged(Object.values(previous.imageNames),Object.values(next.imageNames)))return;
@@ -1122,7 +1183,9 @@ function restoreEdit(step){
   customTextColors.clear();
   for(const key of state.customColors)customTextColors.add(key);
   theme=state.theme;
-  coverStyle=coverSelect.value=state.coverStyle;
+  coverStyle=state.coverStyle;
+  Object.assign(materialSelection,state.materialSelection);
+  for(const key of Object.keys(materialGrids))syncMaterialCards(key);
   paperFinish=Number($("paper-finish").value)/100;
   $("paper-finish-value").textContent=$("paper-finish").value+"%";
   $("flower-size-value").textContent=$("flower-size").value+"%";
@@ -1212,7 +1275,7 @@ $("save-gif").addEventListener("click",async()=>{
 });
 makeFlower();updateNote();new ResizeObserver(resize).observe(art);resize();
 refreshCoverFonts();
-selectCoverPreset(coverSelect.value).finally(()=>{
+selectMaterial("flower",materialSelection.flower).finally(()=>{
   edits.push(editorState());
   editIndex=0;
   updateHistoryButtons();
