@@ -456,6 +456,23 @@ const faces=baseTriangles.map(tri=>{
   });
 });
 let previousGeometry='';
+function cardClearance(top,bottom,left,right,side){
+  const depths=new Float32Array(cardStrips+1).fill(-Infinity);
+  const scale=cardStrips/(bottom-top);
+  for(const [a,b,c] of faces){
+    const p=a.vertex.p,q=b.vertex.p,r=c.vertex.p;
+    if(Math.min(p[0],q[0],r[0])>right||Math.max(p[0],q[0],r[0])<left)continue;
+    const low=Math.min(p[1],q[1],r[1]),high=Math.max(p[1],q[1],r[1]);
+    if(low>bottom||high<top)continue;
+    const first=Math.max(0,Math.floor((low-top)*scale));
+    const last=Math.min(cardStrips,Math.floor((high-top)*scale)+1);
+    // Lift both ends of every overlapping strip beyond the whole paper
+    // triangle, so the rendered triangles cannot cross between samples.
+    const depth=Math.max(side*p[2],side*q[2],side*r[2])+.008;
+    for(let i=first;i<=last;i++)depths[i]=Math.max(depths[i],depth);
+  }
+  return depths;
+}
 function updateGeometry(s,showPopup){
   const key=[s.a,s.b,s.pop,s.ox,s.oy,s.face,showPopup,s.a===0&&s.b===0?s.turn:0].join(',');
   if(key===previousGeometry)return;
@@ -489,20 +506,31 @@ function updateGeometry(s,showPopup){
     array[cursor++]=v.uv[0];array[cursor++]=v.uv[1];
   }
   cardPoints=[];
-  if(showPopup&&s.oy>0){
+  if(showPopup&&s.oy>.14){
     const side=s.face?-1:1;
     const [top,bottom]=cardAnchors.map(anchor=>vertex(anchor,s,shape));
-    // The fixed paper anchors keep the ends in place while the middle
-    // snaps through from a shallow inward bend to an outward arch.
     const opening=s.oy,snap=ease((opening-.61)/.16);
-    const bow=mix(-.085,.39,snap)+.075*Math.sin(Math.PI*clamp((opening-.72)/.28));
+    const bow=mix(-.085,.34,snap)+.075*Math.sin(Math.PI*clamp((opening-.72)/.28));
+    const halfWidth=mix(.095,.25,ease((opening-.14)/.50));
+    const left=Math.min(top[0],bottom[0])-halfWidth,right=Math.max(top[0],bottom[0])+halfWidth;
+    const clearance=cardClearance(top[1],bottom[1],left,right,side);
+    let depths=clearance.map((min,i)=>{
+      const v=i/cardStrips;
+      const arch=side*mix(top[2],bottom[2],v)+.006+bow*Math.sin(Math.PI*v);
+      return Math.max(min,arch);
+    });
+    // Round the shoulders without lowering any row through the paper.
+    for(let pass=0;pass<3;pass++){
+      depths=depths.map((z,i)=>Math.max(z,(depths[Math.max(0,i-1)]+2*z+depths[Math.min(cardStrips,i+1)])/4));
+    }
+    const dy=(bottom[1]-top[1])/cardStrips;
     for(let i=0;i<=cardStrips;i++){
       const v=i/cardStrips;
-      const width=mix(.065,.25,ease(Math.min(v,1-v)/.085));
-      const y=mix(top[1],bottom[1],v);
-      const z=mix(top[2],bottom[2],v)+side*(.006+bow*Math.sin(Math.PI*v));
-      const dy=bottom[1]-top[1],dz=bottom[2]-top[2]+side*bow*Math.PI*Math.cos(Math.PI*v);
-      const length=Math.hypot(dy,dz)||1,normal=[0,-side*dz/length,side*dy/length];
+      const width=mix(Math.min(.065,halfWidth),halfWidth,ease(Math.min(v,1-v)/.085));
+      const y=mix(top[1],bottom[1],v),z=side*depths[i];
+      const dz=(depths[Math.min(cardStrips,i+1)]-depths[Math.max(0,i-1)])*side;
+      const span=(i===0||i===cardStrips)?dy:2*dy;
+      const length=Math.hypot(span,dz)||1,normal=[0,-side*dz/length,side*span/length];
       const x=mix(top[0],bottom[0],v);
       cardPoints.push({p:[x-width*side,y,z],normal,uv:[2,v]},{p:[x+width*side,y,z],normal,uv:[3,v]});
     }
