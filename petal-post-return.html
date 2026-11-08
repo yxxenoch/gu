@@ -196,11 +196,21 @@ floatingToggle.addEventListener("click",()=>{
   clampFloatingPreview();
   paintFloatingPreview();
 });
-new IntersectionObserver(([entry])=>{
-  floatingPreview.hidden=entry.intersectionRatio>=.15 || entry.boundingClientRect.top>=0;
+function syncFloatingPreview(){
+  const bounds=art.getBoundingClientRect();
+  const hidden=!bounds.height || bounds.top>=0 || bounds.bottom>=bounds.height*.15;
+  if(floatingPreview.hidden===hidden)return;
+  floatingPreview.hidden=hidden;
   clampFloatingPreview();
   paintFloatingPreview();
-},{threshold:[0,.15]}).observe(art);
+}
+window.addEventListener("scroll",syncFloatingPreview,{passive:true});
+window.addEventListener("resize",syncFloatingPreview);
+window.addEventListener("message",event=>{
+  if(event.source===parent && event.origin===location.origin && event.data?.type==="studio-active"){
+    requestAnimationFrame(syncFloatingPreview);
+  }
+});
 const flower = document.createElement("canvas"), flowerBack = document.createElement("canvas"), note = document.createElement("canvas");
 flower.width = flower.height = flowerBack.width = flowerBack.height = 640;
 note.width = 1240; note.height = 600;
