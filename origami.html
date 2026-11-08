@@ -549,12 +549,32 @@ function updateGeometry(s,showPopup){
 }
 // Fit the requested zoom to the actual projected paper, including its
 // corners during turning. The current composition cannot crop the mesh.
-function fitModel(camera,zoom){
-  if(zoom<=1){camera.scale*=zoom;return;}
+function fitModel(camera,zoom,fillCanvas){
+  if(!fillCanvas&&zoom<=1){camera.scale*=zoom;return;}
   const {turn,roll,tilt,shiftX,shiftY}=camera;
   const ct=Math.cos(turn),st=Math.sin(turn),cr=Math.cos(roll),sr=Math.sin(roll),cp=Math.cos(tilt),sp=Math.sin(tilt);
   let limit=camera.scale*zoom;
   const visibleVertices=cardPoints.length?materialVertices.concat(cardPoints):materialVertices;
+  if(fillCanvas){
+    // The ribbon and both paper flaps are framed as a single object.
+    let left=Infinity,right=-Infinity,top=Infinity,bottom=-Infinity;
+    let offsetTop=Infinity,offsetBottom=-Infinity;
+    for(const {p:[x,y,z]} of visibleVertices){
+      const a=ct*x+st*z,b=ct*z-st*x;
+      const X=cr*a-sr*y,Y=sr*a+cr*y;
+      const depth=4.8-sp*Y-cp*b;
+      const px=3*X/depth,py=3*(cp*Y-sp*b)/depth,offset=.03/depth;
+      left=Math.min(left,px);right=Math.max(right,px);
+      top=Math.min(top,py);bottom=Math.max(bottom,py);
+      offsetTop=Math.min(offsetTop,offset);offsetBottom=Math.max(offsetBottom,offset);
+    }
+    const span=1.98;
+    const fit=Math.min(span/(right-left),(span-offsetBottom+offsetTop)/(bottom-top));
+    camera.scale=fit*Math.min(1,zoom/1.27);
+    camera.shiftX=-(left+right)*camera.scale/2;
+    camera.shiftY=-((top+bottom)*camera.scale+offsetTop+offsetBottom)/2;
+    return;
+  }
   for(const {p:[x,y,z]} of visibleVertices){
     const a=ct*x+st*z,b=ct*z-st*x;
     const X=cr*a-sr*y,Y=sr*a+cr*y;
@@ -714,7 +734,7 @@ function render(){
     coverAmount:covers[s.face].hasInk?ease(s.pop):0
   };
   updateGeometry(s,showPopup);
-  fitModel(camera,zoom);
+  fitModel(camera,zoom,showPopup);
   if(gl){
     gl.viewport(0,0,SIZE,SIZE);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
     gl.uniform1f(uniforms.turn,camera.turn);gl.uniform1f(uniforms.tilt,camera.tilt);
@@ -738,7 +758,7 @@ function render(){
     ctx.globalAlpha=ease(s.pop);ctx.fillStyle=shadow;ctx.fillRect(-255,-255,510,510);ctx.restore();
   }
   drawFrame(t,nightfall);
-  ctx.drawImage(gpu,0,-14);
+  ctx.drawImage(gpu,0,showPopup?0:-14);
 $('seek').value=t;$('clock').textContent=(t/speed).toFixed(1)+' / '+(duration/speed).toFixed(1)+'s';
 }
 let studioActive=true;
