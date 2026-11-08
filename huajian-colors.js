@@ -7,18 +7,61 @@
  function refresh(){for(const [input,button]of buttons){if(button.disabled!==input.disabled)button.disabled=input.disabled;const value=input.value;if(button.dataset.color===value)continue;button.dataset.color=value;button.querySelector('i').style.background=value;button.querySelector('small').textContent=value.toUpperCase();button.setAttribute('aria-label',(input.dataset.colorTitle||'自定义颜色')+' '+value);}}
  function close(){overlay.hidden=true;document.body.style.overflow=previousOverflow;source=null;lastFocus?.focus();}
  function paint(){const color=hsvToHex(selected.h,selected.s,selected.v);for(const k of ['h','s','v']){overlay.querySelector('#studio-color-'+k).value=selected[k];overlay.querySelector('#studio-color-'+k+'-value').value=Math.round(selected[k]);}overlay.querySelector('#studio-color-s').style.background=`linear-gradient(to right,${hsvToHex(selected.h,0,selected.v)},${hsvToHex(selected.h,100,selected.v)})`;overlay.querySelector('#studio-color-v').style.background=`linear-gradient(to right,#000000,${hsvToHex(selected.h,selected.s,100)})`;overlay.querySelector('#studio-color-sample').style.background=color;overlay.querySelector('#studio-color-hex').value=color.toUpperCase();overlay.querySelector('#studio-color-apply').disabled=false;}
- function open(input){source=input;selected=hexToHSV(input.value);lastFocus=document.activeElement;previousOverflow=document.body.style.overflow;const label=input.dataset.colorTitle||'自定义颜色';overlay.querySelector('#studio-color-title').textContent=label.startsWith('自定义')?label:'自定义'+label;paint();overlay.hidden=false;document.body.style.overflow='hidden';overlay.querySelector('#studio-color-h').focus();}
+ const recentKey='gu-recent-colors-v1';
+ let recentColors=[];
+ function readRecent(){
+  try{recentColors=JSON.parse(localStorage.getItem(recentKey)||'[]').filter(color=>/^#[0-9a-f]{6}$/i.test(color)).slice(0,12);}catch{}
+  return recentColors;
+ }
+ function remember(color){
+  recentColors=[color,...readRecent().filter(item=>item.toLowerCase()!==color)].slice(0,12);
+  try{localStorage.setItem(recentKey,JSON.stringify(recentColors));}catch{}
+ }
+ function applyColor(input,color){
+  const tracksRecent=input.hasAttribute('data-recent-colors');
+  if(input.value.toLowerCase()!==color||tracksRecent){
+   input.value=color;
+   input.dispatchEvent(new Event('input',{bubbles:true}));
+   input.dispatchEvent(new Event('change',{bubbles:true}));
+  }
+  if(tracksRecent)remember(color);
+  refresh();
+ }
+ function paintRecent(input){
+  const row=overlay.querySelector('.studio-color-recent');
+  const colors=input.hasAttribute('data-recent-colors')?readRecent():[];
+  row.replaceChildren();
+  row.hidden=!colors.length;
+  if(!colors.length)return;
+  const title=document.createElement('small');
+  title.textContent='最近使用';
+  row.append(title);
+  for(const color of colors){
+   const button=document.createElement('button');
+   button.type='button';
+   button.style.background=color;
+   button.setAttribute('aria-label','使用颜色 '+color);
+   button.title=color;
+   button.onclick=()=>{close();applyColor(input,color.toLowerCase());};
+   row.append(button);
+  }
+ }
+ function open(input){source=input;selected=hexToHSV(input.value);lastFocus=document.activeElement;previousOverflow=document.body.style.overflow;const label=input.dataset.colorTitle||'自定义颜色';overlay.querySelector('#studio-color-title').textContent=label.startsWith('自定义')?label:'自定义'+label;paint();paintRecent(input);overlay.hidden=false;document.body.style.overflow='hidden';overlay.querySelector('#studio-color-h').focus();}
  function init(){if(overlay)return;const style=document.createElement('style');style.textContent=`
  .studio-color-button{display:inline-flex;align-items:center;gap:9px;width:auto!important;min-width:122px;min-height:44px;margin:0!important;padding:7px 10px!important;border:1px solid #d5cdbf!important;border-radius:10px;background:#faf8f3!important;color:#4a493f!important;cursor:pointer}.studio-color-button i{display:block;width:29px;height:29px;border-radius:7px;border:1px solid #0002}.studio-color-button small{font:12px ui-monospace,monospace}.studio-color-overlay[hidden]{display:none!important}.studio-color-overlay{position:fixed;inset:0;z-index:250;display:flex;align-items:center;justify-content:center;background:#1d241f88;backdrop-filter:blur(4px);padding:18px}.studio-color-dialog{box-sizing:border-box;width:440px;max-width:100%;max-height:calc(100dvh - 36px);overflow:auto;padding:28px;border-radius:26px;background:#f5f2e9;color:#4a493f;box-shadow:0 20px 60px #141c2533;text-align:left}.studio-color-dialog h2{font-size:19px!important;letter-spacing:0!important;margin:0 0 22px!important;color:#343c31}.studio-color-sliders{background:#ebe8e0;padding:20px;border-radius:17px}.studio-color-dialog label{display:flex;justify-content:space-between;gap:10px;margin:0 0 8px;font-size:13px;color:#7e7d73}.studio-color-dialog output{float:none;font:inherit;color:inherit}.studio-color-field+.studio-color-field{margin-top:20px}.studio-color-dialog .studio-color-range{appearance:none;-webkit-appearance:none;box-sizing:border-box;width:100%;height:32px;border:0;border-radius:5px;padding:0;margin:0;background:transparent;cursor:crosshair;touch-action:pan-y}.studio-color-range::-webkit-slider-thumb{appearance:none;-webkit-appearance:none;width:25px;height:25px;border:3px solid white;border-radius:50%;background:transparent;box-shadow:0 1px 5px #0007}.studio-color-range::-moz-range-thumb{width:21px;height:21px;border:3px solid white;border-radius:50%;background:transparent;box-shadow:0 1px 5px #0007}.studio-color-selected{display:flex;align-items:center;justify-content:space-between;gap:18px;margin:24px 0}.studio-color-selected label{display:block;margin-bottom:6px}.studio-color-dialog #studio-color-hex{box-sizing:border-box;width:120px;max-width:100%;font:14px ui-monospace,monospace;padding:8px;border:1px solid #d6d1c5;border-radius:8px;background:#faf8f2;color:#565748;min-height:38px}.studio-color-sample{width:61px;height:61px;flex:none;border-radius:12px;border:1px solid #0002}.studio-color-actions{display:flex;gap:14px}.studio-color-actions button{flex:1;width:auto;margin:0;padding:13px 12px;border:0;border-radius:13px;font-size:16px;font-weight:600;min-height:48px;background:#e6e3da;color:#4f5146;cursor:pointer}.studio-color-actions button:last-child{background:#a99583;color:white}.studio-color-actions button:disabled{opacity:.45}.studio-color-overlay :focus-visible{outline:3px solid #9d7655;outline-offset:3px}@media(max-width:400px){.studio-color-dialog{padding:22px}.studio-color-sliders{padding:17px}}
+ .studio-color-recent{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:10px 0}.studio-color-recent[hidden]{display:none}.studio-color-recent button{width:30px;min-height:30px;height:30px;padding:0;border:1px solid #8888;border-radius:50%}
  `;document.head.append(style);
  overlay=document.createElement('div');overlay.className='studio-color-overlay';overlay.hidden=true;overlay.innerHTML=`<section class="studio-color-dialog" role="dialog" aria-modal="true" aria-labelledby="studio-color-title"><h2 id="studio-color-title">自定义颜色</h2><div class="studio-color-sliders"><div class="studio-color-field"><label for="studio-color-h">色调 (Hue)<output id="studio-color-h-value"></output></label><input class="studio-color-range" type="range" id="studio-color-h" min="0" max="360" step="1" style="background:linear-gradient(to right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)"></div><div class="studio-color-field"><label for="studio-color-s">饱和度 (Saturation)<output id="studio-color-s-value"></output></label><input class="studio-color-range" type="range" id="studio-color-s" min="0" max="100" step="1"></div><div class="studio-color-field"><label for="studio-color-v">明度 (Value)<output id="studio-color-v-value"></output></label><input class="studio-color-range" type="range" id="studio-color-v" min="0" max="100" step="1"></div></div><div class="studio-color-selected"><div><label for="studio-color-hex">已选择的颜色</label><input id="studio-color-hex" type="text" maxlength="7" spellcheck="false" aria-label="十六进制颜色" placeholder="#A5302E"></div><div class="studio-color-sample" id="studio-color-sample" role="img" aria-label="所选颜色预览"></div></div><div class="studio-color-actions"><button type="button" id="studio-color-cancel">取消</button><button type="button" id="studio-color-apply">应用</button></div></section>`;document.body.append(overlay);
+ const recent=document.createElement('div');
+ recent.className='studio-color-recent';recent.hidden=true;
+ overlay.querySelector('#studio-color-hex').parentElement.after(recent);
  for(const input of document.querySelectorAll('input[type=color]')){const label=input.dataset.colorTitle||document.querySelector('label[for="'+input.id+'"]')?.textContent.trim()||'自定义颜色';input.dataset.colorTitle=label;const button=document.createElement('button');button.type='button';button.className='studio-color-button';button.innerHTML='<i aria-hidden="true"></i><small></small>';input.after(button);input.style.display='none';input.tabIndex=-1;buttons.set(input,button);button.onclick=()=>open(input);input.addEventListener('click',e=>{e.preventDefault();open(input);});}
  for(const key of ['h','s','v'])overlay.querySelector('#studio-color-'+key).oninput=e=>{selected[key]=+e.target.value;paint();};
  overlay.querySelector('#studio-color-hex').oninput=e=>{const valid=/^#[0-9a-f]{6}$/i.test(e.target.value);overlay.querySelector('#studio-color-apply').disabled=!valid;if(valid){selected=hexToHSV(e.target.value);paint();}};
  overlay.querySelector('#studio-color-cancel').onclick=close;
- overlay.querySelector('#studio-color-apply').onclick=()=>{if(!source)return;const input=source,color=hsvToHex(selected.h,selected.s,selected.v),changed=input.value.toLowerCase()!==color;close();if(changed){input.value=color;input.dispatchEvent(new Event('input',{bubbles:true}));input.dispatchEvent(new Event('change',{bubbles:true}));}refresh();};
+ overlay.querySelector('#studio-color-apply').onclick=()=>{if(!source)return;const input=source,color=hsvToHex(selected.h,selected.s,selected.v);close();applyColor(input,color);};
  overlay.onclick=e=>{if(e.target===overlay)close();};
- document.addEventListener('keydown',e=>{if(overlay.hidden)return;if(e.key==='Escape'){e.preventDefault();e.stopImmediatePropagation();close();}else if(e.key==='Tab'){const focusable=[...overlay.querySelectorAll('input,button')].filter(n=>!n.disabled),first=focusable[0],last=focusable.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}}},true);
+ document.addEventListener('keydown',e=>{if(overlay.hidden)return;if(e.key==='Escape'){e.preventDefault();e.stopImmediatePropagation();close();}else if(e.key==='Tab'){const focusable=[...overlay.querySelectorAll('input,button')].filter(n=>!n.disabled&&!n.closest('[hidden]')),first=focusable[0],last=focusable.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}}},true);
  document.addEventListener('input',refresh);document.addEventListener('change',refresh);refresh();
  }
  window.StudioColors={hsvToHex,hexToHSV,refresh,init};

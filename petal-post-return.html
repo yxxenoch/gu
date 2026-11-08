@@ -34,14 +34,29 @@
 .export-status{margin:6px 0 0;min-height:1.6em}
 .export-link{display:inline-block;margin:3px 12px 0 0;padding:6px 0;color:var(--accent);font-size:13px}
 .export-link[hidden]{display:none}
+.gif-quality{display:flex;align-items:center;gap:8px;margin:8px 0 0}.gif-quality select{width:auto}
+.type-table{display:block}
+.type-row{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:4px 8px;margin:9px 0 12px}
+.type-row>label{grid-column:1/-1;font-weight:600}
+.type-size{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:4px}
+.type-table .type-size input{border:0;background:transparent;touch-action:pan-y}
+.type-row .studio-color-button{min-width:0;min-height:36px;padding:4px 6px!important;gap:5px}
+.type-row .studio-color-button i{width:18px;height:18px}
+.type-row .studio-color-button small{font-size:10px}
+.font-upload{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.floating-grip{display:block;text-align:center;font-size:11px;color:var(--muted);padding:4px;cursor:grab;touch-action:none;user-select:none}
+.floating-grip:active{cursor:grabbing}
 </style>
+<script src="studio-font-library.js?v=1"></script>
+<script src="gif-codec.js?v=adaptive-2"></script>
+<script defer src="huajian-colors.js?v=petal-2"></script>
 </head>
 <body>
 <main>
 <header class="mast"><div class="brand"><span class="stamp" aria-hidden="true">✿</span>返图试验室</div></header>
 <section class="hero">
 <div><h1>花里有信 <em>Petal Post</em></h1></div>
-<p>把两三张截图藏进折纸里。<br>点开封面，看看返图沿着斜折慢慢铺开。</p>
+<p>把你的截图藏进折纸里。<br>点开封面，看看返图沿着斜折慢慢铺开。</p>
 </section>
 <div class="studio">
 <section class="box" aria-label="折纸动画预览">
@@ -56,6 +71,7 @@
 </div>
 <div class="export-bar" role="group" aria-label="导出返图">
 <div class="export-actions"><button type="button" class="save" id="save">导出静图 PNG</button><button type="button" class="save" id="save-gif">导出动画 GIF</button></div>
+<label class="editor-field gif-quality">GIF 画质<select id="gif-quality"><option value="1000">清晰 · 1000 px</option><option value="1400">高清 · 1400 px</option></select></label>
 <p class="note export-status" id="export-status" role="status">PNG 保存摊平效果 · GIF 保存展开过程</p>
 <a class="export-link" id="download-png" hidden>下载已生成的 PNG</a><a class="export-link" id="download-gif" hidden>下载已生成的 GIF</a>
 </div>
@@ -92,11 +108,12 @@
 <details class="cover-type">
 <summary>文字样式</summary>
 <label class="editor-field">字体<select id="cover-font"><option value="serif">宋体风格</option><option value="sans">无衬线</option><option value="hand">楷体风格</option></select></label>
+<div class="font-upload"><label class="upload-file">上传字体<input type="file" id="cover-font-file" accept=".ttf,.otf,.woff,.woff2" aria-label="上传文字字体"></label><span class="note" id="cover-font-status" role="status">与网站字体库共用</span></div>
+<label class="editor-field">文字配色范围<select id="color-scope"><option value="all">同步全部文字</option><option value="one">只改当前文字</option></select></label>
 <div class="type-table">
-<span></span><span>颜色</span><span>大小</span>
-<label for="title-color">模板名</label><input id="title-color" type="color" value="#65384b" aria-label="模板名颜色"><input id="title-size" type="number" min="12" max="48" value="25" aria-label="模板名大小">
-<label for="author-color">制作者</label><input id="author-color" type="color" value="#65384b" aria-label="制作者颜色"><input id="author-size" type="number" min="12" max="48" value="25" aria-label="制作者大小">
-<label for="message-color">留言</label><input id="message-color" type="color" value="#65384b" aria-label="留言颜色"><input id="message-size" type="number" min="12" max="48" value="16" aria-label="留言大小">
+<div class="type-row"><label for="title-color">模板名</label><input id="title-color" type="color" value="#65384b" data-recent-colors aria-label="模板名颜色"><div class="type-size"><input id="title-size" type="range" min="12" max="48" value="25" aria-label="模板名字号"><output id="title-size-value" for="title-size">25</output></div></div>
+<div class="type-row"><label for="author-color">制作者</label><input id="author-color" type="color" value="#65384b" data-recent-colors aria-label="制作者颜色"><div class="type-size"><input id="author-size" type="range" min="12" max="48" value="25" aria-label="制作者字号"><output id="author-size-value" for="author-size">25</output></div></div>
+<div class="type-row"><label for="message-color">留言</label><input id="message-color" type="color" value="#65384b" data-recent-colors aria-label="留言颜色"><div class="type-size"><input id="message-size" type="range" min="12" max="48" value="16" aria-label="留言字号"><output id="message-size-value" for="message-size">16</output></div></div>
 </div>
 <button class="reset-image" type="button" id="reset-type">恢复默认样式</button>
 </details>
@@ -109,6 +126,7 @@
 <footer class="bottom"><span>首图 · 折痕 · 返图</span><span>FOLDED WITH CARE</span></footer>
 </main>
 <aside id="floating-preview" class="floating-preview" aria-label="悬浮预览" hidden>
+<div id="floating-grip" class="floating-grip" tabindex="0" aria-label="移动预览，可用方向键移动">⠿ 拖动预览</div>
 <button id="floating-view" class="floating-view" type="button" aria-label="回到主预览"><canvas id="floating-canvas" aria-hidden="true"></canvas></button>
 <button id="floating-toggle" class="floating-toggle" type="button" aria-expanded="true" aria-controls="floating-view">收起预览</button>
 <div class="history-actions" role="group" aria-label="编辑记录"><button type="button" data-history="-1" disabled>撤销</button><button type="button" data-history="1" disabled>重做</button></div>
@@ -121,6 +139,39 @@ const ctx = view.getContext("2d");
 const floatingPreview=$("floating-preview"), floatingView=$("floating-view");
 const floatingCanvas=$("floating-canvas"), floatingToggle=$("floating-toggle");
 const floatingContext=floatingCanvas.getContext("2d");
+
+const floatingGrip=$("floating-grip");
+let previewDrag=null;
+function moveFloatingPreview(left,top){
+  const {width,height}=floatingPreview.getBoundingClientRect();
+  Object.assign(floatingPreview.style,{
+    left:Math.max(8,Math.min(innerWidth-width-8,left))+"px",
+    top:Math.max(8,Math.min(innerHeight-height-8,top))+"px",right:"auto",bottom:"auto"
+  });
+}
+function clampFloatingPreview(){
+  if(floatingPreview.hidden || !floatingPreview.style.left)return;
+  const {left,top}=floatingPreview.getBoundingClientRect();
+  moveFloatingPreview(left,top);
+}
+floatingGrip.addEventListener("pointerdown",event=>{
+  if(!event.isPrimary || event.button!==0)return;
+  const {left,top}=floatingPreview.getBoundingClientRect();
+  previewDrag={id:event.pointerId,x:event.clientX-left,y:event.clientY-top};
+  floatingGrip.setPointerCapture(event.pointerId);
+});
+floatingGrip.addEventListener("pointermove",event=>{
+  if(previewDrag?.id===event.pointerId)moveFloatingPreview(event.clientX-previewDrag.x,event.clientY-previewDrag.y);
+});
+floatingGrip.addEventListener("lostpointercapture",()=>{previewDrag=null;});
+floatingGrip.addEventListener("keydown",event=>{
+  const delta={ArrowLeft:[-20,0],ArrowRight:[20,0],ArrowUp:[0,-20],ArrowDown:[0,20]}[event.key];
+  if(!delta)return;
+  event.preventDefault();
+  const {left,top}=floatingPreview.getBoundingClientRect();
+  moveFloatingPreview(left+delta[0],top+delta[1]);
+});
+window.addEventListener("resize",clampFloatingPreview);
 
 function paintFloatingPreview(){
   if(floatingPreview.hidden || floatingView.hidden || !view.width || !view.height)return;
@@ -142,10 +193,12 @@ floatingToggle.addEventListener("click",()=>{
   floatingPreview.classList.toggle("collapsed",collapsed);
   floatingToggle.setAttribute("aria-expanded",String(!collapsed));
   floatingToggle.textContent=collapsed?"显示预览":"收起预览";
+  clampFloatingPreview();
   paintFloatingPreview();
 });
 new IntersectionObserver(([entry])=>{
   floatingPreview.hidden=entry.intersectionRatio>=.15 || entry.boundingClientRect.top>=0;
+  clampFloatingPreview();
   paintFloatingPreview();
 },{threshold:[0,.15]}).observe(art);
 const flower = document.createElement("canvas"), flowerBack = document.createElement("canvas"), note = document.createElement("canvas");
@@ -411,10 +464,84 @@ const coverTextDefaults={
   title:"花里有信",author:"咕の返图",message:"把喜欢的画面，折进这一朵花。"
 };
 const customTextColors=new Set();
+const loadedCoverFonts=new Map();
+const coverFontSelect=$("cover-font"),coverFontStatus=$("cover-font-status");
+let fontEditRequest=0,fontCatalogRequest=0;
+
+function addCoverFontOption(value,name){
+  if(!Array.from(coverFontSelect.options).some(option=>option.value===value)){
+    coverFontSelect.add(new Option(name,value));
+  }
+}
+async function refreshCoverFonts(){
+  const request=++fontCatalogRequest;
+  try{
+    const records=await StudioFontLibrary.list();
+    if(request!==fontCatalogRequest)return;
+    for(const record of records)addCoverFontOption("petal-font-"+record.id,record.name);
+  }catch{}
+}
+async function loadCoverFont(value,buffer){
+  if(!loadedCoverFonts.has(value)){
+    const pending=(async()=>{
+      if(!buffer){
+        const record=await StudioFontLibrary.get(value.slice("petal-font-".length));
+        buffer=record?.buffer||await record?.blob?.arrayBuffer();
+      }
+      if(!buffer)throw Error("Missing font");
+      const face=await new FontFace(value,buffer).load();
+      document.fonts.add(face);
+    })();
+    loadedCoverFonts.set(value,pending);
+    pending.catch(()=>loadedCoverFonts.delete(value));
+  }
+  await loadedCoverFonts.get(value);
+}
+coverFontSelect.addEventListener("change",async()=>{
+  const selected=coverFontSelect.value,request=++fontEditRequest;
+  if(coverFonts[selected]){coverFontStatus.textContent="与网站字体库共用";paint();recordEdit();return;}
+  const previous=edits[editIndex]?.fields[historyFields.indexOf(coverFontSelect)]||"serif";
+  coverFontSelect.value=previous;
+  coverFontStatus.textContent="正在读取字体…";
+  try{
+    await loadCoverFont(selected);
+    if(request!==fontEditRequest)return;
+    coverFontSelect.value=selected;
+    coverFontStatus.textContent="已应用字体";
+    paint();recordEdit();
+  }catch{
+    if(request===fontEditRequest)coverFontStatus.textContent="无法读取这款字体";
+  }
+});
+$("cover-font-file").addEventListener("change",async event=>{
+  const file=event.target.files[0];
+  event.target.value="";
+  if(!file)return;
+  const request=++fontEditRequest;
+  coverFontStatus.textContent="正在读取字体…";
+  try{
+    const buffer=await file.arrayBuffer();
+    const id=await StudioFontLibrary.id(buffer),value="petal-font-"+id;
+    await loadCoverFont(value,buffer);
+    let saved=true;
+    try{await StudioFontLibrary.put(file.name,buffer);}catch{saved=false;}
+    addCoverFontOption(value,file.name);
+    if(request!==fontEditRequest)return;
+    coverFontSelect.value=value;
+    coverFontStatus.textContent=saved?"已存入网站字体库":"已应用，浏览器未能保存字体";
+    paint();recordEdit();
+  }catch{
+    if(request===fontEditRequest)coverFontStatus.textContent="字体读取失败，请试试 TTF、OTF 或 WOFF";
+  }
+});
+window.addEventListener("message",event=>{
+  if(event.source===parent && event.origin===location.origin && event.data?.type==="font-library-changed")refreshCoverFonts();
+});
 
 function layoutCoverLabels(c,half,canvasHalfWidth,canvasHalfHeight,paperHalf,t) {
   const move=smooth(t/.9);
-  const family=coverFonts[$("cover-font").value]||coverFonts.serif;
+  const fontId=$("cover-font").value;
+  const family=coverFonts[fontId]||(loadedCoverFonts.has(fontId)?'"'+fontId+'",'+coverFonts.serif:coverFonts.serif);
   const inset=12;
   const sideSpace=canvasHalfWidth-letterHalfWidth-2*inset;
   const useSide=sideSpace>=140;
@@ -713,22 +840,33 @@ $("play").addEventListener("click",toggle);
 progress.addEventListener("input",()=>{
   cancelAnimationFrame(animation);value=Number(progress.value)/100;target=value>=.5?1:0;updateControls();paint();
 });
-for(const id of ["cover-title","cover-author","message","cover-font"])$(id).addEventListener("input",paint);
-for(const key of Object.keys(coverTypeDefaults)){
-  $(key+"-size").addEventListener("input",paint);
+for(const id of ["cover-title","cover-author","message"])$(id).addEventListener("input",paint);
+const coverTextKeys=Object.keys(coverTypeDefaults);
+function refreshTypeControls(){
+  for(const key of coverTextKeys)$(key+"-size-value").value=$(key+"-size").value;
+  window.StudioColors?.refresh();
+}
+for(const key of coverTextKeys){
+  $(key+"-size").addEventListener("input",()=>{refreshTypeControls();paint();});
   $(key+"-color").addEventListener("input",()=>{
-    customTextColors.add(key);
-    paint();
+    const color=$(key+"-color").value;
+    for(const field of $("color-scope").value==="all"?coverTextKeys:[key]){
+      $(field+"-color").value=color;
+      customTextColors.add(field);
+    }
+    refreshTypeControls();paint();
   });
 }
 $("reset-type").addEventListener("click",()=>{
   customTextColors.clear();
+  ++fontEditRequest;
+  coverFontStatus.textContent="与网站字体库共用";
   $("cover-font").value="serif";
   for(const [key,size] of Object.entries(coverTypeDefaults)){
     $(key+"-size").value=size;
     $(key+"-color").value=theme.ink;
   }
-  paint();recordEdit();
+  refreshTypeControls();paint();recordEdit();
 });
 $("creases").addEventListener("change",paint);
 $("palette").addEventListener("click",event=>{
@@ -738,7 +876,7 @@ $("palette").addEventListener("click",event=>{
   for(const key of Object.keys(coverTypeDefaults)){
     if(!customTextColors.has(key))$(key+"-color").value=theme.ink;
   }
-  makeFlower();makeNote();paint();recordEdit();
+  refreshTypeControls();makeFlower();makeNote();paint();recordEdit();
 });
 function updatePaletteControls(){
   document.querySelectorAll(".swatch").forEach(button=>{
@@ -966,6 +1104,8 @@ function restoreEdit(step){
   if(index<0 || index>=edits.length)return;
   const state=edits[index];
   editIndex=index;
+  ++fontEditRequest;
+  coverFontStatus.textContent="与网站字体库共用";
   ++photoRequest;
   for(const key of Object.keys(imageRequests))++imageRequests[key];
   historyFields.forEach((input,i)=>{input.value=state.fields[i];});
@@ -982,86 +1122,18 @@ function restoreEdit(step){
   collage=state.collage.slice();
   updatePhotoList();
   updatePaletteControls();
-  makeFlower();makeNote();paint();
+  refreshTypeControls();makeFlower();makeNote();paint();
   updateHistoryButtons();
   $("notice").textContent=step<0?"已撤销上一步编辑。":"已重做上一步编辑。";
 }
-for(const input of historyFields)input.addEventListener("change",recordEdit);
+for(const input of historyFields)if(input!==coverFontSelect)input.addEventListener("change",recordEdit);
 for(const button of historyButtons)button.addEventListener("click",()=>restoreEdit(Number(button.dataset.history)));
 
-function createPetalGif(width,height) {
- function byteWriter(){let a=new Uint8Array(65536),length=0;return{get length(){return length},byte(v){if(length===a.length){let n=new Uint8Array(a.length*2);n.set(a);a=n}a[length++]=v},word(v){this.byte(v&255);this.byte(v>>8)},patchWord(p,v){a[p]=v&255;a[p+1]=v>>8},text(t){for(let i=0;i<t.length;i++)this.byte(t.charCodeAt(i))},bytes(b){if(length+b.length>a.length){let size=a.length;while(size<length+b.length)size*=2;let n=new Uint8Array(size);n.set(a);a=n}a.set(b,length);length+=b.length},finish(){return a.slice(0,length)}}}
- function getPalette(rgba){
-  let counts=new Uint32Array(32768),sums=new Float64Array(32768*3);
-  for(let p=0;p<rgba.length;p+=16){let r=rgba[p],g=rgba[p+1],b=rgba[p+2],key=(r>>3)<<10|(g>>3)<<5|(b>>3);counts[key]++;sums[key*3]+=r;sums[key*3+1]+=g;sums[key*3+2]+=b}
-  let values=[];for(let k=0;k<32768;k++)if(counts[k])values.push(k);
-  function box(keys){let lo=[31,31,31],hi=[0,0,0],count=0;for(let k of keys){let rgb=[k>>10,(k>>5)&31,k&31];count+=counts[k];for(let j=0;j<3;j++){lo[j]=Math.min(lo[j],rgb[j]);hi[j]=Math.max(hi[j],rgb[j])}}let ranges=hi.map((v,i)=>v-lo[i]),axis=ranges.indexOf(Math.max(...ranges));return{keys,count,axis,score:ranges[axis]*Math.sqrt(count)}}
-  let boxes=[box(values)];while(boxes.length<256){let idx=-1,score=0;for(let i=0;i<boxes.length;i++)if(boxes[i].keys.length>1&&boxes[i].score>score){score=boxes[i].score;idx=i}if(idx<0)break;let b=boxes[idx],shift=10-b.axis*5;let keys=b.keys.sort((a,c)=>((a>>shift)&31)-((c>>shift)&31)),sum=0,split=1;for(let i=0;i<keys.length-1;i++){sum+=counts[keys[i]];split=i+1;if(sum>=b.count/2)break}boxes.splice(idx,1,box(keys.slice(0,split)),box(keys.slice(split)))}
-  let colors=boxes.map(b=>{let sum=[0,0,0];for(let k of b.keys)for(let j=0;j<3;j++)sum[j]+=sums[k*3+j];return sum.map(v=>Math.round(v/b.count))});
-  colors.sort((a,b)=>(a[0]*.21+a[1]*.72+a[2]*.07)-(b[0]*.21+b[1]*.72+b[2]*.07));
-  return colors;
- }
- function lzw(pixels){
-  let out=byteWriter(),dictionary=new Map(),next=258,size=9,max=511,acc=0,bits=0;
-  function emit(code){acc|=code<<bits;bits+=size;while(bits>=8){out.byte(acc&255);acc>>>=8;bits-=8}if(next>max&&size<12){size++;max=(1<<size)-1}}
-  emit(256);let prefix=pixels[0];for(let i=1;i<pixels.length;i++){let symbol=pixels[i],key=(prefix<<8)|symbol,known=dictionary.get(key);if(known!==undefined){prefix=known;continue}emit(prefix);if(next<4096)dictionary.set(key,next++);else{emit(256);dictionary.clear();next=258;size=9;max=511}prefix=symbol}emit(prefix);emit(257);if(bits)out.byte(acc&255);return out.finish();
- }
-
-  const writer=byteWriter();
-  writer.text("GIF89a");
-  writer.word(width);writer.word(height);
-  // Every full frame has its own color table.
-  writer.bytes([0x70,0,0,0x21,0xff,11]);
-  writer.text("NETSCAPE2.0");
-  writer.bytes([3,1,0,0,0]);
-
-  function frame(rgba,delay){
-    const palette=getPalette(rgba);
-    const lookup=new Int16Array(32768).fill(-1);
-    const pixels=new Uint8Array(width*height);
-    const dither=[-3,1,3,-1];
-    for(let y=0,p=0;y<height;y++){
-      for(let x=0;x<width;x++,p++){
-        const i=p*4,offset=dither[(x&1)+2*(y&1)];
-        const r=clamp(rgba[i]+offset,0,255);
-        const g=clamp(rgba[i+1]+offset,0,255);
-        const b=clamp(rgba[i+2]+offset,0,255);
-        const key=(r>>3)<<10 | (g>>3)<<5 | (b>>3);
-        if(lookup[key]<0){
-          const red=(r>>3)*8+4,green=(g>>3)*8+4,blue=(b>>3)*8+4;
-          let nearest=0,minimum=Infinity;
-          for(let j=0;j<palette.length;j++){
-            const [pr,pg,pb]=palette[j];
-            const distance=(red-pr)**2*.28+(green-pg)**2*.55+(blue-pb)**2*.17;
-            if(distance<minimum){minimum=distance;nearest=j;}
-          }
-          lookup[key]=nearest;
-        }
-        pixels[p]=lookup[key];
-      }
-    }
-    writer.bytes([0x21,0xf9,4,4]);
-    writer.word(Math.round(delay/10));
-    writer.bytes([0,0,0x2c]);
-    writer.word(0);writer.word(0);writer.word(width);writer.word(height);
-    writer.byte(0x87);
-    for(let i=0;i<256;i++)writer.bytes(palette[i]||[0,0,0]);
-    writer.byte(8);
-    const packed=lzw(pixels);
-    for(let i=0;i<packed.length;i+=255){
-      const block=packed.subarray(i,i+255);
-      writer.byte(block.length);writer.bytes(block);
-    }
-    writer.byte(0);
-  }
-  return {frame,finish(){writer.byte(0x3b);return writer.finish();}};
-}
-
-function exportCanvas(){
+function exportCanvas(longSide=1600){
   const out=document.createElement("canvas");
   const ratio=width && height ? width/height : 1.6;
-  out.width=Math.max(1,Math.round(1600*Math.min(1,ratio)));
-  out.height=Math.max(1,Math.round(1600/Math.max(1,ratio)));
+  out.width=Math.max(1,Math.round(longSide*Math.min(1,ratio)));
+  out.height=Math.max(1,Math.round(longSide/Math.max(1,ratio)));
   return out;
 }
 function downloadExport(blob,filename){
@@ -1097,12 +1169,14 @@ $("save-gif").addEventListener("click",async()=>{
   const settings=document.querySelectorAll(".panel > .section:not(.tools)");
   const startingEdit=edits[editIndex];
   button.disabled=true;
+  $("gif-quality").disabled=true;
   $("save").disabled=true;
   for(const section of settings)section.inert=true;
   try{
-    const out=exportCanvas(),{width:w,height:h}=out;
+    const out=exportCanvas(Number($("gif-quality").value)),{width:w,height:h}=out;
     const c=out.getContext("2d",{willReadFrequently:true});
-    const gif=createPetalGif(w,h), lastFrame=32;
+    const gif=StudioGIFCodec(),lastFrame=24;
+    gif.initAdaptive(w,h);
     for(let i=0;i<=lastFrame;i++){
       notice.textContent="正在生成高清 GIF · "+Math.round(i/lastFrame*100)+"%";
       await new Promise(resolve=>setTimeout(resolve,0));
@@ -1110,8 +1184,8 @@ $("save-gif").addEventListener("click",async()=>{
       c.fillStyle="#fcf8f1";
       c.fillRect(0,0,w,h);
       drawScene(c,w,h,smooth(i/lastFrame),false);
-      const delay=i===0?400:i===lastFrame?1600:50;
-      gif.frame(c.getImageData(0,0,w,h).data,delay);
+      const delay=i===0?400:i===lastFrame?1600:(i%2?70:60);
+      gif.adaptiveFrame(c.getImageData(0,0,w,h).data,delay,i===lastFrame);
     }
     downloadExport(new Blob([gif.finish()],{type:"image/gif"}),"petal-post-return-opening.gif");
     notice.textContent="GIF 已生成。若未自动下载，可点下方链接。";
@@ -1121,11 +1195,13 @@ $("save-gif").addEventListener("click",async()=>{
     exportingGif=false;
     notifyStudio({type:"studio-busy",busy:false});
     button.disabled=false;
+    $("gif-quality").disabled=false;
     $("save").disabled=false;
     for(const section of settings)section.inert=false;
   }
 });
 makeFlower();updateNote();new ResizeObserver(resize).observe(art);resize();
+refreshCoverFonts();
 selectCoverPreset(coverSelect.value).finally(()=>{
   edits.push(editorState());
   editIndex=0;
