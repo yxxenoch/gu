@@ -174,12 +174,13 @@ float inkSide=twoSided>0.5?(gl_FrontFacing?0.0:1.0):night;
 vec2 materialUV=v;if(inkSide>0.5)materialUV.x=1.0-materialUV.x;
 if(v.x>1.5){
   vec2 cardUV=vec2(v.x-2.0,v.y);
-  vec2 imageUV=(cardUV-0.026)/0.948;
+  vec2 imageUV=(cardUV-vec2(0.026,0.08))/vec2(0.948,0.84);
   vec3 card=vec3(0.97,0.94,0.88);
   if(gl_FrontFacing&&all(greaterThanEqual(imageUV,vec2(0.0)))&&all(lessThanEqual(imageUV,vec2(1.0)))){
     card=night>0.5?texture2D(nightTex,imageUV).rgb:texture2D(dayTex,imageUV).rgb;
   }
-  gl_FragColor=vec4(card,1.0);
+  float curvedLight=1.0-0.13*abs(N.y);
+  gl_FragColor=vec4(card*curvedLight,1.0);
   return;
 }
 vec3 col=inkSide>0.5?texture2D(nightTex,materialUV).rgb:texture2D(dayTex,materialUV).rgb;
@@ -237,8 +238,13 @@ const x=-1+2*i/N,y=-1+2*j/N,d=2/N,A=[x,y],B=[x+d,y],D=[x,y+d],E=[x+d,y+d],M=[x+d
 for(const tri of [[A,B,M],[B,E,M],[E,D,M],[D,A,M]])baseTriangles.push(tri);
 }
 const paperVertexCount=baseTriangles.length*3;
-const array=new Float32Array((paperVertexCount+6)*stride);
-let cardCorners=[];
+const cardStrips=24;
+const array=new Float32Array((paperVertexCount+cardStrips*6)*stride);
+let cardPoints=[];
+const cardAnchors=[-.375,.375].map(y=>{
+  const x=7/24;
+  return {x,y,folded:blintz(x,y,1,1),outer:false};
+});
 function rotateHinge(p,origin,axis,angle){const x=p[0]-origin[0],y=p[1]-origin[1],z=p[2]-origin[2],c=Math.cos(angle),s=Math.sin(angle),dot=axis[0]*x+axis[1]*y+axis[2]*z;return[origin[0]+x*c+(axis[1]*z-axis[2]*y)*s+axis[0]*dot*(1-c),origin[1]+y*c+(axis[2]*x-axis[0]*z)*s+axis[1]*dot*(1-c),origin[2]+z*c+(axis[0]*y-axis[1]*x)*s+axis[2]*dot*(1-c)]}
 const root=Math.SQRT1_2;
 function blintz(x,y,first,second){
@@ -365,7 +371,7 @@ const {scale,tilt,roll,turn,pocket,creases,shiftX,shiftY,coverAmount,twoSided,cl
 function rot(p){let a=turn,x=Math.cos(a)*p[0]+Math.sin(a)*p[2],y=p[1],z=-Math.sin(a)*p[0]+Math.cos(a)*p[2];a=roll;let X=Math.cos(a)*x-Math.sin(a)*y,Y=Math.sin(a)*x+Math.cos(a)*y;a=tilt;return[X,Math.cos(a)*Y-Math.sin(a)*z,Math.sin(a)*Y+Math.cos(a)*z]}
 const smooth=(x,a,b)=>ease((x-a)/(b-a));
 const cover=coverAmount>0?pixelTextures[2+s.face]:null;
-const vertexCount=paperVertexCount+(cardCorners.length?6:0);
+const vertexCount=paperVertexCount+(cardPoints.length?cardStrips*6:0);
 for(let i=0;i<vertexCount*stride;i+=stride*3){const vs=[];
 for(let j=0;j<3;j++){const at=i+j*stride,p=rot([array[at],array[at+1],array[at+2]]),n=rot([array[at+3],array[at+4],array[at+5]]),w=1/(4.8-p[2]);
 vs.push({x:400*(1+shiftX+p[0]*3*scale*w),y:400*(1+shiftY+(p[1]*3*scale+.03)*w),z:p[2],gz:array[at+2],w,n,u:array[at+6],v:array[at+7]});}
@@ -384,12 +390,13 @@ const fill=Math.max(0,(.55*nx+.30*ny+.72*nz)/(length*.955));
 const light=mix(.98,(.49+.44*keyLight+.17*fill)*mix(.64,1,smooth(height,-.38,.27)),pocket);
 const u=A*a.u+B*b.u+D*c.u,v=A*a.v+B*b.v+D*c.v;
 if(u>1.5){
-  const cu=(u-2-.026)/.948,cv=(v-.026)/.948,out=idx*4;
+  const cu=(u-2-.026)/.948,cv=(v-.08)/.84,out=idx*4;
+  const curvedLight=1-.13*Math.abs(ny)/length;
   if(front&&cu>=0&&cu<=1&&cv>=0&&cv<=1){
     const src=4*(Math.round(cv*(sh-1))*sw+Math.round(cu*(sw-1)));
-    pixels[out]=tex.data[src];pixels[out+1]=tex.data[src+1];pixels[out+2]=tex.data[src+2];
+    for(let k=0;k<3;k++)pixels[out+k]=tex.data[src+k]*curvedLight;
   }else{
-    pixels[out]=247;pixels[out+1]=240;pixels[out+2]=224;
+    pixels[out]=247*curvedLight;pixels[out+1]=240*curvedLight;pixels[out+2]=224*curvedLight;
   }
   pixels[out+3]=255;
   continue;
@@ -481,22 +488,33 @@ function updateGeometry(s,showPopup){
     for(const value of n)array[cursor++]=value;
     array[cursor++]=v.uv[0];array[cursor++]=v.uv[1];
   }
-  cardCorners=[];
-  if(showPopup&&s.oy>.22){
-    // The insert rotates out from the pocket while the paper lip still hides its foot.
-    const lift=ease((s.oy-.22)/.76);
-    const angle=mix(1.45,.36,lift);
+  cardPoints=[];
+  if(showPopup&&s.oy>0){
     const side=s.face?-1:1;
-    const foot=mix(.16,.37,lift),depth=mix(-.72,.23,lift);
-    const top=foot-.70*Math.cos(angle),tip=depth+.70*Math.sin(angle);
-    const left=-.39*side,right=.39*side;
-    cardCorners=[[left,top,tip*side],[right,top,tip*side],[right,foot,depth*side],[left,foot,depth*side]];
-    const uv=[[2,0],[3,0],[3,1],[2,1]];
-    for(const i of [0,1,2,0,2,3]){
-      array.set(cardCorners[i],cursor);
-      array.set([0,0,side],cursor+3);
-      array.set(uv[i],cursor+6);
-      cursor+=stride;
+    const [top,bottom]=cardAnchors.map(anchor=>vertex(anchor,s,shape));
+    // The fixed paper anchors keep the ends in place while the middle
+    // snaps through from a shallow inward bend to an outward arch.
+    const opening=s.oy,snap=ease((opening-.61)/.16);
+    const bow=mix(-.085,.39,snap)+.075*Math.sin(Math.PI*clamp((opening-.72)/.28));
+    for(let i=0;i<=cardStrips;i++){
+      const v=i/cardStrips;
+      const width=mix(.065,.25,ease(Math.min(v,1-v)/.085));
+      const y=mix(top[1],bottom[1],v);
+      const z=mix(top[2],bottom[2],v)+side*(.006+bow*Math.sin(Math.PI*v));
+      const dy=bottom[1]-top[1],dz=bottom[2]-top[2]+side*bow*Math.PI*Math.cos(Math.PI*v);
+      const length=Math.hypot(dy,dz)||1,normal=[0,-side*dz/length,side*dy/length];
+      const x=mix(top[0],bottom[0],v);
+      cardPoints.push({p:[x-width*side,y,z],normal,uv:[2,v]},{p:[x+width*side,y,z],normal,uv:[3,v]});
+    }
+    for(let i=0;i<cardStrips;i++){
+      const j=i*2;
+      const a=cardPoints[j],b=cardPoints[j+1],d=cardPoints[j+2],c=cardPoints[j+3];
+      for(const {p,normal,uv} of [a,b,c,a,c,d]){
+        array.set(p,cursor);
+        array.set(normal,cursor+3);
+        array.set(uv,cursor+6);
+        cursor+=stride;
+      }
     }
   }
   if(gl)gl.bufferData(gl.ARRAY_BUFFER,array.subarray(0,cursor),gl.DYNAMIC_DRAW);
@@ -508,7 +526,7 @@ function fitModel(camera,zoom){
   const {turn,roll,tilt,shiftX,shiftY}=camera;
   const ct=Math.cos(turn),st=Math.sin(turn),cr=Math.cos(roll),sr=Math.sin(roll),cp=Math.cos(tilt),sp=Math.sin(tilt);
   let limit=camera.scale*zoom;
-  const visibleVertices=cardCorners.length?materialVertices.concat(cardCorners.map(p=>({p}))):materialVertices;
+  const visibleVertices=cardPoints.length?materialVertices.concat(cardPoints):materialVertices;
   for(const {p:[x,y,z]} of visibleVertices){
     const a=ct*x+st*z,b=ct*z-st*x;
     const X=cr*a-sr*y,Y=sr*a+cr*y;
@@ -675,7 +693,7 @@ function render(){
     gl.uniform1f(uniforms.yaw,camera.roll);gl.uniform1f(uniforms.modelScale,camera.scale);
     gl.uniform2f(uniforms.framing,camera.shiftX,camera.shiftY);
     gl.uniform1f(uniforms.pocket,camera.pocket);gl.uniform1f(uniforms.night,s.face);
-    gl.uniform1f(uniforms.showCrease,camera.creases);gl.uniform1f(uniforms.coverAmount,camera.coverAmount);gl.uniform1f(uniforms.closedSeam,camera.closedSeam);gl.uniform1i(uniforms.coverTex,2+s.face);gl.uniform1f(uniforms.twoSided,camera.twoSided?1:0);gl.drawArrays(gl.TRIANGLES,0,paperVertexCount+(cardCorners.length?6:0));
+    gl.uniform1f(uniforms.showCrease,camera.creases);gl.uniform1f(uniforms.coverAmount,camera.coverAmount);gl.uniform1f(uniforms.closedSeam,camera.closedSeam);gl.uniform1i(uniforms.coverTex,2+s.face);gl.uniform1f(uniforms.twoSided,camera.twoSided?1:0);gl.drawArrays(gl.TRIANGLES,0,paperVertexCount+(cardPoints.length?cardStrips*6:0));
   }else softwareDraw(s,camera);
   const bg=ctx.createRadialGradient(345,290,30,400,400,545);
   const nightfall=twoSided?ease((s.turn/Math.PI-.22)/.56):s.face;
