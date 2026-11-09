@@ -112,7 +112,7 @@
 <div class="section" aria-label="首图文字">
 <label class="editor-field">左侧 · 模板名<input id="cover-title" type="text" maxlength="24"></label>
 <label class="editor-field">右侧 · 制作者<input id="cover-author" type="text" maxlength="24"></label>
-<label class="editor-field">右侧 · 制作者的话<textarea id="message" maxlength="70" rows="2" placeholder="选填，留空时成品不显示"></textarea></label>
+<label class="editor-field">制作者的话 · 展开后位于左下角<textarea id="message" maxlength="70" rows="2" placeholder="选填，留空时成品不显示"></textarea></label>
 <details class="cover-type">
 <summary>文字样式</summary>
 <label class="editor-field">字体<select id="cover-font"><option value="serif">宋体风格</option><option value="sans">无衬线</option><option value="hand">楷体风格</option></select></label>
@@ -588,37 +588,56 @@ function layoutCoverLabels(c,half,canvasHalfWidth,canvasHalfHeight,paperHalf,t) 
   const openLabelHeight=useSide?canvasHalfHeight*.7:Math.max(8,canvasHalfHeight-paperHalf-2*inset);
   const closedLabelHeight=Math.min(Math.max(190,2*half-30),2*(canvasHalfHeight-inset));
   const maxHeight=closedLabelHeight+(openLabelHeight-closedLabelHeight)*move;
-  const groups=[
-    {side:-1,items:[["title",$("cover-title").value]]},
-    {side:1,items:[["author",$("cover-author").value],["message",message.value]]
-      .filter(([key,input])=>key!=="message" || input.trim())}
-  ];
-  c.save();
-  const layout=groups.map(({side,items})=>{
-    let scale=1, blocks, blockHeight, blockGap;
+  function layoutText(key,text,width,height,minSize=0) {
+    const preferredSize=clamp(Number($(key+"-size").value)||coverTypeDefaults[key],12,48);
+    let size=preferredSize, font, lines, lineHeight, blockHeight;
     do {
-      blocks=items.map(([key,input])=>{
-        const text=input.trim()||coverTextDefaults[key];
-        const size=clamp(Number($(key+"-size").value)||coverTypeDefaults[key],12,48)*scale;
-        const font=size+"px "+family;
-        c.font=font;
-        const lines=linesFor(c,text,lineWidth).map(text=>({text,width:c.measureText(text).width}));
-        return {font,lines,lineHeight:size*1.22,color:$(key+"-color").value||theme.ink};
-      });
-      blockGap=9*scale;
-      blockHeight=blocks.reduce((height,block)=>height+block.lines.length*block.lineHeight,(blocks.length-1)*blockGap);
-      if(blockHeight<=maxHeight)break;
-      scale*=Math.min(.9,maxHeight/blockHeight);
-    }while(scale>.005);
-    const x=side*((half+95)*(1-move)+(canvasHalfWidth-inset)*move);
-    const centerY=side*(canvasHalfHeight-inset-blockHeight/2)*move;
-    return {side,x,centerY,blockHeight,blocks,blockGap};
+      font=size+"px "+family;
+      c.font=font;
+      lines=linesFor(c,text,width).map(text=>({text,width:c.measureText(text).width}));
+      lineHeight=size*1.22;
+      blockHeight=lines.length*lineHeight;
+      if(blockHeight<=height || size<=minSize)break;
+      size=Math.max(minSize,size*Math.min(.9,height/blockHeight));
+    }while(size>preferredSize*.005);
+    return {font,lines,lineHeight,blockHeight,color:$(key+"-color").value||theme.ink,width};
+  }
+
+  c.save();
+  const layout=[["title",-1],["author",1]].map(([key,side])=>{
+    const label=layoutText(key,$("cover-"+key).value.trim()||coverTextDefaults[key],lineWidth,maxHeight);
+    return {
+      ...label,
+      x:side*((half+95)*(1-move)+(canvasHalfWidth-inset)*move),
+      centerY:side*(canvasHalfHeight-inset-label.blockHeight/2)*move,
+      align:-side*move
+    };
   });
+
+  const noteText=message.value.trim();
+  if(noteText){
+    const author=layout[1];
+    const closedTop=author.blockHeight/2+9;
+    const closedRoom=Math.max(12,canvasHalfHeight-inset-closedTop);
+    const openWidth=Math.min(350,canvasHalfWidth-inset*2);
+    const noteWidth=162+(openWidth-162)*move;
+    const openRoom=Math.max(12,canvasHalfHeight-paperHalf-inset);
+    const note=layoutText("message",noteText,noteWidth,closedRoom+(openRoom-closedRoom)*move,12);
+    const closedY=closedTop+note.blockHeight/2;
+    const openY=canvasHalfHeight-inset-note.blockHeight/2;
+    const noteMove=smooth(t/.72);
+    layout.push({
+      ...note,
+      x:(half+95)*(1-noteMove)-(canvasHalfWidth-inset)*noteMove,
+      centerY:Math.min(closedY+(openY-closedY)*move,openY),
+      align:move
+    });
+  }
   c.restore();
-  return {layout,move,lineWidth};
+  return layout;
 }
 
-function drawCoverLabels(c,{layout,move,lineWidth}) {
+function drawCoverLabels(c,layout) {
   c.save();
   c.textAlign="center";
   c.textBaseline="middle";
@@ -626,18 +645,15 @@ function drawCoverLabels(c,{layout,move,lineWidth}) {
     c.shadowColor="#fffbef";c.shadowBlur=8;
     c.strokeStyle="#fffbefd9";c.lineWidth=3;c.lineJoin="round";
   }
-  for(const {side,x,centerY,blockHeight,blocks,blockGap} of layout){
+  for(const {x,centerY,blockHeight,font,lines,lineHeight,color,width,align} of layout){
     let y=centerY-blockHeight/2;
-    for(const {font,lines,lineHeight,color} of blocks){
-      c.font=font;c.fillStyle=color;
-      for(const line of lines){
-        const textX=x-side*move*Math.min(line.width,lineWidth)/2;
-        const textY=y+lineHeight/2;
-        if(images.stage)c.strokeText(line.text,textX,textY,lineWidth);
-        c.fillText(line.text,textX,textY,lineWidth);
-        y+=lineHeight;
-      }
-      y+=blockGap;
+    c.font=font;c.fillStyle=color;
+    for(const line of lines){
+      const textX=x+align*Math.min(line.width,width)/2;
+      const textY=y+lineHeight/2;
+      if(images.stage)c.strokeText(line.text,textX,textY,width);
+      c.fillText(line.text,textX,textY,width);
+      y+=lineHeight;
     }
   }
   c.restore();
