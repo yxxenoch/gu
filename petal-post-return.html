@@ -56,6 +56,7 @@
 <script src="studio-font-library.js?v=1"></script>
 <script src="gif-codec.js?v=adaptive-2"></script>
 <script src="native-save.js?v=2"></script>
+<script src="petal-background.js?v=1"></script>
 <script defer src="huajian-colors.js?v=petal-2"></script>
 </head>
 <body>
@@ -94,19 +95,27 @@
 </div></div>
 <div class="section uploads" aria-label="自定义图片"><div class="label">自定义图片</div>
 <div class="upload-row">
-<strong id="cover-materials-label">封面</strong>
+<strong id="cover-materials-label">封面</strong><label class="upload-file">上传自定义封面<input type="file" data-image="flower" accept="image/*" aria-label="上传自定义封面"></label>
 <div id="cover-materials" class="material-grid" role="group" aria-labelledby="cover-materials-label"></div>
 <div class="upload-meta"><span data-caption="flower" data-default="合拢时显示，也会出现在 GIF 开头">合拢时显示，也会出现在 GIF 开头</span><button type="button" class="reset-image" data-reset="flower" aria-label="恢复默认合拢图案" hidden>恢复默认</button></div>
 <div class="flower-size" id="flower-size-control" hidden><label for="flower-size">图案大小</label><input id="flower-size" type="range" min="75" max="140" value="100"><output id="flower-size-value" for="flower-size">100%</output></div>
 </div>
 <div class="upload-row">
-<strong id="note-materials-label">花纹</strong>
+<strong id="note-materials-label">花纹</strong><label class="upload-file">上传自定义花纹<input type="file" data-image="note" accept="image/*" aria-label="上传自定义花纹"></label>
 <div id="note-materials" class="material-grid" role="group" aria-labelledby="note-materials-label"></div>
 <div class="upload-meta"><span data-caption="note" data-default="展开后铺在返图照片下方">展开后铺在返图照片下方</span><button type="button" class="reset-image" data-reset="note" aria-label="恢复默认信纸底图" hidden>恢复默认</button></div>
 </div>
 <div class="upload-row">
 <strong>画布背景</strong><label class="upload-file">选图<input type="file" data-image="stage" accept="image/*" aria-label="替换画布背景"></label>
 <div class="upload-meta"><span data-caption="stage" data-default="铺满画布，也会随 PNG 导出">铺满画布，也会随 PNG 导出</span><button type="button" class="reset-image" data-reset="stage" aria-label="恢复默认画布背景" hidden>恢复默认</button></div>
+<details id="stage-effects" hidden style="margin-top:8px">
+<summary>背景模糊与水印</summary>
+<label class="editor-field">高斯模糊 <output id="stage-blur-value" for="stage-blur">关闭</output><input id="stage-blur" type="range" min="0" max="30" value="0"></label>
+<label class="editor-field">春雨楼雪 · 水印蒙版<select id="stage-mask"><option value="">不添加</option></select></label>
+<label class="editor-field">蒙版透明度 <output id="stage-opacity-value" for="stage-opacity">35%</output><input id="stage-opacity" type="range" min="0" max="100" value="35"></label>
+<p class="note" id="stage-mask-status" role="status"></p>
+<p class="note">水印仅叠在背景上，封面、信纸和返图照片不受影响。素材来源：小红书 @春雨楼雪。</p>
+</details>
 </div>
 </div>
 <div class="section" aria-label="首图文字">
@@ -224,6 +233,85 @@ flower.width = flower.height = flowerBack.width = flowerBack.height = 640;
 note.width = 1240; note.height = 600;
 const images = {flower: null, note: null, stage: null};
 const imageNames = {flower: "", note: "", stage: ""};
+const drawStageBackground=window.PetalBackground?.createRenderer();
+let stageMask=null, stageMaskRequest=0;
+let stagePaintFrame=0;
+
+function syncStageControls(){
+  $("stage-effects").hidden=!images.stage;
+  const blur=Number($("stage-blur").value);
+  $("stage-blur-value").textContent=blur?String(blur):"关闭";
+  $("stage-opacity-value").textContent=$("stage-opacity").value+"%";
+  $("stage-mask").value=stageMask?.id||"";
+}
+
+function requestStagePaint(){
+  if(stagePaintFrame)return;
+  stagePaintFrame=requestAnimationFrame(()=>{
+    stagePaintFrame=0;
+    paint();
+  });
+}
+
+$("stage-effects").addEventListener("toggle",async()=>{
+  const select=$("stage-mask");
+  if(!$("stage-effects").open || select.options.length>1)return;
+  const status=$("stage-mask-status");
+  status.textContent="正在载入水印素材库…";
+  try{
+    if(!window.PetalBackground)throw new Error("请刷新页面后重试");
+    const catalog=await PetalBackground.loadCatalog();
+    if(select.options.length===1){
+      for(const item of catalog)select.add(new Option(item.name,item.id));
+    }
+    select.value=stageMask?.id||"";
+    status.textContent="";
+  }catch(error){
+    status.textContent=error.message+"。可收起后重新打开。";
+  }
+});
+
+$("stage-mask").addEventListener("change",async()=>{
+  const select=$("stage-mask"), status=$("stage-mask-status");
+  const request=++stageMaskRequest, id=select.value;
+  if(!id){
+    stageMask=null;
+    status.textContent="";
+    paint();recordEdit();
+    return;
+  }
+  status.textContent="正在载入水印…";
+  try{
+    const item=(await PetalBackground.loadCatalog()).find(entry=>entry.id===id);
+    if(!item)throw new Error("找不到这款水印");
+    const image=new Image();
+    image.src=item.full;
+    await image.decode();
+    if(request!==stageMaskRequest)return;
+    if(exportingGif){
+      select.value=stageMask?.id||"";
+      status.textContent="导出结束后可重新选择水印。";
+      return;
+    }
+    stageMask={id,image,mode:item.mode};
+    $("stage-opacity").value=Math.round(item.opacity*100);
+    syncStageControls();
+    status.textContent="";
+    paint();recordEdit();
+  }catch{
+    if(request!==stageMaskRequest)return;
+    select.value=stageMask?.id||"";
+    status.textContent="水印读取失败，请重新选择。";
+  }
+});
+
+for(const id of ["stage-blur","stage-opacity"]){
+  $(id).addEventListener("input",()=>{
+    const value=$(id).value;
+    $(id+"-value").textContent=id==="stage-opacity"?value+"%":Number(value)?value:"关闭";
+    requestStagePaint();
+  });
+}
 let paperFinish=.65;
 // Optional self-hosted presets: append {id, label, src} with a same-origin image URL.
 const coverPresets=[
@@ -802,7 +890,10 @@ function drawFoldedLetter(c,project,fold,flex,diagram) {
 
 function drawScene(c, w, h, t, diagram) {
   c.save();
-  if(images.stage)drawFitted(c,images.stage,w,h,"cover");
+  if(images.stage){
+    if(drawStageBackground)drawStageBackground(c,images.stage,w,h,Number($("stage-blur").value),stageMask,Number($("stage-opacity").value)/100);
+    else drawFitted(c,images.stage,w,h,"cover");
+  }
   const half=images.flower?146*Number($("flower-size").value)/100:151;
   const paperHalf=letterHalfWidth*note.height/note.width;
   const open=smooth(t);
@@ -960,6 +1051,7 @@ function updateImageControls(key){
   document.querySelector('[data-reset="'+key+'"]').hidden=
     key==="stage"?!images[key]:materialSelection[key]===defaultMaterial[key];
   if(key==="flower")$("flower-size-control").hidden=!images[key];
+  if(key==="stage")syncStageControls();
 }
 
 function trimTransparentMargin(bitmap) {
@@ -1002,7 +1094,7 @@ async function loadImage(file, key) {
   }
 }
 
-document.querySelectorAll('[data-image="stage"]').forEach(input=>{
+document.querySelectorAll("[data-image]").forEach(input=>{
   input.addEventListener("change",async()=>{
     const file=input.files[0];
     if(!file)return;
@@ -1013,7 +1105,15 @@ document.querySelectorAll('[data-image="stage"]').forEach(input=>{
     try{
       const image=await loadImage(file,key);
       if(request!==imageRequests[key])return;
+      if(key!=="stage"){
+        materialSelection[key]="custom";
+        syncMaterialCards(key);
+      }
       updateImage(key,image,file.name);
+      if(key!=="stage" && !exportingGif){
+        const destination=key==="flower"?0:1;
+        if(target!==destination)toggle();
+      }
       $("notice").textContent=label+"成功。";
     }catch{
       if(request===imageRequests[key]){
@@ -1031,6 +1131,8 @@ document.querySelectorAll("[data-reset]").forEach(button=>{
       selectMaterial("note","plain");
     }else{
       ++imageRequests[key];
+      ++stageMaskRequest;
+      $("stage-mask-status").textContent="";
       updateImage(key,null,"");
     }
     $("notice").textContent=button.getAttribute("aria-label")+"。";
@@ -1168,7 +1270,7 @@ async function selectMaterial(key,id){
 renderMaterialCards();
 
 const historyFields=[
-  "cover-title","cover-author","message","cover-font","flower-size","paper-finish",
+  "cover-title","cover-author","message","cover-font","flower-size","paper-finish","stage-blur","stage-opacity",
   ...Object.keys(coverTypeDefaults).flatMap(key=>[key+"-color",key+"-size"])
 ].map($);
 const historyButtons=Array.from(document.querySelectorAll("[data-history]"));
@@ -1179,7 +1281,7 @@ function editorState(){
   return {
     fields:historyFields.map(input=>input.value),
     customColors:[...customTextColors].sort(),theme,coverStyle,materialSelection:{...materialSelection},
-    images:{...images},imageNames:{...imageNames},collage:collage.slice()
+    images:{...images},imageNames:{...imageNames},stageMask,collage:collage.slice()
   };
 }
 function updateHistoryButtons(){
@@ -1192,7 +1294,7 @@ function recordEdit(){
   if(editIndex<0)return;
   const previous=edits[editIndex], next=editorState();
   const unchanged=(left,right)=>left.length===right.length && left.every((item,i)=>item===right[i]);
-  if(previous.theme===next.theme && previous.coverStyle===next.coverStyle &&
+  if(previous.theme===next.theme && previous.coverStyle===next.coverStyle && previous.stageMask===next.stageMask &&
     unchanged(Object.values(previous.materialSelection),Object.values(next.materialSelection)) &&
     unchanged(previous.fields,next.fields) && unchanged(previous.customColors,next.customColors) &&
     unchanged(previous.collage,next.collage) && unchanged(Object.values(previous.images),Object.values(next.images)) &&
@@ -1223,6 +1325,9 @@ function restoreEdit(step){
   paperFinish=Number($("paper-finish").value)/100;
   $("paper-finish-value").textContent=$("paper-finish").value+"%";
   $("flower-size-value").textContent=$("flower-size").value+"%";
+  ++stageMaskRequest;
+  stageMask=state.stageMask;
+  $("stage-mask-status").textContent="";
   Object.assign(images,state.images);
   Object.assign(imageNames,state.imageNames);
   for(const key of Object.keys(images))updateImageControls(key);
