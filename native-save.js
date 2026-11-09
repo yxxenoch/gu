@@ -1,7 +1,7 @@
 (() => {
  'use strict';
  const pending=new Map();let busy=false;
- function announce(value){if(parent!==window)parent.postMessage({type:'studio-busy',busy:value},location.origin);}
+ function announce(value){if(parent!==window)parent.postMessage({type:'studio-busy',busy:value},location.origin==='null'?'*':location.origin);}
  function receive(value){const waiter=pending.get(value?.id);if(!waiter)return;pending.delete(value.id);value.status==='saved'?waiter.resolve(value.message):waiter.reject(Error(value.status==='cancelled'?'cancelled':(value.message||'保存失败')));}
  window.addEventListener('guzheNativeExport',e=>receive(e.detail));
  window.addEventListener('message',e=>{if(e.origin===location.origin&&e.source===parent&&e.data?.type==='native-result')receive(e.data.detail);});

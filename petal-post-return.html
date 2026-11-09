@@ -55,6 +55,7 @@
 </style>
 <script src="studio-font-library.js?v=1"></script>
 <script src="gif-codec.js?v=adaptive-2"></script>
+<script src="native-save.js?v=2"></script>
 <script defer src="huajian-colors.js?v=petal-2"></script>
 </head>
 <body>
@@ -1226,25 +1227,44 @@ function exportCanvas(longSide=1600){
   out.height=Math.max(1,Math.round(longSide/Math.max(1,ratio)));
   return out;
 }
-function downloadExport(blob,filename){
+async function downloadExport(blob,filename){
+  if(window.GuzheFiles){
+    $("export-status").textContent="正在保存到设备…";
+    await window.StudioNative.save(blob,filename);
+    return true;
+  }
   const link=$(blob.type==="image/gif"?"download-gif":"download-png");
   if(!link.hidden)URL.revokeObjectURL(link.href);
   link.href=URL.createObjectURL(blob);
   link.download=filename;
   link.hidden=false;
   link.click();
+  return false;
 }
 
-$("save").addEventListener("click",()=>{
-  $("export-status").textContent="正在生成 PNG…";
-  const out=exportCanvas();
-  drawScene(out.getContext("2d"),out.width,out.height,1,false);
-  out.toBlob(blob=>{
-    if(!blob){$("export-status").textContent="图片生成失败，请再试一次。";return;}
-    downloadExport(blob,"petal-post-return-open.png");
-    $("export-status").textContent=images.stage?"PNG 已生成。若未自动下载，可点下方链接。":"透明底 PNG 已生成。若未自动下载，可点下方链接。";
-  },"image/png");
+$("save").addEventListener("click",async()=>{
+  const notice=$("export-status");
+  $("save").disabled=true;
+  $("save-gif").disabled=true;
+  notice.textContent="正在生成 PNG…";
+  try{
+    const out=exportCanvas();
+    drawScene(out.getContext("2d"),out.width,out.height,1,false);
+    const blob=await new Promise(resolve=>out.toBlob(resolve,"image/png"));
+    if(!blob)throw new Error("图片生成失败，请再试一次。");
+    const saved=await downloadExport(blob,"petal-post-return-open.png");
+    notice.textContent=saved?"PNG 已保存到设备。":images.stage?"PNG 已生成。若未自动下载，可点下方链接。":"透明底 PNG 已生成。若未自动下载，可点下方链接。";
+  }catch(error){
+    showExportError(notice,"PNG",error);
+  }finally{
+    $("save").disabled=false;
+    $("save-gif").disabled=false;
+  }
 });
+
+function showExportError(notice,format,error){
+  notice.textContent=error?.message==="cancelled"?"已取消保存。":format+" 导出失败："+(error?.message||"请重试。");
+}
 
 function notifyStudio(message){
   if(parent!==window)parent.postMessage(message,location.origin==="null"?"*":location.origin);
@@ -1270,17 +1290,17 @@ $("save-gif").addEventListener("click",async()=>{
     for(let i=0;i<=lastFrame;i++){
       notice.textContent="正在生成高清 GIF · "+Math.round(i/lastFrame*100)+"%";
       await new Promise(resolve=>setTimeout(resolve,0));
-      if(edits[editIndex]!==startingEdit)throw new Error("Settings changed");
+      if(edits[editIndex]!==startingEdit)throw new Error("导出设置已改变，请重试。");
       c.fillStyle="#fcf8f1";
       c.fillRect(0,0,w,h);
       drawScene(c,w,h,smooth(i/lastFrame),false);
       const delay=i===0?400:i===lastFrame?1600:(i%2?70:60);
       gif.adaptiveFrame(c.getImageData(0,0,w,h).data,delay,i===lastFrame);
     }
-    downloadExport(new Blob([gif.finish()],{type:"image/gif"}),"petal-post-return-opening.gif");
-    notice.textContent="GIF 已生成。若未自动下载，可点下方链接。";
-  }catch{
-    notice.textContent="GIF 生成中断，请等图片加载完成后重试。";
+    const saved=await downloadExport(new Blob([gif.finish()],{type:"image/gif"}),"petal-post-return-opening.gif");
+    notice.textContent=saved?"GIF 已保存到设备。":"GIF 已生成。若未自动下载，可点下方链接。";
+  }catch(error){
+    showExportError(notice,"GIF",error);
   }finally{
     exportingGif=false;
     notifyStudio({type:"studio-busy",busy:false});
