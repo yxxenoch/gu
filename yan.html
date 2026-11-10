@@ -444,39 +444,83 @@ function drawPhotoTape(c,w,h,gap,index){
 
 function drawPhotoSlits(c,w,h,mat,x,y,slots){
   c.save();
-  c.lineCap='round';
   for(const flip of [1,-1]){
     const cornerX=-flip*w/2,cornerY=-flip*h/2;
-    const a=[cornerX-flip*mat*2.6,cornerY+flip*mat*1.45];
-    const b=[cornerX+flip*mat*1.45,cornerY-flip*mat*2.6];
-    c.strokeStyle='#59392d65'; c.lineWidth=Math.min(2.5,mat*.48);
-    trace(c,[a,b]); c.stroke();
-    const lift=Math.min(1.7,mat*.36)*flip;
-    c.strokeStyle='#f8e6bbcf'; c.lineWidth=Math.min(1.35,mat*.24);
-    trace(c,[[a[0]-lift,a[1]-lift],[b[0]-lift,b[1]-lift]]); c.stroke();
+    const d=mat*.94;
+    const point=(u,v)=>[cornerX+flip*d*u,cornerY+flip*d*v];
+    const a=point(-1.83,.56),b=point(.56,-1.83);
+    c.fillStyle='#473026';
+    c.shadowColor='#49312360'; c.shadowBlur=3;
+    trace(c,[a,b,point(.65,-1.03),point(-1.03,.65)]);
+    c.closePath(); c.fill();
+    c.shadowBlur=0;
+
+    // The tongue of the backing sheet overlaps the mat corner, outside the image.
+    const [gx,gy]=point(-1.57,-1.57),[lx,ly]=point(-.48,-.48);
+    const face=c.createLinearGradient(gx,gy,lx,ly);
+    face.addColorStop(0,'#e8cfa5');
+    face.addColorStop(.68,'#efd9b0');
+    face.addColorStop(1,'#bb8f63');
+    c.fillStyle=face;
+    c.beginPath();
+    c.moveTo(...point(-1.88,.27));
+    c.quadraticCurveTo(...point(-1.75,-.85),...point(-1.64,-1.64));
+    c.quadraticCurveTo(...point(-.85,-1.75),...point(.27,-1.88));
+    c.lineTo(...point(.37,-1.52));
+    c.quadraticCurveTo(...point(-.58,-.58),...point(-1.52,.37));
+    c.closePath(); c.fill();
+
+    c.strokeStyle='#fff3d699'; c.lineWidth=Math.min(1.5,d*.17);
+    trace(c,[point(-1.56,.28),point(.28,-1.56)]); c.stroke();
+    c.fillStyle='#f8e3bb85';
+    for(let i=0;i<6;i++){
+      const k=i/5;
+      const [fx,fy]=point(-1.56+1.85*k,-1.56+1.85*(1-k));
+      c.fillRect(fx,fy,1.2,.7);
+    }
     slots.push([a.map((v,i)=>v+(i?y:x)),b.map((v,i)=>v+(i?y:x))]);
   }
   c.restore();
 }
 
 function drawArchiveMount(c,w,h,mat,gap,index){
-  const left=-w/2-mat,top=-h/2-mat,tail=Math.min(18,gap*.58,w*.14);
+  const left=-w/2-mat,top=-h/2-mat;
+  const tail=Math.min(42,gap*.56,w*.29);
+  const bottom=h/2+mat+tail, right=w/2+mat;
   c.save();
-  c.shadowColor='#21151159'; c.shadowBlur=5; c.shadowOffsetY=3;
-  c.fillStyle='#46352f';
-  c.fillRect(left,top,w+2*mat,h+2*mat+tail);
+  c.shadowColor='#20151281'; c.shadowBlur=8; c.shadowOffsetY=4;
+  c.fillStyle='#483833';
+  trace(c,[[left+4,top],[right-7,top],[right,top+7],[right,bottom],[left,bottom],[left,top+4]]);
+  c.closePath(); c.fill();
   c.shadowBlur=0; c.shadowOffsetY=0;
-  c.fillStyle='#7c6358'; c.fillRect(left,top,w+2*mat,.7);
-  if(tail>=6){
-    const y=h/2+mat+1,label=Math.min(w*.61,49);
-    c.fillStyle='#e6cba3'; c.fillRect(left+2,y,label,tail-1);
-    c.fillStyle='#49362c'; c.font=Math.min(tail*.67,8)+'px monospace';
+  c.strokeStyle='#8a6e60'; c.lineWidth=.9;
+  trace(c,[[left+4,top+2],[right-7,top+2],[right-2,top+7],[right-2,bottom-2],[left+2,bottom-2],[left+2,top+4],[left+4,top+2]]);
+  c.stroke();
+  c.fillStyle='#ba9b77';
+  for(let i=0;i<4;i++){
+    const x=left+4+i*4;
+    c.fillRect(x,top+3,1.5,Math.min(3,mat*.38));
+  }
+  if(tail>=8){
+    const labelW=Math.min(w*.7,79), labelH=Math.min(tail*.79,28);
+    const labelX=left+5,labelY=h/2+mat+tail*.10;
+    c.save();
+    c.translate(labelX,labelY+labelH/2); c.rotate(-.065);
+    c.shadowColor='#1b130d80'; c.shadowBlur=3; c.shadowOffsetY=2;
+    c.fillStyle='#e4c89d';
+    trace(c,[[0,-labelH/2],[labelW-7,-labelH/2],[labelW,-labelH*.22],[labelW,labelH*.22],[labelW-7,labelH/2],[0,labelH/2]]);
+    c.closePath(); c.fill();
+    c.shadowBlur=0; c.shadowOffsetY=0;
+    const eye=labelW-5;
+    c.fillStyle='#624633'; c.beginPath(); c.arc(eye,0,2.1,0,Math.PI*2); c.fill();
+    c.fillStyle='#483329'; c.font='600 '+Math.min(labelH*.62,15)+'px monospace';
     c.textBaseline='middle';
-    c.fillText(String(index+1).padStart(2,'0'),left+5,y+(tail-1)/2);
-    const x=w/2-mat*1.5,eye=y+(tail-1)/2;
-    c.fillStyle='#251e1b'; c.beginPath(); c.arc(x,eye,1.35,0,Math.PI*2); c.fill();
-    c.strokeStyle='#c1a27b'; c.lineWidth=.95;
-    c.beginPath(); c.moveTo(x,eye); c.quadraticCurveTo(x+5,eye-4,x+8,eye+1); c.stroke();
+    c.fillText('№ '+String(index+1).padStart(2,'0'),4,.5,Math.max(4,labelW-13));
+    c.strokeStyle='#ae8d64'; c.lineWidth=1.4;
+    c.beginPath();
+    c.moveTo(eye,0); c.bezierCurveTo(eye+10,-8,eye+15,7,eye+22,1);
+    c.quadraticCurveTo(eye+26,-2,eye+29,3); c.stroke();
+    c.restore();
   }
   c.restore();
 }
@@ -495,24 +539,39 @@ function drawPaperPockets(c,frames,inset,top,gap,w,h){
   for(const frame of frames)paperOnly.rect(inset+frame.x,top+frame.y,frame.w,frame.h);
   c.clip(paperOnly,'evenodd');
   for(const row of rows){
-    const height=Math.min(23,gap*.70,(row.right-row.left)*.16);
-    if(height<2)continue;
-    const left=inset+row.left-height*.29,right=inset+row.right+height*.29;
-    const y=top+row.bottom+.7;
-    const tone=c.createLinearGradient(0,y,0,y+height);
-    tone.addColorStop(0,'#e6cba4');
-    tone.addColorStop(.21,'#ddbd91');
-    tone.addColorStop(1,'#b68e63');
-    c.shadowColor='#37221954'; c.shadowBlur=5; c.shadowOffsetY=2;
+    const height=Math.min(59,gap*1.18,(row.right-row.left)*.36);
+    if(height<4)continue;
+    const left=inset+row.left-height*.36,right=inset+row.right+height*.36;
+    const y=top+row.bottom-2;
+    const foot=y+height;
+    const depth=height*.25, fold=height*.73;
+    const tone=c.createLinearGradient(0,y,0,foot);
+    tone.addColorStop(0,'#e6c99c');
+    tone.addColorStop(.37,'#d8b482');
+    tone.addColorStop(1,'#bb9160');
+
+    // A dark opening sits behind the raised front panel and its two folded gussets.
+    c.fillStyle='#694a36';
+    trace(c,[[left,y-depth*.48],[right,y-depth*.48],[right-fold*.36,y+depth],[left+fold*.36,y+depth]]);
+    c.closePath(); c.fill();
+    c.shadowColor='#3d281d68'; c.shadowBlur=7; c.shadowOffsetY=3;
     c.fillStyle=tone;
-    trace(c,[[left,y],[right,y],[right-height*.4,y+height],[left+height*.4,y+height]]);
+    trace(c,[[left,y],[right,y],[right-depth*.25,foot-2],[right-fold*.26,foot],[left+fold*.26,foot],[left+depth*.25,foot-2]]);
     c.closePath(); c.fill();
     c.shadowBlur=0; c.shadowOffsetY=0;
-    c.lineWidth=.8; c.strokeStyle='#fff0d09c';
-    trace(c,[[left+1,y+.6],[right-1,y+.6]]); c.stroke();
-    c.strokeStyle='#71513864';
-    trace(c,[[left+height*.4,y+height],[left+height*.98,y+height*.23],[right-height*.98,y+height*.23],[right-height*.4,y+height]]);
-    c.stroke();
+
+    c.fillStyle='#ad845b91';
+    trace(c,[[left,y],[left+fold,y+height*.57],[left+fold*.26,foot],[left+depth*.25,foot-2]]);
+    c.closePath(); c.fill();
+    trace(c,[[right,y],[right-fold,y+height*.57],[right-fold*.26,foot],[right-depth*.25,foot-2]]);
+    c.closePath(); c.fill();
+    c.fillStyle='#e9c997a0';
+    trace(c,[[left+fold*.26,foot],[left+fold,y+height*.57],[right-fold,y+height*.57],[right-fold*.26,foot]]);
+    c.closePath(); c.fill();
+    c.strokeStyle='#fff1ccca'; c.lineWidth=1.3;
+    trace(c,[[left+1,y+.8],[right-1,y+.8]]); c.stroke();
+    c.strokeStyle='#815c4185'; c.lineWidth=.9;
+    trace(c,[[left,y],[left+fold,y+height*.57],[right-fold,y+height*.57],[right,y]]); c.stroke();
   }
   c.restore();
 }
@@ -553,10 +612,12 @@ function printLayer(images) {
   const titleBottom=printTitle(c,w,h);
   const files = images.length ? images : [null,null,null];
   const slots=[];
-  const inset=w*.075;
-  const top=Math.max(h*.088,titleBottom+h*.035);
-  const layoutWidth=w-inset*2,layoutHeight=h*.90-top;
-  const gap=Math.min(w*(style==='print' ? .016 : .029),Math.min(layoutWidth,layoutHeight)/(files.length*1.8));
+  const mounted=style==='slit'||style==='archive'||style==='pocket';
+  const inset=w*(mounted ? .102 : .075);
+  const top=Math.max(h*(mounted ? .12 : .088),titleBottom+h*.035);
+  const bottom=style==='pocket' ? .82 : style==='archive' ? .85 : .90;
+  const layoutWidth=w-inset*2,layoutHeight=h*bottom-top;
+  const gap=Math.min(w*(mounted ? .064 : style==='print' ? .016 : .029),Math.min(layoutWidth,layoutHeight)/(files.length*1.65));
   const demoWidth=360,demoHeight=780;
   const {frames,gap:frameGap}=photoLayout(
     files.map(image=>image?image.naturalWidth/image.naturalHeight:demoWidth/demoHeight),
@@ -566,7 +627,7 @@ function printLayer(images) {
     const frame=frames[i];
     const cw=frame.w,ch=frame.h;
     const x=inset+frame.x+cw/2,y=top+frame.y+ch/2;
-    const mat=Math.min(5,frameGap*.18,Math.min(cw,ch)*.08);
+    const mat=mounted?Math.min(15,frameGap*.245,Math.min(cw,ch)*.13):Math.min(5,frameGap*.18,Math.min(cw,ch)*.08);
     c.save();
     c.translate(x,y);
     if(style==='tape'){
