@@ -388,7 +388,7 @@ function setupPaperPatterns(){
   get('paperPatternSection').hidden=false;
 }
 
-function drawPhotoMat(c,w,h,mat){
+function drawPhotoMat(c,w,h,mat,slotted=false){
   const left=-w/2-mat,top=-h/2-mat;
   const width=w+2*mat,height=h+3.1*mat;
   const tone=c.createLinearGradient(0,top,0,top+height);
@@ -398,10 +398,12 @@ function drawPhotoMat(c,w,h,mat){
   c.save();
   c.shadowColor='#22191353'; c.shadowBlur=5; c.shadowOffsetX=1; c.shadowOffsetY=2.4;
   c.fillStyle=tone;
-  c.fillRect(left,top,width,height);
+  const right=left+width,bottom=top+height,cut=slotted?mat*1.45:0;
+  trace(c,[[left+cut,top],[right,top],[right,bottom-cut],[right-cut,bottom],[left,bottom],[left,top+cut]]);
+  c.closePath(); c.fill();
   c.shadowBlur=0; c.shadowOffsetX=0; c.shadowOffsetY=0;
-  c.fillStyle='#fffdf5a0'; c.fillRect(left,top,width,.55);
-  c.fillStyle='#8d766955'; c.fillRect(left,top+height-.7,width,.7);
+  c.fillStyle='#fffdf5a0'; c.fillRect(left+cut,top,width-cut,.55);
+  c.fillStyle='#8d766955'; c.fillRect(left,bottom-.7,width-cut,.7);
   c.restore();
 }
 
@@ -443,42 +445,37 @@ function drawPhotoTape(c,w,h,gap,index){
 }
 
 function drawPhotoSlits(c,w,h,mat,x,y,slots){
+  const left=-w/2-mat,top=-h/2-mat;
+  const right=w/2+mat,bottom=h/2+2.1*mat;
+  const cut=mat*1.45;
   c.save();
-  for(const flip of [1,-1]){
-    const cornerX=-flip*w/2,cornerY=-flip*h/2;
-    const d=mat*.94;
-    const point=(u,v)=>[cornerX+flip*d*u,cornerY+flip*d*v];
-    const a=point(-1.83,.56),b=point(.56,-1.83);
-    c.fillStyle='#473026';
-    c.shadowColor='#49312360'; c.shadowBlur=3;
-    trace(c,[a,b,point(.65,-1.03),point(-1.03,.65)]);
-    c.closePath(); c.fill();
-    c.shadowBlur=0;
+  for(const [cornerX,cornerY,sign] of [[left,top,1],[right,bottom,-1]]){
+    const point=(u,v)=>[cornerX+sign*mat*u,cornerY+sign*mat*v];
+    const a=point(0,1.45),b=point(1.45,0);
+    const outerA=point(-.30,1.48),outerB=point(1.48,-.30);
 
-    // The tongue of the backing sheet overlaps the mat corner, outside the image.
-    const [gx,gy]=point(-1.57,-1.57),[lx,ly]=point(-.48,-.48);
-    const face=c.createLinearGradient(gx,gy,lx,ly);
-    face.addColorStop(0,'#e8cfa5');
-    face.addColorStop(.68,'#efd9b0');
-    face.addColorStop(1,'#bb8f63');
+    c.fillStyle='#54392b';
+    trace(c,[outerA,outerB,point(1.40,.13),point(.13,1.40)]);
+    c.closePath(); c.fill();
+
+    // This paper lip follows the same diagonal that trims the mat.
+    const face=c.createLinearGradient(...point(-.30,-.30),...point(.73,.73));
+    face.addColorStop(0,'#e6cda3');
+    face.addColorStop(.62,'#edd5ab');
+    face.addColorStop(1,'#c09b73');
     c.fillStyle=face;
     c.beginPath();
-    c.moveTo(...point(-1.88,.27));
-    c.quadraticCurveTo(...point(-1.75,-.85),...point(-1.64,-1.64));
-    c.quadraticCurveTo(...point(-.85,-1.75),...point(.27,-1.88));
-    c.lineTo(...point(.37,-1.52));
-    c.quadraticCurveTo(...point(-.58,-.58),...point(-1.52,.37));
+    c.moveTo(...point(-.42,-.42));
+    c.lineTo(...outerB);
+    c.quadraticCurveTo(...point(.51,.54),...outerA);
     c.closePath(); c.fill();
 
-    c.strokeStyle='#fff3d699'; c.lineWidth=Math.min(1.5,d*.17);
-    trace(c,[point(-1.56,.28),point(.28,-1.56)]); c.stroke();
-    c.fillStyle='#f8e3bb85';
-    for(let i=0;i<6;i++){
-      const k=i/5;
-      const [fx,fy]=point(-1.56+1.85*k,-1.56+1.85*(1-k));
-      c.fillRect(fx,fy,1.2,.7);
-    }
-    slots.push([a.map((v,i)=>v+(i?y:x)),b.map((v,i)=>v+(i?y:x))]);
+    c.strokeStyle='#f8e8c5c9'; c.lineWidth=Math.min(1.45,mat*.16);
+    c.beginPath();
+    c.moveTo(...outerB);
+    c.quadraticCurveTo(...point(.49,.50),...outerA);
+    c.stroke();
+    slots.push([a.map((v,i)=>v+(i?y:x)),b.map((v,i)=>v+(i?y:x)),Math.min(3.5,cut*.23)]);
   }
   c.restore();
 }
@@ -525,54 +522,72 @@ function drawArchiveMount(c,w,h,mat,gap,index){
   c.restore();
 }
 
-function drawPaperPockets(c,frames,inset,top,gap,w,h){
-  const rows=[];
-  for(const frame of frames){
-    const bottom=frame.y+frame.h;
-    const row=rows.find(item=>Math.abs(item.bottom-bottom)<1);
-    if(row){row.left=Math.min(row.left,frame.x);row.right=Math.max(row.right,frame.x+frame.w);}
-    else rows.push({bottom,left:frame.x,right:frame.x+frame.w});
-  }
+function envelopeBounds(frames,inset,top,gap,w,h){
+  const margin=Math.min(24,gap*.56);
+  const left=Math.max(9,inset+Math.min(...frames.map(f=>f.x))-margin);
+  const right=Math.min(w-9,inset+Math.max(...frames.map(f=>f.x+f.w))+margin);
+  const first=top+Math.min(...frames.map(f=>f.y));
+  const lip=top+Math.max(...frames.map(f=>f.y+f.h))+.6;
+  const base=Math.min(h-14,lip+Math.min(65,Math.max(22,gap*1.36)));
+  return {left,right,first,lip,base,middle:(left+right)/2,apex:Math.max(10,first-Math.min(56,first*.65))};
+}
+
+function drawEnvelopeBack(c,g){
+  const {left,right,first,base,middle,apex}=g;
+  const foldY=first+10;
+  c.save();
+  const tone=c.createLinearGradient(0,apex,0,base);
+  tone.addColorStop(0,'#d5bc96');
+  tone.addColorStop(.42,'#b38b62');
+  tone.addColorStop(1,'#795741');
+  c.shadowColor='#39231862'; c.shadowBlur=10; c.shadowOffsetY=5;
+  c.fillStyle=tone;
+  c.beginPath();
+  c.moveTo(left,foldY);
+  c.lineTo(middle-9,apex+3);
+  c.quadraticCurveTo(middle,apex-4,middle+9,apex+3);
+  c.lineTo(right,foldY);
+  c.lineTo(right,base-5);
+  c.quadraticCurveTo(right,base,right-5,base);
+  c.lineTo(left+5,base);
+  c.quadraticCurveTo(left,base,left,base-5);
+  c.closePath(); c.fill();
+  c.shadowBlur=0; c.shadowOffsetY=0;
+  c.strokeStyle='#5c392842'; c.lineWidth=1.4;
+  trace(c,[[left,foldY],[right,foldY]]); c.stroke();
+  c.restore();
+}
+
+function drawEnvelopeFront(c,g,frames,inset,top,w,h){
+  const {left,right,lip,base,middle}=g;
+  const height=base-lip;
+  const notch=lip+height*.37;
+  const shoulder=lip-height*.30;
+  const foot=height*.31;
   c.save();
   const paperOnly=new Path2D();
   paperOnly.rect(0,0,w,h);
   for(const frame of frames)paperOnly.rect(inset+frame.x,top+frame.y,frame.w,frame.h);
   c.clip(paperOnly,'evenodd');
-  for(const row of rows){
-    const height=Math.min(59,gap*1.18,(row.right-row.left)*.36);
-    if(height<4)continue;
-    const left=inset+row.left-height*.36,right=inset+row.right+height*.36;
-    const y=top+row.bottom-2;
-    const foot=y+height;
-    const depth=height*.25, fold=height*.73;
-    const tone=c.createLinearGradient(0,y,0,foot);
-    tone.addColorStop(0,'#e6c99c');
-    tone.addColorStop(.37,'#d8b482');
-    tone.addColorStop(1,'#bb9160');
 
-    // A dark opening sits behind the raised front panel and its two folded gussets.
-    c.fillStyle='#694a36';
-    trace(c,[[left,y-depth*.48],[right,y-depth*.48],[right-fold*.36,y+depth],[left+fold*.36,y+depth]]);
-    c.closePath(); c.fill();
-    c.shadowColor='#3d281d68'; c.shadowBlur=7; c.shadowOffsetY=3;
-    c.fillStyle=tone;
-    trace(c,[[left,y],[right,y],[right-depth*.25,foot-2],[right-fold*.26,foot],[left+fold*.26,foot],[left+depth*.25,foot-2]]);
-    c.closePath(); c.fill();
-    c.shadowBlur=0; c.shadowOffsetY=0;
+  c.fillStyle='#543a2e';
+  trace(c,[[left,shoulder-4],[middle,notch-5],[right,shoulder-4],[right,notch+4],[left,notch+4]]);
+  c.closePath(); c.fill();
+  const tone=c.createLinearGradient(0,shoulder,0,base);
+  tone.addColorStop(0,'#d8ba93');
+  tone.addColorStop(.42,'#c6a079');
+  tone.addColorStop(1,'#ac815b');
+  c.fillStyle=tone;
+  trace(c,[[left,shoulder],[middle,notch],[right,shoulder],[right,base-foot*.2],[right-foot*.6,base],[left+foot*.6,base],[left,base-foot*.2]]);
+  c.closePath(); c.fill();
 
-    c.fillStyle='#ad845b91';
-    trace(c,[[left,y],[left+fold,y+height*.57],[left+fold*.26,foot],[left+depth*.25,foot-2]]);
-    c.closePath(); c.fill();
-    trace(c,[[right,y],[right-fold,y+height*.57],[right-fold*.26,foot],[right-depth*.25,foot-2]]);
-    c.closePath(); c.fill();
-    c.fillStyle='#e9c997a0';
-    trace(c,[[left+fold*.26,foot],[left+fold,y+height*.57],[right-fold,y+height*.57],[right-fold*.26,foot]]);
-    c.closePath(); c.fill();
-    c.strokeStyle='#fff1ccca'; c.lineWidth=1.3;
-    trace(c,[[left+1,y+.8],[right-1,y+.8]]); c.stroke();
-    c.strokeStyle='#815c4185'; c.lineWidth=.9;
-    trace(c,[[left,y],[left+fold,y+height*.57],[right-fold,y+height*.57],[right,y]]); c.stroke();
-  }
+  c.fillStyle='#f3d6af84';
+  trace(c,[[left+foot*.6,base],[middle-foot,lip+height*.63],[middle+foot,lip+height*.63],[right-foot*.6,base]]);
+  c.closePath(); c.fill();
+  c.strokeStyle='#78553889'; c.lineWidth=1.1;
+  trace(c,[[left+foot*.6,base],[middle-foot,lip+height*.63],[middle+foot,lip+height*.63],[right-foot*.6,base]]); c.stroke();
+  c.strokeStyle='#f6dfbfcf'; c.lineWidth=1.25;
+  trace(c,[[left+1,shoulder+.8],[middle,notch+.8],[right-1,shoulder+.8]]); c.stroke();
   c.restore();
 }
 
@@ -580,15 +595,15 @@ function scorchPhotoSlits(c,layer,w,h,burn,dual,toward){
   if(!burn||!layer.paperSlits?.length)return;
   c.save();
   c.lineCap='round';
-  for(const [a,b] of layer.paperSlits){
+  for(const [a,b,width] of layer.paperSlits){
     const [x,y]=toward((a[0]+b[0])/2,(a[1]+b[1])/2,w,h);
     const dx=x/w-burnOrigin[0],dy=y/h-burnOrigin[1];
     const reach=burnRadius(Math.atan2(dy,dx),burn,dual);
     const heat=smooth((reach-Math.hypot(dx,dy))/.07+.4);
     if(heat<.015)continue;
     trace(c,[a,b]);
-    c.globalAlpha=heat*.29; c.lineWidth=3.5; c.strokeStyle='#a16338'; c.stroke();
-    c.globalAlpha=heat*.76; c.lineWidth=1.25; c.strokeStyle='#352017'; c.stroke();
+    c.globalAlpha=heat*.29; c.lineWidth=width; c.strokeStyle='#a16338'; c.stroke();
+    c.globalAlpha=heat*.76; c.lineWidth=width*.36; c.strokeStyle='#352017'; c.stroke();
   }
   c.restore();
 }
@@ -623,6 +638,8 @@ function printLayer(images) {
     files.map(image=>image?image.naturalWidth/image.naturalHeight:demoWidth/demoHeight),
     layoutWidth,layoutHeight,gap
   );
+  const envelope=style==='pocket'?envelopeBounds(frames,inset,top,frameGap,w,h):null;
+  if(envelope)drawEnvelopeBack(c,envelope);
   files.forEach((image,i)=>{
     const frame=frames[i];
     const cw=frame.w,ch=frame.h;
@@ -635,7 +652,7 @@ function printLayer(images) {
       c.rotate(i%2?tilt:-tilt);
     }
     if(style==='archive')drawArchiveMount(c,cw,ch,mat,frameGap,i);
-    else if(style!=='print')drawPhotoMat(c,cw,ch,mat);
+    else if(style!=='print')drawPhotoMat(c,cw,ch,mat,style==='slit');
     if(image){
       c.drawImage(image,-cw/2,-ch/2,cw,ch);
     }else{
@@ -681,7 +698,7 @@ function printLayer(images) {
     if(style==='slit')drawPhotoSlits(c,cw,ch,mat,x,y,slots);
     c.restore();
   });
-  if(style==='pocket')drawPaperPockets(c,frames,inset,top,frameGap,w,h);
+  if(envelope)drawEnvelopeFront(c,envelope,frames,inset,top,w,h);
   if(slots.length)layer.paperSlits=slots;
   return layer;
 }
