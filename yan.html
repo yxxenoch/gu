@@ -5,7 +5,7 @@
 <title>焰｜返图模板</title>
 <style>
 :root{--ink:#30271e;--paper:#efe0bd;--accent:#d65422;--ui:#f7f1e7;--line:#d9cbb6}
-*{box-sizing:border-box}body{margin:0;background:#e8e0d5;color:var(--ink);font-family:ui-serif,Georgia,"Noto Serif SC",serif}.app{max-width:1120px;margin:auto;padding:26px 20px 54px}.head{display:flex;justify-content:space-between;align-items:end;gap:20px;margin-bottom:20px}.eyebrow{font:700 11px system-ui;letter-spacing:.18em;color:#8d5c3c}.head h1{margin:4px 0;font-size:clamp(28px,4vw,42px);font-weight:600}.head p{margin:0;color:#766a5d;font:14px system-ui}.layout{display:grid;grid-template-columns:minmax(290px,370px) 1fr;gap:20px}.panel,.stage{background:var(--ui);border:1px solid var(--line);border-radius:18px;box-shadow:0 12px 35px #57442c12}.panel{padding:18px}.group{padding:0 0 16px;margin-bottom:15px;border-bottom:1px solid var(--line)}.group:last-of-type{border:0;margin:0}.group h2{font:700 13px system-ui;margin:0 0 10px}.upload{display:block;border:1px dashed #b9a68d;border-radius:12px;background:#fffaf2;padding:12px;margin-top:8px;font:13px system-ui}.upload span{display:block;color:#786957;margin-bottom:7px}.upload input{max-width:100%;font-size:12px}.hint{font:12px/1.5 system-ui;color:#817465;margin:8px 0 0}.choices{display:flex;gap:8px;flex-wrap:wrap}.choice{border:1px solid #cdbda8;border-radius:999px;padding:8px 11px;background:#fffaf2;font:12px system-ui;cursor:pointer}.choice.active{background:#382b20;color:#fff;border-color:#382b20}input[type=range]{width:100%;accent-color:#ae4b28}.print-strength{margin-top:12px}.print-strength label{display:flex;justify-content:space-between;gap:12px;font:13px system-ui}.print-strength output{font-variant-numeric:tabular-nums}.buttons{display:flex;gap:8px;flex-wrap:wrap}.btn{border:0;border-radius:10px;padding:11px 14px;background:#36291e;color:white;font:700 13px system-ui;cursor:pointer}.btn.secondary{background:#e7dac7;color:#3c3025}.btn.fire{background:#a64020}.btn:disabled{opacity:.45;cursor:not-allowed}.stage{min-height:620px;padding:20px;display:grid;place-items:center;overflow:hidden;background:radial-gradient(ellipse at 50% 40%,#fffdf8,#e6dac7)}
+*{box-sizing:border-box}body{margin:0;background:#e8e0d5;color:var(--ink);font-family:ui-serif,Georgia,"Noto Serif SC",serif}.app{max-width:1120px;margin:auto;padding:26px 20px 54px}.head{display:flex;justify-content:space-between;align-items:end;gap:20px;margin-bottom:20px}.eyebrow{font:700 11px system-ui;letter-spacing:.18em;color:#8d5c3c}.head h1{margin:4px 0;font-size:clamp(28px,4vw,42px);font-weight:600}.head p{margin:0;color:#766a5d;font:14px system-ui}.layout{display:grid;grid-template-columns:minmax(290px,370px) 1fr;gap:20px}.panel,.stage{background:var(--ui);border:1px solid var(--line);border-radius:18px;box-shadow:0 12px 35px #57442c12}.panel{padding:18px}.group{padding:0 0 16px;margin-bottom:15px;border-bottom:1px solid var(--line)}.group:last-of-type{border:0;margin:0}.group h2{font:700 13px system-ui;margin:0 0 10px}.upload{display:block;border:1px dashed #b9a68d;border-radius:12px;background:#fffaf2;padding:12px;margin-top:8px;font:13px system-ui}.upload span{display:block;color:#786957;margin-bottom:7px}.upload input{max-width:100%;font-size:12px}.hint{font:12px/1.5 system-ui;color:#817465;margin:8px 0 0}.choices{display:flex;gap:8px;flex-wrap:wrap}.choice{border:1px solid #cdbda8;border-radius:999px;padding:8px 11px;background:#fffaf2;font:12px system-ui;cursor:pointer}.choice[hidden]{display:none}.choice.active{background:#382b20;color:#fff;border-color:#382b20}input[type=range]{width:100%;accent-color:#ae4b28}.print-strength{margin-top:12px}.print-strength label{display:flex;justify-content:space-between;gap:12px;font:13px system-ui}.print-strength output{font-variant-numeric:tabular-nums}.buttons{display:flex;gap:8px;flex-wrap:wrap}.btn{border:0;border-radius:10px;padding:11px 14px;background:#36291e;color:white;font:700 13px system-ui;cursor:pointer}.btn.secondary{background:#e7dac7;color:#3c3025}.btn.fire{background:#a64020}.btn:disabled{opacity:.45;cursor:not-allowed}.stage{min-height:620px;padding:20px;display:grid;place-items:center;overflow:hidden;background:radial-gradient(ellipse at 50% 40%,#fffdf8,#e6dac7)}
 .scene{width:min(100%,700px);aspect-ratio:5/4}.scene canvas{width:100%;height:auto;display:block;border-radius:10px;box-shadow:0 14px 38px #34241d45}.status{min-height:18px;margin-top:10px;font:12px system-ui;color:#786957}
 .export-result{margin-top:12px;padding:12px;background:#fffaf2;border:1px solid var(--line);border-radius:12px}
 .export-result .buttons+.buttons{margin-top:8px}.export-result .btn{display:inline-block;text-decoration:none}.export-name{display:block;margin:0 0 10px;font:12px system-ui;overflow-wrap:anywhere}
@@ -33,7 +33,8 @@
 <header class="head"><div><div class="eyebrow">PAPER / FIRE / REVEAL</div><h1>焰</h1><p>让火焰从纸角掠过，带出另一段返图。</p></div><div class="eyebrow">返图模板</div></header>
 <div class="layout"><section class="panel">
 <div class="group"><h2>图片上传</h2><label class="upload"><span>第一套图片 · 燃烧前</span><input id="setA" type="file" accept="image/*" multiple></label><label class="upload"><span>第二套图片 · 燃烧后（可选）</span><input id="setB" type="file" accept="image/*" multiple></label><div class="buttons" style="margin-top:8px"><button type="button" class="btn secondary" id="clearPhotos">清空图片</button></div><p class="hint">每套可上传任意张数。只上传第一套时，燃烧后仍是同一套图片，只增加焦痕；上传第二套后，燃烧会显影第二套。</p></div>
-<div class="group"><h2>纸面样式</h2><div class="choices" id="styleChoices"><button class="choice active" data-style="print">直接印刷</button><button class="choice" data-style="tape">照片与贴条</button></div>
+<div class="group"><h2>纸面样式</h2><div class="choices" id="styleChoices"><button class="choice active" data-style="print">直接印刷</button><button class="choice" data-style="tape">照片与贴条</button><button class="choice" data-style="slit" hidden>纸缝藏影</button><button class="choice" data-style="archive" hidden>余烬档案</button><button class="choice" data-style="pocket" hidden>半封</button></div>
+<p class="hint" id="trialStyleNote" hidden>装裱试做 · 用同一组照片切换三款样式。</p>
 <div class="print-strength" id="printStrengthControls">
 <label for="printStrength">印刷强度 <output id="printStrengthLabel" for="printStrength">100%</output></label>
 <input id="printStrength" type="range" min="0" max="200" step="1" value="100">
@@ -441,6 +442,98 @@ function drawPhotoTape(c,w,h,gap,index){
   c.restore();
 }
 
+function drawPhotoSlits(c,w,h,mat,x,y,slots){
+  c.save();
+  c.lineCap='round';
+  for(const flip of [1,-1]){
+    const cornerX=-flip*w/2,cornerY=-flip*h/2;
+    const a=[cornerX-flip*mat*2.6,cornerY+flip*mat*1.45];
+    const b=[cornerX+flip*mat*1.45,cornerY-flip*mat*2.6];
+    c.strokeStyle='#59392d65'; c.lineWidth=Math.min(2.5,mat*.48);
+    trace(c,[a,b]); c.stroke();
+    const lift=Math.min(1.7,mat*.36)*flip;
+    c.strokeStyle='#f8e6bbcf'; c.lineWidth=Math.min(1.35,mat*.24);
+    trace(c,[[a[0]-lift,a[1]-lift],[b[0]-lift,b[1]-lift]]); c.stroke();
+    slots.push([a.map((v,i)=>v+(i?y:x)),b.map((v,i)=>v+(i?y:x))]);
+  }
+  c.restore();
+}
+
+function drawArchiveMount(c,w,h,mat,gap,index){
+  const left=-w/2-mat,top=-h/2-mat,tail=Math.min(18,gap*.58,w*.14);
+  c.save();
+  c.shadowColor='#21151159'; c.shadowBlur=5; c.shadowOffsetY=3;
+  c.fillStyle='#46352f';
+  c.fillRect(left,top,w+2*mat,h+2*mat+tail);
+  c.shadowBlur=0; c.shadowOffsetY=0;
+  c.fillStyle='#7c6358'; c.fillRect(left,top,w+2*mat,.7);
+  if(tail>=6){
+    const y=h/2+mat+1,label=Math.min(w*.61,49);
+    c.fillStyle='#e6cba3'; c.fillRect(left+2,y,label,tail-1);
+    c.fillStyle='#49362c'; c.font=Math.min(tail*.67,8)+'px monospace';
+    c.textBaseline='middle';
+    c.fillText(String(index+1).padStart(2,'0'),left+5,y+(tail-1)/2);
+    const x=w/2-mat*1.5,eye=y+(tail-1)/2;
+    c.fillStyle='#251e1b'; c.beginPath(); c.arc(x,eye,1.35,0,Math.PI*2); c.fill();
+    c.strokeStyle='#c1a27b'; c.lineWidth=.95;
+    c.beginPath(); c.moveTo(x,eye); c.quadraticCurveTo(x+5,eye-4,x+8,eye+1); c.stroke();
+  }
+  c.restore();
+}
+
+function drawPaperPockets(c,frames,inset,top,gap,w,h){
+  const rows=[];
+  for(const frame of frames){
+    const bottom=frame.y+frame.h;
+    const row=rows.find(item=>Math.abs(item.bottom-bottom)<1);
+    if(row){row.left=Math.min(row.left,frame.x);row.right=Math.max(row.right,frame.x+frame.w);}
+    else rows.push({bottom,left:frame.x,right:frame.x+frame.w});
+  }
+  c.save();
+  const paperOnly=new Path2D();
+  paperOnly.rect(0,0,w,h);
+  for(const frame of frames)paperOnly.rect(inset+frame.x,top+frame.y,frame.w,frame.h);
+  c.clip(paperOnly,'evenodd');
+  for(const row of rows){
+    const height=Math.min(23,gap*.70,(row.right-row.left)*.16);
+    if(height<2)continue;
+    const left=inset+row.left-height*.29,right=inset+row.right+height*.29;
+    const y=top+row.bottom+.7;
+    const tone=c.createLinearGradient(0,y,0,y+height);
+    tone.addColorStop(0,'#e6cba4');
+    tone.addColorStop(.21,'#ddbd91');
+    tone.addColorStop(1,'#b68e63');
+    c.shadowColor='#37221954'; c.shadowBlur=5; c.shadowOffsetY=2;
+    c.fillStyle=tone;
+    trace(c,[[left,y],[right,y],[right-height*.4,y+height],[left+height*.4,y+height]]);
+    c.closePath(); c.fill();
+    c.shadowBlur=0; c.shadowOffsetY=0;
+    c.lineWidth=.8; c.strokeStyle='#fff0d09c';
+    trace(c,[[left+1,y+.6],[right-1,y+.6]]); c.stroke();
+    c.strokeStyle='#71513864';
+    trace(c,[[left+height*.4,y+height],[left+height*.98,y+height*.23],[right-height*.98,y+height*.23],[right-height*.4,y+height]]);
+    c.stroke();
+  }
+  c.restore();
+}
+
+function scorchPhotoSlits(c,layer,w,h,burn,dual,toward){
+  if(!burn||!layer.paperSlits?.length)return;
+  c.save();
+  c.lineCap='round';
+  for(const [a,b] of layer.paperSlits){
+    const [x,y]=toward((a[0]+b[0])/2,(a[1]+b[1])/2,w,h);
+    const dx=x/w-burnOrigin[0],dy=y/h-burnOrigin[1];
+    const reach=burnRadius(Math.atan2(dy,dx),burn,dual);
+    const heat=smooth((reach-Math.hypot(dx,dy))/.07+.4);
+    if(heat<.015)continue;
+    trace(c,[a,b]);
+    c.globalAlpha=heat*.29; c.lineWidth=3.5; c.strokeStyle='#a16338'; c.stroke();
+    c.globalAlpha=heat*.76; c.lineWidth=1.25; c.strokeStyle='#352017'; c.stroke();
+  }
+  c.restore();
+}
+
 function printLayer(images) {
   const {w,h} = paper();
   const layer = makeLayer(Math.ceil(w), Math.ceil(h));
@@ -459,10 +552,11 @@ function printLayer(images) {
   c.drawImage(texture,0,0);
   const titleBottom=printTitle(c,w,h);
   const files = images.length ? images : [null,null,null];
+  const slots=[];
   const inset=w*.075;
   const top=Math.max(h*.088,titleBottom+h*.035);
   const layoutWidth=w-inset*2,layoutHeight=h*.90-top;
-  const gap=Math.min(w*(style==='tape' ? .029 : .016),Math.min(layoutWidth,layoutHeight)/(files.length*1.8));
+  const gap=Math.min(w*(style==='print' ? .016 : .029),Math.min(layoutWidth,layoutHeight)/(files.length*1.8));
   const demoWidth=360,demoHeight=780;
   const {frames,gap:frameGap}=photoLayout(
     files.map(image=>image?image.naturalWidth/image.naturalHeight:demoWidth/demoHeight),
@@ -478,8 +572,9 @@ function printLayer(images) {
     if(style==='tape'){
       const tilt=Math.min(.035,frameGap*.40/Math.max(cw,ch));
       c.rotate(i%2?tilt:-tilt);
-      drawPhotoMat(c,cw,ch,mat);
     }
+    if(style==='archive')drawArchiveMount(c,cw,ch,mat,frameGap,i);
+    else if(style!=='print')drawPhotoMat(c,cw,ch,mat);
     if(image){
       c.drawImage(image,-cw/2,-ch/2,cw,ch);
     }else{
@@ -522,8 +617,11 @@ function printLayer(images) {
       }
     }
     if(style==='tape')drawPhotoTape(c,cw,ch,frameGap,i);
+    if(style==='slit')drawPhotoSlits(c,cw,ch,mat,x,y,slots);
     c.restore();
   });
+  if(style==='pocket')drawPaperPockets(c,frames,inset,top,frameGap,w,h);
+  if(slots.length)layer.paperSlits=slots;
   return layer;
 }
 
@@ -955,12 +1053,17 @@ function draw(t,still=false,c=ctx,state={base,changed,desk,direction,duration,pa
   shadePaper(c,outline,points);
   c.save(); outline(); c.clip();
   c.drawImage(base,0,0,w,h,0,0,w,h);
+  scorchPhotoSlits(c,base,w,h,burn,dual,toward);
   const cut=front.length?closedPath(front):null;
-  if(dual&&end)c.drawImage(changed,0,0,w,h,0,0,w,h);
+  if(dual&&end){
+    c.drawImage(changed,0,0,w,h,0,0,w,h);
+    scorchPhotoSlits(c,changed,w,h,burn,dual,toward);
+  }
   if(dual&&cut){
     c.save();
     c.clip(cut);
     c.drawImage(changed,0,0,w,h,0,0,w,h);
+    scorchPhotoSlits(c,changed,w,h,burn,dual,toward);
     c.restore();
     scorchFront(c,cut,w,h,burn);
   }
@@ -1063,6 +1166,14 @@ function choices(id,apply){
     apply(button.dataset);
     cancelAnimationFrame(frame); time=0; rebuild();
   });
+}
+if(new URLSearchParams(location.search).get('styles')==='trial'){
+  const options=get('styleChoices').querySelectorAll('button');
+  for(const option of options)option.hidden=option.dataset.style==='tape';
+  for(const option of options)option.classList.toggle('active',option.dataset.style==='slit');
+  style='slit';
+  get('printStrengthControls').hidden=true;
+  get('trialStyleNote').hidden=false;
 }
 choices('styleChoices',value=>{
   style=value.style;
