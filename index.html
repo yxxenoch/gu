@@ -38,6 +38,21 @@ body.focus-mode .library{margin-left:calc(-1 * var(--rail))}.top .mini-current{d
 @media(max-width:1050px){:root{--rail:320px}.top{padding:0 13px;gap:9px}.tool .tool-text-optional{display:none}}
 @media(max-width:740px){:root{--header:58px;--rail:min(94vw,390px)}.top{padding:0 10px;padding-left:max(10px,env(safe-area-inset-left));padding-right:max(10px,env(safe-area-inset-right));gap:8px}.mark{width:33px;height:33px;border-radius:10px}.mark svg{width:22px}.logo{gap:6px}.logo-title{font-size:14px}.logo-sub,.top-rule,.current-label,.count{display:none}.top .mini-current{display:block;max-width:35vw;font-family:"Noto Serif SC","Songti SC",serif;font-size:12px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#e1e9dc}.current{display:none}.top-actions{margin-left:auto;gap:5px}.tool{min-height:36px;padding:7px 10px;font-size:11px}.tool.icon-only{width:33px;padding:6px}.top-actions .nav-arrow{display:none}.top-actions .open-alone{display:none}.top-actions .focus-btn{display:none}
 .library{position:fixed;top:var(--header);bottom:0;left:0;height:calc(100dvh - var(--header));width:var(--rail);margin-left:0!important;max-width:calc(100vw - 16px);z-index:31;transform:translateX(-105%);border-right:1px solid #d3d3c3;border-radius:0 18px 18px 0;box-shadow:var(--shadow)}body.library-open .library{transform:translateX(0)}.backdrop{position:fixed;inset:var(--header) 0 0;display:block;z-index:30;background:#12251d91;opacity:0;pointer-events:none;transition:opacity .2s}body.library-open .backdrop{opacity:1;pointer-events:auto}.close-library{display:grid;place-items:center}.library-head{padding:17px 17px 13px}.gallery{padding:4px 12px 24px}.art{height:100px}.editor{width:100%}.library-foot{padding-bottom:max(14px,env(safe-area-inset-bottom))}body.focus-mode .library{margin-left:0}.head-glyph{right:55px}}
+
+/* Android mobile gallery layering fix: no transformed fixed child in a flex workspace */
+@media(max-width:740px){
+ .layout{position:relative;isolation:isolate;overflow:hidden}
+ .library{position:absolute!important;left:0!important;top:0!important;bottom:0!important;height:100%!important;width:min(94vw,390px)!important;max-width:calc(100vw - 16px)!important;flex:none!important;margin:0!important;transform:none!important;transition:none!important;visibility:hidden;opacity:0;pointer-events:none;z-index:31!important;overflow:hidden!important;display:flex!important;flex-direction:column!important;background:#fdfbf5!important;box-shadow:3px 0 22px #222f252d}
+ .library::before{display:none!important}
+ body.library-open .library{visibility:visible!important;opacity:1!important;pointer-events:auto!important;transform:none!important}
+ .backdrop{position:absolute!important;inset:0!important;z-index:30!important;transition:none!important;display:none!important;opacity:1!important;pointer-events:auto!important;background:#12251db0}
+ body.library-open .backdrop{display:block!important}
+ .library-head{position:relative;z-index:2;flex:0 0 auto!important;background:#fbf9f1!important}
+ .library-meta{position:relative;z-index:1;flex:0 0 auto!important;background:#fdfbf5!important}
+ .gallery{position:relative;z-index:1;flex:1 1 auto!important;min-height:0!important;max-height:100%!important;overflow-y:auto!important;overflow-x:hidden!important;background:#fdfbf5!important;-webkit-overflow-scrolling:touch;contain:layout style}
+ .library-foot{position:relative;z-index:2;flex:0 0 auto!important;background:#faf8f0!important}
+ .editor{position:relative;min-width:0;flex:1!important;z-index:0}
+}
 @media(max-width:360px){.logo-title{font-size:12px}.top .mini-current{font-size:11px;max-width:28vw}.top-actions .tool-primary{padding:6px 8px}.top-actions .tool-primary span{display:none}.tile-title{font-size:11px}.art{height:88px}}
 </style>
 </head>
@@ -105,7 +120,7 @@ const frames=new Map(),loaded=new Set(),itemsById=Object.fromEntries(ITEMS.map(x
 function isRemotePreview(){return location.protocol==='file:'}
 function studioURL(id){const base=isRemotePreview()?'https://yxxenoch.github.io/gu/':'./';const versions={zipbag:'zipbag-picker-1',origami:'origami-media-1','petal-post-return':'petal-picker-1',yan:'yan-11',huajian:'huajian-picker-1',fuguang:'export-watermark-1',collage:'export-watermark-1'};return base+encodeURIComponent(id)+'.html?v='+(versions[id]||'editor-controls-2')+(id==='dark'?'&flash=soft-1':'')}
 function notify(msg){const el=$('#toast');el.textContent=msg;el.classList.add('is-visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('is-visible'),3100)}
-function setLibrary(open){if(open&&document.body.classList.contains('focus-mode')){document.body.classList.remove('focus-mode');$('#focus').setAttribute('aria-pressed','false')}document.body.classList.toggle('library-open',open);if(!mobile.matches)document.body.classList.toggle('library-closed',!open);$('#choose').setAttribute('aria-expanded',String(open));if(open){render();setTimeout(()=>{const a=$('.tile[aria-current="true"]');if(a)a.scrollIntoView({block:'nearest'})},80)}}
+function setLibrary(open){if(open&&document.body.classList.contains('focus-mode')){document.body.classList.remove('focus-mode');$('#focus').setAttribute('aria-pressed','false')}document.body.classList.toggle('library-open',open);if(!mobile.matches)document.body.classList.toggle('library-closed',!open);$('#choose').setAttribute('aria-expanded',String(open));if(open){render();setTimeout(()=>{const a=$('.tile[aria-current="true"]'),g=$('.gallery');if(!a||!g)return;const ar=a.getBoundingClientRect(),gr=g.getBoundingClientRect();if(ar.top<gr.top||ar.bottom>gr.bottom)g.scrollTop+=ar.top-gr.top-12},80)}}
 function libraryOpen(){return mobile.matches?document.body.classList.contains('library-open'):!document.body.classList.contains('library-closed')}
 function toggleLibrary(){setLibrary(!libraryOpen())}
 function counts(tag){return tag==='全部'?ITEMS.length:tag==='收藏'?favorites.size:tag==='最近'?recent.length:ITEMS.filter(x=>x.tags.includes(tag)).length}
@@ -134,7 +149,7 @@ $('#open-alone').addEventListener('click',e=>{if(busy){e.preventDefault();notify
 addEventListener('keydown',event=>{if(event.key==='Escape'&&libraryOpen()){setLibrary(false);return}if(event.key==='/'&&!/input|textarea/i.test(document.activeElement?.tagName)&&!event.ctrlKey&&!event.metaKey){event.preventDefault();setLibrary(true);$('#search').focus()}});
 addEventListener('hashchange',()=>{const next=decodeURIComponent(location.hash.slice(1));if(IDs.has(next)&&next!==active)activate(next)});
 mobile.addEventListener('change',()=>{if(mobile.matches){document.body.classList.remove('library-closed','focus-mode');setLibrary(false)}else{document.body.classList.remove('library-open');setLibrary(true)}});
-makeFilters();render();activate(active);if(mobile.matches){document.body.classList.remove('library-closed');setLibrary(firstVisit)}else setLibrary(true);storage.set('gu-has-visited',true);
+makeFilters();render();activate(active);if(mobile.matches){document.body.classList.remove('library-closed');setLibrary(false)}else setLibrary(true);storage.set('gu-has-visited',true);
 })();
 </script>
 <script>
