@@ -107,3 +107,29 @@
 @media(max-width:360px){.studio-bar .identity{font-size:16px}.studio-bar .identity small{font-size:8px}#gu-open-library{padding:7px 9px}.gu-library-head h2{font-size:23px}}
 @keyframes gu-rise{from{transform:translateY(22px);opacity:.75}to{transform:translateY(0);opacity:1}}
 @media(prefers-reduced-motion:reduce){.gu-library-window{animation:none}.gu-template-card,.studio-bar .switch button{transition:none}}
+
+/* Individual miniature compositions: original CSS paper craft, not image assets. */
+.gu-template-card[data-key=fuguang] .gu-art:before{inset:17px 20px 10px 15px;border:1px solid #fff7e7;transform:rotate(-10deg);box-shadow:8px 2px 0 #f6efdf83,-3px -4px 0 #fff8ee72}
+.gu-template-card[data-key=collage] .gu-art:before{inset:13px 22px 17px 9px;border:0;background:#f9e2e7b7;transform:rotate(11deg);box-shadow:17px 10px 0 #738ba0ad}
+.gu-template-card[data-key=collage] .gu-art:after{width:28px;height:40px;top:6px;right:14px;border:2px solid #fffcf7b0;border-radius:3px;transform:rotate(-16deg)}
+.gu-template-card[data-key=guzhe] .gu-art:before{inset:12px 22px;border:1px solid #f6ecd39c;transform:rotate(0);background:linear-gradient(90deg,transparent 48%,#4d554a66 49%,#4d554a55 51%,transparent 52%);box-shadow:6px 5px 0 #dad3b957}
+.gu-template-card[data-key=stitch] .gu-art:before{inset:17px 16px;border:2px dashed #fff1e5e3;transform:rotate(-11deg);border-radius:5px}
+.gu-template-card[data-key=stitch] .gu-art:after{width:90px;height:2px;border:0;border-top:2px dashed #faefe1a8;top:58px;right:-15px;border-radius:0;transform:rotate(-34deg)}
+.gu-template-card[data-key=sunlit] .gu-art:before{inset:9px 18px;border:1px solid #fff7dbad;border-radius:50%;transform:none;box-shadow:0 0 0 9px #fff6d427}
+.gu-template-card[data-key=sunlit] .gu-art:after{width:50px;height:50px;top:-20px;right:-11px;border:0;background:#fff9cda6;border-radius:50%;box-shadow:0 0 20px #fff9dca8}
+.gu-template-card[data-key=food] .gu-art:before{inset:13px 17px 8px;background:linear-gradient(#fff6ddba,#e9b8a2a3);clip-path:polygon(8% 0,92% 0,100% 90%,88% 100%,12% 100%,0 90%);border:2px solid #fff2d6ae;transform:rotate(6deg);box-shadow:none}
+.gu-template-card[data-key=zipbag] .gu-art:before{inset:15px 16px 10px;border:2px solid #f5ffffaa;border-radius:3px 3px 8px 8px;transform:rotate(-7deg);background:#ffffff32;box-shadow:0 2px 8px #53627c2b}
+.gu-template-card[data-key=zipbag] .gu-art:after{width:64px;height:3px;top:18px;right:9px;border:0;border-top:3px dashed #eef9ffb4;border-radius:0;transform:rotate(-7deg)}
+.gu-template-card[data-key=magazine] .gu-art:before{inset:12px 10px;border:1px solid #f5eadc;transform:rotate(-8deg);background:linear-gradient(90deg,#e9ddd096 0 48%,#4c66637a 49% 51%,#e9ddd096 52%);box-shadow:4px 4px 0 #faf3e85f}
+.gu-template-card[data-key=huajian] .gu-art:before{inset:15px 19px;border:1px solid #fffcf18c;transform:rotate(3deg);box-shadow:5px 4px 0 #d5ddce8c}
+.gu-template-card[data-key=huajian] .gu-art:after{width:36px;height:36px;right:-12px;top:40px;border:0;background:#e9c0b7ad;border-radius:60% 10% 65% 15%;transform:rotate(28deg)}
+.gu-template-card[data-key=origami] .gu-art:before{inset:21px 23px;border:2px solid #fdf8efa8;transform:rotate(45deg);background:linear-gradient(45deg,#7c76a66e 50%,#fff8ef68 51%);box-shadow:none}
+.gu-template-card[data-key=petal-post-return] .gu-art:before{inset:14px 20px;border:1px solid #fff7ebbd;transform:rotate(7deg);box-shadow:5px 5px 0 #ffffff6a}
+.gu-template-card[data-key=petal-post-return] .gu-art:after{right:-8px;top:-12px;width:46px;height:35px;background:#f1dad6b0;border:0;border-radius:90% 0 85% 15%;transform:rotate(38deg)}
+.gu-template-card[data-key=yan] .gu-art:before{inset:6px 12px;border:1px solid #ffdfb8a6;border-radius:50%;transform:none;box-shadow:0 0 0 6px #4a271c22}
+.gu-template-card[data-key=yan] .gu-art-glyph{font-size:40px;color:#fff0cf;filter:drop-shadow(0 0 8px #fbd69b)}
+.gu-template-card[data-key=theme] .gu-art:before{inset:15px 17px;border:1px solid #ecfaf5be;background:linear-gradient(90deg,#ffffff52 0 31%,transparent 32% 34%,#ffffff52 35% 65%,transparent 66% 68%,#ffffff52 69%);transform:none;box-shadow:none}
+.gu-template-card[data-key=dark] .gu-art:before{inset:13px 12px;border:1px solid #a2a5b187;background:repeating-linear-gradient(0deg,#dfbabb31 0 2px,transparent 3px 9px);transform:rotate(3deg);box-shadow:5px 0 0 #c4536348}
+.gu-template-card[data-key=dark] .gu-art-glyph{color:#e9b0bf;text-shadow:-3px 0 #6fc3d366,3px 0 #c2476b88}
+.gu-template-card[data-key=ukiyo] .gu-art:before{inset:10px 10px;border:0;transform:none;background:repeating-linear-gradient(90deg,#fff4d37f 0 21%,#435c5670 22% 24%,#fff4d37f 25% 47%,#435c5670 48% 50%);box-shadow:none}
+@media(max-width:850px){.gu-template-card .gu-art:before{max-width:80%;margin:auto}}
