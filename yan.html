@@ -1,0 +1,1210 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>焰｜返图模板</title>
+<style>
+:root{--ink:#30271e;--paper:#efe0bd;--accent:#d65422;--ui:#f7f1e7;--line:#d9cbb6}
+*{box-sizing:border-box}body{margin:0;background:#e8e0d5;color:var(--ink);font-family:ui-serif,Georgia,"Noto Serif SC",serif}.app{max-width:1120px;margin:auto;padding:26px 20px 54px}.head{display:flex;justify-content:space-between;align-items:end;gap:20px;margin-bottom:20px}.eyebrow{font:700 11px system-ui;letter-spacing:.18em;color:#8d5c3c}.head h1{margin:4px 0;font-size:clamp(28px,4vw,42px);font-weight:600}.head p{margin:0;color:#766a5d;font:14px system-ui}.layout{display:grid;grid-template-columns:minmax(290px,370px) 1fr;gap:20px}.panel,.stage{background:var(--ui);border:1px solid var(--line);border-radius:18px;box-shadow:0 12px 35px #57442c12}.panel{padding:18px}.group{padding:0 0 16px;margin-bottom:15px;border-bottom:1px solid var(--line)}.group:last-of-type{border:0;margin:0}.group h2{font:700 13px system-ui;margin:0 0 10px}.upload{display:block;border:1px dashed #b9a68d;border-radius:12px;background:#fffaf2;padding:12px;margin-top:8px;font:13px system-ui}.upload span{display:block;color:#786957;margin-bottom:7px}.upload input{max-width:100%;font-size:12px}.hint{font:12px/1.5 system-ui;color:#817465;margin:8px 0 0}.choices{display:flex;gap:8px;flex-wrap:wrap}.choice{border:1px solid #cdbda8;border-radius:999px;padding:8px 11px;background:#fffaf2;font:12px system-ui;cursor:pointer}.choice.active{background:#382b20;color:#fff;border-color:#382b20}input[type=range]{width:100%;accent-color:#ae4b28}.print-strength{margin-top:12px}.print-strength label{display:flex;justify-content:space-between;gap:12px;font:13px system-ui}.print-strength output{font-variant-numeric:tabular-nums}.buttons{display:flex;gap:8px;flex-wrap:wrap}.btn{border:0;border-radius:10px;padding:11px 14px;background:#36291e;color:white;font:700 13px system-ui;cursor:pointer}.btn.secondary{background:#e7dac7;color:#3c3025}.btn.fire{background:#a64020}.btn:disabled{opacity:.45;cursor:not-allowed}.stage{min-height:620px;padding:20px;display:grid;place-items:center;overflow:hidden;background:radial-gradient(ellipse at 50% 40%,#fffdf8,#e6dac7)}
+.scene{width:min(100%,700px);aspect-ratio:5/4}.scene canvas{width:100%;height:auto;display:block;border-radius:10px;box-shadow:0 14px 38px #34241d45}.status{min-height:18px;margin-top:10px;font:12px system-ui;color:#786957}
+.export-result{margin-top:12px;padding:12px;background:#fffaf2;border:1px solid var(--line);border-radius:12px}
+.export-result .buttons+.buttons{margin-top:8px}.export-result .btn{display:inline-block;text-decoration:none}.export-name{display:block;margin:0 0 10px;font:12px system-ui;overflow-wrap:anywhere}
+.export-result details{margin-top:10px;font:12px system-ui}.export-result summary{cursor:pointer}
+.export-result [hidden]{display:none}.export-result img{display:block;width:100%;height:auto;margin-top:8px;border-radius:6px}
+@media(max-width:800px){.layout{grid-template-columns:1fr}.stage{min-height:0;padding:12px;order:-1}.head{display:block}.head p{margin-top:6px}}
+.text-controls{display:grid;grid-template-columns:1fr auto;gap:10px 12px;align-items:center;font:13px system-ui}
+.text-controls label{display:grid;gap:5px;min-width:0}.text-controls .full{grid-column:1/-1}
+.text-controls textarea,.text-controls select{width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;background:#fffaf2;color:var(--ink);font:inherit}
+.text-controls textarea{resize:vertical}.text-controls input[type=color]{width:46px;height:35px;padding:2px;border:1px solid var(--line);border-radius:6px;background:#fffaf2}
+.paper-patterns{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.paper-choice{border:1px solid #cdbda8;border-radius:8px;background:#fffaf2;color:var(--ink);padding:4px;cursor:pointer;font:12px system-ui;text-align:center}.paper-choice img,.plain-paper{display:block;width:100%;height:32px;object-fit:cover;border-radius:4px;margin-bottom:4px}.plain-paper{background:linear-gradient(120deg,#f0ddb6,#d1a874)}.paper-choice[aria-pressed=true]{border-color:#a64020;box-shadow:0 0 0 1px #a64020}.paper-choice:focus-visible{outline:2px solid #a64020;outline-offset:2px}
+</style>
+</head>
+<body><main class="app">
+<header class="head"><div><div class="eyebrow">PAPER / FIRE / REVEAL</div><h1>焰</h1><p>让火焰从纸角掠过，带出另一段返图。</p></div><div class="eyebrow">返图模板</div></header>
+<div class="layout"><section class="panel">
+<div class="group"><h2>图片上传</h2><label class="upload"><span>第一套图片 · 燃烧前</span><input id="setA" type="file" accept="image/*" multiple></label><label class="upload"><span>第二套图片 · 燃烧后（可选）</span><input id="setB" type="file" accept="image/*" multiple></label><p class="hint">每套可上传任意张数。只上传第一套时，燃烧后仍是同一套图片，只增加焦痕；上传第二套后，燃烧会显影第二套。</p></div>
+<div class="group"><h2>纸面样式</h2><div class="choices" id="styleChoices"><button class="choice active" data-style="print">直接印刷</button><button class="choice" data-style="tape">照片与贴条</button></div>
+<div class="print-strength" id="printStrengthControls">
+<label for="printStrength">印刷强度 <output id="printStrengthLabel" for="printStrength">100%</output></label>
+<input id="printStrength" type="range" min="0" max="200" step="1" value="100">
+<p class="hint">0% 保留原图色彩，100% 为原版印刷质感。往右加深吃墨和纸纹。</p>
+</div></div>
+<div class="group" id="paperPatternSection" hidden><h2>纸纹</h2><div class="paper-patterns" id="paperPatterns" role="group" aria-label="纸纹"></div><p class="hint" id="paperPatternStatus" role="status"></p></div>
+<div class="group"><h2>纸面焦字</h2>
+<div class="text-controls">
+<label class="full">文字<textarea id="titleText" rows="2" placeholder="输入要烙在纸上的文字"></textarea></label>
+<label>字体<select id="titleFont"><option value="song">宋体</option><option value="kai">楷体</option><option value="sans">黑体</option><option value="mono">等宽</option></select></label>
+<label>字色<input id="titleColor" type="color" value="#2b160d"></label>
+<label class="full">字号 <span><output id="titleSizeLabel">37</output> px</span><input id="titleSize" type="range" min="16" max="76" value="37"></label>
+<label class="full upload"><span>上传字体 · TTF / OTF / WOFF / WOFF2</span><input id="titleFile" type="file" accept=".ttf,.otf,.woff,.woff2"></label>
+</div><p class="hint">文字最多显示三行，留空时隐藏。上传字体可在本页使用。</p></div>
+<div class="group"><h2>燃烧方向</h2><div class="choices" id="directionChoices"><button class="choice active" data-dir="bottom-left">左下角</button><button class="choice" data-dir="top-left">左上角</button><button class="choice" data-dir="bottom-right">右下角</button><button class="choice" data-dir="top-right">右上角</button></div><p class="hint">方向会从选定纸角向内蔓延。</p></div>
+<div class="group"><h2>纸张比例</h2><div class="choices" id="ratioChoices"><button class="choice active" data-ratio="5/4">5:4</button><button class="choice" data-ratio="1/1">1:1</button><button class="choice" data-ratio="4/5">4:5</button></div><p class="hint">按原图比例自动排布，完整显示每张图片。多出的空间留在纸边。</p></div>
+<div class="group"><h2>燃烧速度</h2><input id="speed" type="range" min="1.5" max="6" step=".5" value="3"><p class="hint"><span id="speedLabel">3</span> 秒完成显影</p></div>
+<div class="buttons"><button class="btn fire" id="ignite">擦燃火柴</button><button class="btn secondary" id="reset">重置画面</button><button class="btn secondary" id="save">导出静图 PNG</button><button class="btn secondary" id="saveGIF">导出动图 GIF</button></div><div class="status" id="status" role="status">可直接点火试看，也可以上传自己的图片。</div>
+<div class="export-result" id="exportResult" hidden>
+<p class="export-name" id="exportName"></p>
+<div class="buttons"><a class="btn fire" id="exportDownload">下载文件</a><button class="btn secondary" id="exportShare" type="button" hidden>分享文件</button></div>
+<div class="buttons" id="exportStills" hidden>
+<a class="btn secondary" id="exportBefore">保存燃烧前 PNG</a><a class="btn secondary" id="exportAfter">保存燃烧后 PNG</a>
+</div>
+<details id="exportPreview" hidden><summary>预览图片</summary><img id="exportImage" alt="导出的返图"><p class="hint">可长按图片，查看浏览器提供的保存选项。</p></details>
+</div>
+</section>
+<section class="stage"><div class="scene" id="scene"><canvas id="art" width="1000" height="800" aria-label="火柴与纸张燃烧预览"></canvas></div></section></div></main>
+<script src="assets/petal-patterns/catalog.js?v=1"></script>
+<script>
+const get = id => document.getElementById(id);
+const canvas = get('art');
+const ctx = canvas.getContext('2d');
+const scene = get('scene');
+const status = get('status');
+const sets = [[], []];
+const versions = [0, 0];
+const loading = [false, false];
+let style = 'print', direction = 'bottom-left', duration = 3000, frame = 0, time = 0;
+let printStrength=1;
+let paperPattern=null, patternRequest=0, patternLoading=false;
+function notifyStudio(message){
+  if(parent!==window)parent.postMessage(message,location.origin==='null'?'*':location.origin);
+}
+let base, changed, desk, texture, fontVersion=0, exporting=false;
+const hasTwoSets=()=>sets.every(images=>images.length>0);
+const syncSave=()=>{
+  const disabled=exporting||patternLoading||loading.some(Boolean);
+  get('save').disabled=disabled;
+  get('saveGIF').disabled=disabled;
+  get('save').textContent=hasTwoSets()?'导出两张 PNG（ZIP）':'导出静图 PNG';
+};
+const fonts=new Map([
+  ['song','"Songti SC","Noto Serif CJK SC",SimSun,serif'],
+  ['kai','KaiTi,STKaiti,"Kaiti SC","Noto Serif CJK SC",serif'],
+  ['sans','"PingFang SC","Noto Sans CJK SC","Microsoft YaHei",sans-serif'],
+  ['mono','ui-monospace,monospace']
+]);
+const contact = 1050;
+const emberTime = 440;
+const clamp = value => Math.min(1, Math.max(0, value));
+const smooth = value => { const t = clamp(value); return t*t*(3-2*t); };
+const noise = index => { const f = Math.sin(index*127.1+19.7)*43758.5453; return f-Math.floor(f); };
+const paper = (width=canvas.width,height=canvas.height) => ({w:width*.79,h:height*.79});
+const orient = direction => (x,y,w,h) => [direction.endsWith('right') ? w-x : x, direction.startsWith('bottom') ? h-y : y];
+
+function makeLayer(width,height) {
+  const layer = document.createElement('canvas');
+  layer.width=width; layer.height=height;
+  return layer;
+}
+
+function paperTexture(w,h) {
+  const layer=makeLayer(w,h);
+  const c=layer.getContext('2d');
+  const pixels=c.createImageData(w,h);
+  let seed=19133;
+  function random(){
+    seed=(Math.imul(seed,1664525)+1013904223)>>>0;
+    return seed/4294967296;
+  }
+  for(let y=0;y<h;y++) for(let x=0;x<w;x++){
+    const i=(y*w+x)*4;
+    const v=random()-.5;
+    const light=v>0;
+    pixels.data[i]=light?255:76;
+    pixels.data[i+1]=light?237:46;
+    pixels.data[i+2]=light?197:24;
+    pixels.data[i+3]=Math.abs(v)*70;
+  }
+  c.putImageData(pixels,0,0);
+  for(let i=0;i<5000;i++){
+    const x=random()*w,y=random()*h,len=1+random()*5;
+    c.strokeStyle=i%3?'#70451f30':'#fff4cd61';
+    c.lineWidth=.45+random()*.5;
+    c.beginPath(); c.moveTo(x,y); c.lineTo(x+len,y+(random()-.5)*2); c.stroke();
+  }
+  for(let i=0;i<65;i++){
+    const x=random()*w,y=random()*h,r=6+random()*37;
+    const stain=c.createRadialGradient(x,y,0,x,y,r);
+    stain.addColorStop(0,i%3?'#80501c19':'#fff2c329');
+    stain.addColorStop(1,'#99733d00');
+    c.fillStyle=stain; c.fillRect(x-r,y-r,r*2,r*2);
+  }
+  return layer;
+}
+
+function printTitle(c,w,h) {
+  const value=get('titleText').value.trim();
+  if(!value)return 0;
+  const size=Number(get('titleSize').value);
+  const x=w*.108,y=h*.103;
+  c.font='600 '+size+'px '+fonts.get(get('titleFont').value);
+  c.textBaseline='top';
+  const maxWidth=w*.784;
+  const lines=[];
+  for(const paragraph of value.split('\n')){
+    let line='';
+    for(const letter of paragraph){
+      if(line&&c.measureText(line+letter).width>maxWidth){
+        lines.push(line); line='';
+      }
+      line+=letter;
+      if(lines.length>=3)break;
+    }
+    if(lines.length<3)lines.push(line);
+    if(lines.length>=3)break;
+  }
+  const leading=size*1.14;
+  c.save();
+  c.lineJoin='round';
+  for(const [i,line] of lines.entries()){
+    const top=y+i*leading;
+    c.lineWidth=Math.max(1.8,size*.093);
+    c.strokeStyle='#a15c207a'; c.shadowColor='#9c4b22b5'; c.shadowBlur=size*.23;
+    c.strokeText(line,x,top,maxWidth);
+    c.shadowBlur=size*.085; c.shadowColor='#8f3419ba'; c.lineWidth=Math.max(.8,size*.036);
+    c.strokeStyle='#9a492dcc'; c.strokeText(line,x,top,maxWidth);
+    c.shadowBlur=0; c.fillStyle=get('titleColor').value; c.fillText(line,x,top,maxWidth);
+  }
+  c.restore();
+  return y+leading*lines.length+size*.27;
+}
+
+// Build each candidate at native image proportions, then fit the entire collage.
+function photoLayout(aspects,width,height,gap){
+  const count=aspects.length;
+  let best=null;
+  function consider(frames,usedWidth,usedHeight){
+    const scale=Math.min(width/usedWidth,height/usedHeight);
+    const area=frames.reduce((sum,frame)=>sum+frame.w*frame.h,0)*scale*scale;
+    if(!best||area>best.area+.001)best={frames,usedWidth,usedHeight,scale,area};
+  }
+  for(const vertical of [false,true]){
+    const span=vertical?height:width;
+    const ratios=vertical?aspects.map(aspect=>1/aspect):aspects;
+    const rect=(x,y,w,h)=>vertical?{x:y,y:x,w:h,h:w}:{x,y,w,h};
+    for(let groups=1;groups<=count;groups++){
+      const frames=[];
+      let depth=0;
+      for(let row=0;row<groups;row++){
+        const end=Math.ceil((row+1)*count/groups);
+        let sum=0;
+        for(let i=frames.length;i<end;i++)sum+=ratios[i];
+        const length=(span-(end-frames.length-1)*gap)/sum;
+        let offset=0;
+        while(frames.length<end){
+          const cellSpan=length*ratios[frames.length];
+          frames.push(rect(offset,depth,cellSpan,length));
+          offset+=cellSpan+gap;
+        }
+        depth+=length+gap;
+      }
+      if(vertical)consider(frames,depth-gap,span);
+      else consider(frames,span,depth-gap);
+    }
+
+    if(count===3){
+      // One full-length photo next to two smaller ones.
+      for(const first of [true,false]){
+        const lead=first?0:2;
+        const pair=ratios.filter((_,i)=>i!==lead);
+        const leadDepth=span/ratios[lead];
+        const pairDepth=(span-gap)/(pair[0]+pair[1]);
+        const main=rect(0,first?0:pairDepth+gap,span,leadDepth);
+        const pairOffset=first?leadDepth+gap:0;
+        const firstSpan=pairDepth*pair[0];
+        const small=[
+          rect(0,pairOffset,firstSpan,pairDepth),
+          rect(firstSpan+gap,pairOffset,pairDepth*pair[1],pairDepth)
+        ];
+        const frames=first?[main,...small]:[...small,main];
+        const depth=leadDepth+gap+pairDepth;
+        if(vertical)consider(frames,depth,span);
+        else consider(frames,span,depth);
+      }
+    }
+  }
+
+  const {frames,usedWidth,usedHeight,scale}=best;
+  const left=(width-usedWidth*scale)/2,top=(height-usedHeight*scale)/2;
+  return {
+    gap:gap*scale,
+    frames:frames.map(({x,y,w,h})=>({x:left+x*scale,y:top+y*scale,w:w*scale,h:h*scale}))
+  };
+}
+
+function setupPaperPatterns(){
+  const presets=window.guPetalPaperPatterns;
+  if(!presets?.length)return;
+  const choices=get('paperPatterns'),status=get('paperPatternStatus');
+  let active=null;
+  function select(button,image){
+    active?.setAttribute('aria-pressed','false');
+    active=button;
+    button.setAttribute('aria-pressed','true');
+    paperPattern=image;
+    rebuild();
+  }
+  for(const preset of [{id:'plain',label:'原版纸纹'},...presets]){
+    const button=document.createElement('button');
+    button.type='button';
+    button.className='paper-choice';
+    button.setAttribute('aria-pressed',String(!preset.src));
+    if(preset.src){
+      const thumb=document.createElement('img');
+      thumb.alt='';
+      thumb.loading='lazy';
+      thumb.src=preset.thumb;
+      button.append(thumb);
+    }else{
+      const swatch=document.createElement('span');
+      swatch.className='plain-paper';
+      swatch.setAttribute('aria-hidden','true');
+      button.append(swatch);
+      active=button;
+    }
+    button.append(preset.label);
+    button.onclick=()=>{
+      const request=++patternRequest;
+      if(!preset.src){
+        patternLoading=false; syncSave();
+        status.textContent='';
+        select(button,null);
+        return;
+      }
+      patternLoading=true; syncSave();
+      status.textContent='正在加载纸纹…';
+      const image=new Image();
+      image.onload=()=>{
+        if(request!==patternRequest)return;
+        select(button,image);
+        patternLoading=false; syncSave();
+        status.textContent='';
+      };
+      image.onerror=()=>{
+        if(request!==patternRequest)return;
+        patternLoading=false; syncSave();
+        status.textContent='纸纹加载失败，请重试。';
+      };
+      image.src=preset.src;
+    };
+    choices.append(button);
+  }
+  get('paperPatternSection').hidden=false;
+}
+
+function printLayer(images) {
+  const {w,h} = paper();
+  const layer = makeLayer(Math.ceil(w), Math.ceil(h));
+  const c = layer.getContext('2d');
+  const tone = c.createLinearGradient(0,0,w,h);
+  tone.addColorStop(0,'#eed9ad'); tone.addColorStop(.55,'#e6c695'); tone.addColorStop(1,'#cfa976');
+  c.fillStyle=tone; c.fillRect(0,0,w,h);
+  if(paperPattern){
+    const scale=Math.max(w/paperPattern.naturalWidth,h/paperPattern.naturalHeight);
+    const patternWidth=paperPattern.naturalWidth*scale,patternHeight=paperPattern.naturalHeight*scale;
+    c.save();
+    c.beginPath(); c.rect(0,0,w,h); c.clip();
+    c.drawImage(paperPattern,(w-patternWidth)/2,(h-patternHeight)/2,patternWidth,patternHeight);
+    c.restore();
+  }
+  c.drawImage(texture,0,0);
+  const titleBottom=printTitle(c,w,h);
+  const files = images.length ? images : [null,null,null];
+  const inset=w*.075;
+  const top=Math.max(h*.088,titleBottom+h*.035);
+  const layoutWidth=w-inset*2,layoutHeight=h*.90-top;
+  const gap=Math.min(w*(style==='tape' ? .029 : .016),Math.min(layoutWidth,layoutHeight)/(files.length*1.8));
+  const demoWidth=360,demoHeight=780;
+  const {frames,gap:frameGap}=photoLayout(
+    files.map(image=>image?image.naturalWidth/image.naturalHeight:demoWidth/demoHeight),
+    layoutWidth,layoutHeight,gap
+  );
+  files.forEach((image,i)=>{
+    const frame=frames[i];
+    const cw=frame.w,ch=frame.h;
+    const x=inset+frame.x+cw/2,y=top+frame.y+ch/2;
+    const mat=Math.min(5,frameGap*.18,Math.min(cw,ch)*.08);
+    c.save();
+    c.translate(x,y);
+    if(style==='tape'){
+      const tilt=Math.min(.035,frameGap*.40/Math.max(cw,ch));
+      c.rotate(i%2?tilt:-tilt);
+      c.shadowColor='#3c271c4a'; c.shadowBlur=7; c.shadowOffsetY=4;
+      c.fillStyle='#fff3db'; c.fillRect(-cw/2-mat,-ch/2-mat,cw+2*mat,ch+2.6*mat);
+      c.shadowBlur=0; c.shadowOffsetY=0;
+    }
+    if(image){
+      c.drawImage(image,-cw/2,-ch/2,cw,ch);
+    }else{
+      c.save();
+      const scale=cw/demoWidth;
+      c.scale(scale,scale);
+      const g=c.createLinearGradient(-demoWidth/2,-demoHeight/2,demoWidth/2,demoHeight/2);
+      g.addColorStop(0,['#8b9886','#b88b77','#869298'][i]);
+      g.addColorStop(1,['#33483e','#744b46','#495266'][i]);
+      c.fillStyle=g; c.fillRect(-demoWidth/2,-demoHeight/2,demoWidth,demoHeight);
+      c.save(); c.beginPath(); c.rect(-demoWidth/2,-demoHeight/2,demoWidth,demoHeight); c.clip();
+      c.fillStyle='#f7e3bd55';
+      c.beginPath(); c.arc(demoWidth*.14,-demoHeight*.20,demoWidth*.12,0,Math.PI*2); c.fill();
+      for(let j=0;j<3;j++){
+        c.fillStyle=['#eed3ab30','#242f2a40','#19252060'][j];
+        c.beginPath(); c.moveTo(-demoWidth/2,demoHeight/2);
+        c.quadraticCurveTo(-demoWidth*.19,-demoHeight*(.19-j*.19),demoWidth/2,demoHeight*(.30-j*.14));
+        c.lineTo(demoWidth/2,demoHeight/2); c.fill();
+      }
+      c.restore();
+      c.fillStyle='#fff4dc'; c.font='500 15px sans-serif'; c.textAlign='center';
+      c.fillText('示例 '+(i+1),0,demoHeight*.38);
+      c.restore();
+    }
+    if(style==='print'&&printStrength>0){
+      const left=-cw/2, top=-ch/2;
+      if(image){
+        c.globalCompositeOperation='multiply';
+        c.globalAlpha=printStrength*88/255;
+        c.fillStyle='#e5bb81'; c.fillRect(left,top,cw,ch);
+        c.globalCompositeOperation='source-over';
+        c.globalAlpha=printStrength*29/255;
+        c.fillStyle='#ead1a5'; c.fillRect(left,top,cw,ch);
+      }
+      c.globalAlpha=Math.min(1,printStrength);
+      c.drawImage(texture,x+left,y+top,cw,ch,left,top,cw,ch);
+      if(printStrength>1){
+        c.globalAlpha=printStrength-1;
+        c.drawImage(texture,x+left,y+top,cw,ch,left,top,cw,ch);
+      }
+    }
+    if(style==='tape'){
+      c.fillStyle='#fff3cd8c'; c.fillRect(-cw*.19,-ch/2-mat*1.7,cw*.38,mat*2.8);
+    }
+    c.restore();
+  });
+  return layer;
+}
+
+function rebuild() {
+  const paperSize=paper();
+  const width=Math.ceil(paperSize.w), height=Math.ceil(paperSize.h);
+  if(!texture||texture.width!==width||texture.height!==height) texture=paperTexture(width,height);
+  base=printLayer(sets[0]);
+  changed=sets[1].length ? printLayer(sets[1]) : base;
+  const w=canvas.width,h=canvas.height;
+  if(!desk||desk.width!==w||desk.height!==h){
+    desk=makeLayer(w,h);
+    const c=desk.getContext('2d');
+    const shade=c.createRadialGradient(w*.46,h*.42,w*.12,w*.50,h*.50,w*.70);
+    shade.addColorStop(0,'#524438'); shade.addColorStop(.7,'#322923'); shade.addColorStop(1,'#231d1b');
+    c.fillStyle=shade; c.fillRect(0,0,w,h);
+    for(let i=0;i<4600;i++){
+      c.fillStyle=i%2?'#fae4c70a':'#130e0a15';
+      c.fillRect(noise(i+2800)*w,noise(i+8700)*h,1+noise(i+15)*6,1);
+    }
+  }
+  draw(time);
+}
+
+function softNoise(value,seed) {
+  const i=Math.floor(value);
+  const mix=smooth(value-i);
+  return noise(i+seed)*(1-mix)+noise(i+1+seed)*mix;
+}
+
+const burnOrigin=[.014,.019];
+function burnRadius(angle,burn,dual){
+  const pace=.68*burn+.32*smooth(burn)+.018*Math.sin(burn*6*Math.PI);
+  const grain=1+.085*Math.sin(5*angle+.3)+.045*Math.sin(11*angle-1.2)+
+    .027*Math.sin(23*angle+.8)+.017*Math.sin(41*angle)+.008*Math.sin(67*angle-1.1);
+  return Math.pow(pace,1.15)*(dual?1.77:.68)*grain;
+}
+
+function burnFront(w,h,burn,dual,toward){
+  const [ox,oy]=burnOrigin;
+  return Array.from({length:208},(_,i)=>{
+    const angle=i*Math.PI/104;
+    const radius=burnRadius(angle,burn,dual);
+    return toward((ox+Math.cos(angle)*radius)*w,(oy+Math.sin(angle)*radius)*h,w,h);
+  });
+}
+
+function closedPath(points){
+  const path=new Path2D();
+  points.forEach(([x,y],index)=>index?path.lineTo(x,y):path.moveTo(x,y));
+  path.closePath();
+  return path;
+}
+
+function scorchFront(c,path,w,h,burn){
+  const rimScale=.37+.63*smooth(burn/.14);
+  c.save();
+  c.clip(path);
+  // The lower layer darkens under the lip, giving the cut edge depth.
+  for(const [width,color] of [[23,'#1c100e27'],[12,'#1c100e54'],[5,'#170d0ab3']]){
+    c.lineWidth=width*rimScale; c.strokeStyle=color; c.stroke(path);
+  }
+  c.restore();
+
+  c.save();
+  const paperSide=new Path2D();
+  paperSide.rect(0,0,w,h);
+  paperSide.addPath(path);
+  c.clip(paperSide,'evenodd');
+  for(const [width,color] of [[51,'#74402216'],[34,'#80432145'],[21,'#572d1cb3'],[11,'#332019e8'],[4,'#1d1513']]){
+    c.lineWidth=width*rimScale;
+    c.strokeStyle=color; c.stroke(path);
+  }
+  c.restore();
+}
+
+function fireRibbon(samples,width,lift,tipOnly=false){
+  const bank=(side)=>{
+    const ordered=side===1?samples:[...samples].reverse();
+    return ordered.map(({x,y,nx,ny,body,hot,tip})=>{
+      const spread=width*(tipOnly?hot:body);
+      const raise=tip*lift*Math.max(0,-ny*side);
+      return [x+nx*spread*side+raise*.20,y+ny*spread*side-raise];
+    });
+  };
+  const path=closedPath(bank(1));
+  path.addPath(closedPath(bank(-1)));
+  return path;
+}
+
+function glowFront(c,front,w,h,t,burn,heat){
+  if(heat<=0)return;
+  const time=(t-contact)*.001;
+  const growth=.24+.76*smooth(burn/.11);
+  const samples=front.map(([x,y],i)=>{
+    const before=front[(i+front.length-1)%front.length];
+    const after=front[(i+1)%front.length];
+    const dx=after[0]-before[0],dy=after[1]-before[1];
+    const length=Math.hypot(dx,dy)||1;
+    const phase=i*Math.PI*2/front.length;
+    const flicker=.51+.20*Math.sin(phase*13-time*4.3)
+      +.16*Math.sin(phase*29+time*6.8)+.11*Math.sin(phase*47-time*8.1);
+    const hot=smooth((flicker-.44)/.48);
+    const curl=Math.max(0,Math.sin(phase*9-time*2.4))**4;
+    return {
+      x,y,nx:-dy/length,ny:dx/length,
+      body:growth*(.29+1.18*hot),
+      hot:growth*(.10+.98*hot**1.35),
+      tip:growth*curl*hot*28
+    };
+  });
+  if(!samples.some(({x,y})=>x>=-32&&x<=w+32&&y>=-32&&y<=h+32))return;
+  c.save();
+  // Broad reflected heat hugs the paper; the hotter layers stay near the lip.
+  c.globalAlpha=heat*.49;
+  c.fillStyle='#a94d2584';
+  c.shadowColor='#bd6034'; c.shadowBlur=26;
+  c.fill(fireRibbon(samples,14.5,1.10));
+  c.globalAlpha=heat*.83;
+  c.fillStyle='#d58b4bcb';
+  c.shadowColor='#e38b48'; c.shadowBlur=15;
+  c.fill(fireRibbon(samples,7.4,1.02));
+  c.globalAlpha=heat*.92;
+  c.fillStyle='#f1bd71';
+  c.shadowColor='#eeb26b'; c.shadowBlur=6;
+  c.fill(fireRibbon(samples,4.6,.77));
+  c.globalAlpha=heat*.88;
+  c.fillStyle='#fff0c6';
+  c.shadowColor='#f4cf83'; c.shadowBlur=3;
+  c.fill(fireRibbon(samples,3.2,.46,true));
+  c.restore();
+}
+
+function emberTrail(c,x,y,age,opacity){
+  c.save();
+  for(let i=0;i<5;i++){
+    const lift=(age+i*.137)%1;
+    const radius=.45+noise(i+317)*.95;
+    const dx=(noise(i+431)-.5)*45*lift;
+    c.globalAlpha=opacity*(1-lift)*(.35+noise(i+910)*.65);
+    c.fillStyle=i%3?'#eb713a':'#ffc087';
+    c.beginPath();
+    c.arc(x+dx,y-12-lift*(14+noise(i+821)*34),radius,0,Math.PI*2);
+    c.fill();
+  }
+  c.restore();
+}
+
+function rim(w,h,burn,toward=orient(direction),dual=true) {
+  const sides=[
+    (t,d)=>[t*w,d], (t,d)=>[w-d,t*h],
+    (t,d)=>[(1-t)*w,h-d], (t,d)=>[d,(1-t)*h]
+  ];
+  const heatAt=(x,y)=>{
+    const [u,v]=toward(x,y,w,h);
+    if(burn<=0)return 0;
+    const dx=u/w-burnOrigin[0],dy=v/h-burnOrigin[1];
+    const reach=burnRadius(Math.atan2(dy,dx),burn,dual);
+    return smooth((reach-Math.hypot(dx,dy))/.095+.18);
+  };
+  const corners=[[0,0],[w,0],[w,h],[0,h]];
+  const heat=corners.map(([x,y])=>heatAt(x,y));
+  const trim=corners.map(([x,y],i)=>{
+    const [u,v]=toward(x,y,w,h);
+    return heat[i]*(u+v===0?53:12+noise(i+72)*10);
+  });
+  const edges=sides.map((side,s)=>{
+    const len=s%2?h:w;
+    const start=trim[s]/len, stop=1-trim[(s+1)%4]/len;
+    const n=Math.ceil((stop-start)*len/3.3);
+    return Array.from({length:n+1},(_,i)=>{
+      const t=start+(stop-start)*i/n, px=t*len;
+      const [x,y]=side(t,0);
+      const heat=heatAt(x,y);
+      const [u,v]=toward(x,y,w,h);
+      const distance=u/w+v/h;
+      const bite=(.45+.55*Math.max(0,1-distance*.45))*
+        (3+38*Math.pow(softNoise(px/65,371*s+21),2.9)+
+          8*softNoise(px/14,371*s+590)+3.3*softNoise(px/3.6,371*s+830));
+      return {p:side(t,heat*bite),heat};
+    });
+  });
+  return edges.flatMap((edge,s)=>{
+    const next=(s+1)%4;
+    if(trim[next]<.1)return edge;
+    const [x,y]=corners[next];
+    const [ax,ay]=edge.at(-1).p, [bx,by]=edges[next][0].p;
+    const inward=trim[next]*.53;
+    const cx=x+(x===0?inward:-inward),cy=y+(y===0?inward:-inward);
+    const count=Math.ceil(trim[next]/2.7);
+    for(let i=1;i<count;i++){
+      const t=i/count,k=1-t;
+      const chip=Math.sin(t*Math.PI)*(softNoise(i*.51,682+next*51)-.5)*4;
+      edge.push({p:[k*k*ax+2*k*t*cx+t*t*bx+chip,k*k*ay+2*k*t*cy+t*t*by+chip],heat:heat[next]});
+    }
+    return edge;
+  });
+}
+
+function scorch(c,points,w,h) {
+  const groups=Array.from({length:12},()=>[]);
+  points.forEach(({p,heat},i)=>{
+    const next=points[(i+1)%points.length];
+    const level=Math.round((heat+next.heat)*5.5);
+    if(level)groups[level].push([p,next.p]);
+  });
+  c.lineCap='round'; c.lineJoin='round';
+  const colors=['#75451d','#985322','#825027','#553321','#342019','#231916','#1b1513'];
+  const widths=[58,42,31,21,12,6,2.9];
+  const strengths=[.045,.09,.14,.24,.43,.68,.92];
+  for(let band=0;band<widths.length;band++){
+    c.strokeStyle=colors[band];
+    for(let level=1;level<groups.length;level++){
+      if(!groups[level].length)continue;
+      const heat=level/11;
+      c.globalAlpha=heat*strengths[band];
+      c.lineWidth=widths[band]*(.32+.68*heat);
+      c.beginPath();
+      for(const [a,b] of groups[level]){
+        c.moveTo(a[0],a[1]); c.lineTo(b[0],b[1]);
+      }
+      c.stroke();
+    }
+  }
+  c.globalAlpha=1;
+  for(let i=0;i<points.length;i+=2){
+    const {p:[x,y],heat}=points[i];
+    if(heat<.4)continue;
+    const dx=(w/2-x)/w,dy=(h/2-y)/h;
+    const dist=2+noise(i+9)*55;
+    c.fillStyle=i%4?'#34201653':'#f2cc8b6b';
+    c.fillRect(x+dx*dist,y+dy*dist,.65+noise(i+12)*1.45,.6+noise(i+32)*.85);
+  }
+}
+
+function trace(c, points) {
+  c.beginPath();
+  points.forEach(([x,y],i)=>i ? c.lineTo(x,y) : c.moveTo(x,y));
+}
+
+function fireShape(c,x,y,size,t,phase=0) {
+  c.save(); c.translate(x,y);
+  c.scale(size/44,size/44);
+  const sway=Math.sin(t*.017+phase)*7;
+  const plume=c.createLinearGradient(0,0,0,-47);
+  plume.addColorStop(0,'#ffed9c'); plume.addColorStop(.31,'#ffc85f');
+  plume.addColorStop(.71,'#ff6b20'); plume.addColorStop(1,'#a93215a0');
+  c.shadowColor='#ff6a20'; c.shadowBlur=15;
+  c.fillStyle=plume;
+  c.beginPath(); c.moveTo(-11,1);
+  c.bezierCurveTo(-21,-14,-4,-22,-11,-35);
+  c.bezierCurveTo(-5,-32,-1,-24,sway-3,-29);
+  c.bezierCurveTo(sway+3,-36,sway+4,-42,sway+2,-49);
+  c.bezierCurveTo(sway+20,-35,11,-24,15,-18);
+  c.bezierCurveTo(21,-9,13,4,2,5);
+  c.quadraticCurveTo(-6,6,-11,1); c.fill();
+  c.shadowBlur=0; c.fillStyle='#fff6c6';
+  c.beginPath(); c.moveTo(-6,1); c.quadraticCurveTo(-10,-9,sway*.44,-23);
+  c.quadraticCurveTo(0,-14,7,-8); c.quadraticCurveTo(12,1,2,4); c.fill();
+  c.restore();
+}
+
+function drawMatch(c,x,y,t,lit,angle) {
+  c.save(); c.translate(x,y); c.rotate(angle);
+  const wood=c.createLinearGradient(0,-5,0,5);
+  wood.addColorStop(0,'#f8dba0'); wood.addColorStop(.4,'#d4a264'); wood.addColorStop(1,'#99673c');
+  c.shadowColor='#140e0bb0'; c.shadowBlur=9; c.shadowOffsetY=5;
+  c.fillStyle=wood; c.beginPath();
+  c.moveTo(2,-4.5); c.lineTo(127,-4.5); c.quadraticCurveTo(132,-3,131,4);
+  c.lineTo(0,4.5); c.closePath(); c.fill();
+  c.shadowBlur=0; c.shadowOffsetY=0;
+  for(let i=0;i<5;i++){
+    c.strokeStyle=i%2?'#fff0b653':'#7449224c'; c.lineWidth=.55;
+    c.beginPath(); c.moveTo(16+i*5,-3+i*1.4); c.lineTo(122-i*5,-3+i*1.4); c.stroke();
+  }
+  const head=c.createRadialGradient(-3,-5,1,0,0,13);
+  head.addColorStop(0,lit?'#d37d4c':'#d78168'); head.addColorStop(.55,lit?'#622719':'#a14937');
+  head.addColorStop(1,'#381a17');
+  c.fillStyle=head; c.beginPath(); c.ellipse(-2,0,10,7.5,.04,0,Math.PI*2); c.fill();
+  for(let i=0;i<20;i++){
+    c.fillStyle=i%2?'#e5a88870':'#4622198c';
+    const a=noise(i+640)*Math.PI*2,r=Math.sqrt(noise(i+655));
+    c.fillRect(-2+Math.cos(a)*8*r,Math.sin(a)*6*r,1.1,1);
+  }
+  c.restore();
+  if(lit) fireShape(c,x-2,y-4,39+Math.sin(t*.023)*4,t);
+}
+
+function draw(t,still=false,c=ctx,state={base,changed,desk,direction,duration}) {
+  const {base,changed,desk,direction,duration}=state;
+  if(!base)return;
+  const W=desk.width,H=desk.height,{w,h}=paper(W,H);
+  const toward=orient(direction);
+  const burn=clamp((t-contact)/duration);
+  const end=t>=contact+duration;
+  const dual=changed!==base;
+  const points=rim(w,h,burn,toward,dual);
+  const corner=toward(0,0,w,h);
+  const angle=-.035, originX=W*.5, originY=H*.475;
+  c.drawImage(desk,0,0);
+  c.save(); c.translate(originX,originY); c.rotate(angle); c.translate(-w/2,-h/2);
+  const outline=()=>{trace(c,points.map(item=>item.p)); c.closePath();};
+  outline(); c.shadowColor='#140b08ba'; c.shadowBlur=34; c.shadowOffsetY=19;
+  c.fillStyle='#ebd4ac'; c.fill();
+  c.shadowBlur=0; c.shadowOffsetY=0;
+  c.save(); outline(); c.clip();
+  c.drawImage(base,0,0,w,h,0,0,w,h);
+  const front=burn>0&&!end?burnFront(w,h,burn,dual,toward):[];
+  const cut=front.length?closedPath(front):null;
+  if(dual&&end)c.drawImage(changed,0,0,w,h,0,0,w,h);
+  if(burn>0)scorch(c,points,w,h);
+  if(dual&&cut){
+    c.save();
+    c.clip(cut);
+    c.drawImage(changed,0,0,w,h,0,0,w,h);
+    c.restore();
+    scorchFront(c,cut,w,h,burn);
+  }
+  if(cut&&!still){
+    const heat=smooth(burn/.047)*(1-(dual ? .30 : 1)*smooth((burn-.77)/.23));
+    glowFront(c,front,w,h,t,burn,heat);
+  }
+  if(!still&&t>=contact-80&&burn<.055){
+    const [x,y]=toward(burnOrigin[0]*w,burnOrigin[1]*h,w,h);
+    const glow=c.createRadialGradient(x,y,1,x,y,25);
+    const intensity=smooth((t-contact+80)/105)*(1-smooth(burn/.055));
+    glow.addColorStop(0,'#ffe1a7'); glow.addColorStop(.28,'#c3743ba6');
+    glow.addColorStop(1,'#9e492300');
+    c.save(); c.globalAlpha=intensity; c.fillStyle=glow;
+    c.fillRect(x-25,y-25,50,50); c.restore();
+  }
+  c.restore();
+  if(!still&&cut&&!end&&burn>.035){
+    const visible=front.filter(([x,y])=>x>0&&x<w&&y>0&&y<h);
+    if(visible.length){
+      const [x,y]=visible[Math.floor(visible.length*.56)];
+      const strength=smooth(burn/.14)*(1-smooth((burn-.70)/.30));
+      emberTrail(c,x,y,t*.0014,strength*.74);
+    }
+  }
+  if(!still&&t>=contact+duration*.80&&t<contact+duration+emberTime){
+    const edge=points.filter(({p:[px,py],heat})=>{
+      const [u,v]=toward(px,py,w,h);
+      return heat>.65&&u/w+v/h<.21;
+    }).map(item=>item.p);
+    const [x,y]=edge[Math.floor(edge.length*.5)]??corner;
+    const tail=smooth((burn-.80)/.13)*(1-smooth((t-contact-duration)/emberTime));
+    c.save(); outline(); c.clip();
+    for(let i=0;i<edge.length;i+=7){
+      const [px,py]=edge[i];
+      c.globalAlpha=tail*(.24+noise(i+671)*.55);
+      c.fillStyle=i%3?'#b54c2b':'#e08046';
+      c.shadowColor='#b44929'; c.shadowBlur=4;
+      c.beginPath(); c.arc(px,py,.65+noise(i+541)*.8,0,Math.PI*2); c.fill();
+    }
+    c.restore();
+    emberTrail(c,x,y,t*.0013,tail*.8);
+  }
+  c.restore();
+  if(!still && t<contact+230){
+    const flip=direction.endsWith('right')?-1:1;
+    const top=direction.startsWith('top');
+    const localX=corner[0]-w/2, localY=corner[1]-h/2;
+    const touchX=originX+localX*Math.cos(angle)-localY*Math.sin(angle);
+    const touchY=originY+localX*Math.sin(angle)+localY*Math.cos(angle);
+    const travel=smooth((t-260)/(contact-260));
+    const leave=smooth((t-contact)/230);
+    const x=touchX+flip*(33*(1-travel)+43*leave+Math.sin(clamp(t/280)*Math.PI)*18);
+    const y=touchY+(top?-1:1)*(42*(1-travel)+28*leave);
+    const slant=(top?-.43:.46)*flip;
+    c.save(); c.globalAlpha=1-leave;
+    drawMatch(c,x,y,t,t>=260&&t<contact+45,flip<0?Math.PI+slant:slant); c.restore();
+  }
+}
+
+async function upload(event,index){
+  const version=++versions[index];
+  const files=[...event.target.files];
+  loading[index]=true; syncSave();
+  const images=await Promise.all(files.map(file=>new Promise(resolve=>{
+    const url=URL.createObjectURL(file), image=new Image();
+    image.onload=()=>{URL.revokeObjectURL(url);resolve(image);};
+    image.onerror=()=>{URL.revokeObjectURL(url);resolve(null);};
+    image.src=url;
+  })));
+  if(version!==versions[index])return;
+  sets[index]=images.filter(Boolean);
+  cancelAnimationFrame(frame); time=0; rebuild();
+  const skipped=files.length-sets[index].length;
+  loading[index]=false; syncSave();
+  status.textContent=(index===0?'第一套':'第二套')+'已载入 '+sets[index].length+' 张。'+(skipped?' 有 '+skipped+' 张无法读取。':'');
+}
+
+get('setA').onchange=e=>upload(e,0);
+get('setB').onchange=e=>upload(e,1);
+function choices(id,apply){
+  get(id).querySelectorAll('button').forEach(button=>button.onclick=()=>{
+    get(id).querySelectorAll('button').forEach(item=>item.classList.toggle('active',item===button));
+    apply(button.dataset);
+    cancelAnimationFrame(frame); time=0; rebuild();
+  });
+}
+choices('styleChoices',value=>{
+  style=value.style;
+  get('printStrengthControls').hidden=style!=='print';
+});
+choices('directionChoices',value=>{direction=value.dir;});
+choices('ratioChoices',value=>{
+  const [a,b]=value.ratio.split('/').map(Number);
+  canvas.height=Math.round(canvas.width*b/a);
+  scene.style.aspectRatio=value.ratio;
+});
+get('speed').oninput=e=>{duration=Number(e.target.value)*1000;get('speedLabel').textContent=e.target.value;};
+get('ignite').onclick=()=>{
+  cancelAnimationFrame(frame);
+  const start=performance.now();
+  status.textContent='火柴已划亮，正在烧过纸面…';
+  function tick(now){
+    const end=contact+duration+emberTime;
+    time=Math.min(now-start,end);
+    draw(time);
+    if(time<end) frame=requestAnimationFrame(tick);
+    else status.textContent=sets[1].length?'燃烧完成，第二套图片已显影。':'燃烧完成，纸上留下焦黑缺口。';
+  }
+  frame=requestAnimationFrame(tick);
+};
+get('reset').onclick=()=>{
+  cancelAnimationFrame(frame); time=0; draw(time); status.textContent='已回到点火前。';
+};
+let layerFrame=0;
+function refreshLayers(){
+  cancelAnimationFrame(layerFrame);
+  layerFrame=requestAnimationFrame(rebuild);
+}
+function refreshTitle(){
+  get('titleSizeLabel').value=get('titleSize').value;
+  refreshLayers();
+}
+get('printStrength').oninput=event=>{
+  const percent=Number(event.target.value);
+  printStrength=percent/100;
+  get('printStrengthLabel').value=percent+'%';
+  refreshLayers();
+};
+for(const id of ['titleText','titleSize','titleColor'])get(id).oninput=refreshTitle;
+get('titleFont').onchange=refreshTitle;
+get('titleFile').onchange=async event=>{
+  const file=event.target.files[0];
+  if(!file)return;
+  const version=++fontVersion;
+  const family='ScorchFont'+version;
+  try{
+    const face=await new FontFace(family,await file.arrayBuffer()).load();
+    if(version!==fontVersion)return;
+    document.fonts.add(face);
+    fonts.set(family,family+',serif');
+    const select=get('titleFont');
+    select.add(new Option(file.name,family));
+    select.value=family;
+    refreshTitle();
+    status.textContent='已载入字体 '+file.name+'。';
+  }catch{
+    if(version===fontVersion)status.textContent='无法读取该字体，请试用 TTF、OTF、WOFF 或 WOFF2。';
+  }finally{
+    if(version===fontVersion)event.target.value='';
+  }
+};
+
+function snapshot(t){
+  const output=makeLayer(canvas.width,canvas.height);
+  draw(t,true,output.getContext('2d'));
+  return new Promise((resolve,reject)=>output.toBlob(
+    blob=>blob?resolve(blob):reject(new Error('PNG 生成失败')),'image/png'
+  ));
+}
+
+// PNG data is already compressed. Store both files in one ZIP for mobile browsers.
+async function zipPNGs(entries){
+  const encoder=new TextEncoder();
+  const table=Uint32Array.from({length:256},(_,i)=>{
+    let crc=i;
+    for(let bit=0;bit<8;bit++)crc=(crc>>>1)^((crc&1)?0xedb88320:0);
+    return crc;
+  });
+  const chunks=[], directory=[];
+  let offset=0, directoryLength=0;
+  for(const [name,png] of entries){
+    const bytes=new Uint8Array(await png.arrayBuffer());
+    const filename=encoder.encode(name);
+    let crc=0xffffffff;
+    for(const byte of bytes)crc=(crc>>>8)^table[(crc^byte)&255];
+    crc=(crc^0xffffffff)>>>0;
+    const local=new DataView(new ArrayBuffer(30));
+    local.setUint32(0,0x04034b50,true); local.setUint16(4,20,true);
+    local.setUint16(6,0x800,true); local.setUint16(12,33,true);
+    local.setUint32(14,crc,true);
+    local.setUint32(18,bytes.length,true); local.setUint32(22,bytes.length,true);
+    local.setUint16(26,filename.length,true);
+    const central=new DataView(new ArrayBuffer(46));
+    central.setUint32(0,0x02014b50,true); central.setUint16(4,20,true);
+    new Uint8Array(central.buffer,6,26).set(new Uint8Array(local.buffer,4,26));
+    central.setUint32(42,offset,true);
+    chunks.push(local.buffer,filename,bytes);
+    directory.push(central.buffer,filename);
+    offset+=30+filename.length+bytes.length;
+    directoryLength+=46+filename.length;
+  }
+  const end=new DataView(new ArrayBuffer(22));
+  end.setUint32(0,0x06054b50,true);
+  end.setUint16(8,entries.length,true); end.setUint16(10,entries.length,true);
+  end.setUint32(12,directoryLength,true); end.setUint32(16,offset,true);
+  return new Blob([...chunks,...directory,end.buffer],{type:'application/zip'});
+}
+
+// Use a single adaptive palette so the paper and photos keep their colors between frames.
+const gifColorKey=(r,g,b)=>((r>>3)<<10)|((g>>3)<<5)|(b>>3);
+
+function gifPalette(samples,width,height){
+  const counts=new Uint32Array(32768);
+  const totals=new Uint32Array(32768*3);
+  for(const rgba of samples){
+    for(let y=0;y<height;y+=2) for(let x=0;x<width;x+=2){
+      const i=(y*width+x)*4;
+      const key=gifColorKey(rgba[i],rgba[i+1],rgba[i+2]);
+      counts[key]++;
+      for(let channel=0;channel<3;channel++)totals[key*3+channel]+=rgba[i+channel];
+    }
+  }
+  const colors=[];
+  for(let key=0;key<counts.length;key++){
+    const count=counts[key];
+    if(count)colors.push({
+      count,
+      rgb:[0,1,2].map(channel=>totals[key*3+channel]/count)
+    });
+  }
+  function box(items){
+    const lo=[255,255,255],hi=[0,0,0];
+    let count=0;
+    for(const color of items){
+      count+=color.count;
+      for(let channel=0;channel<3;channel++){
+        lo[channel]=Math.min(lo[channel],color.rgb[channel]);
+        hi[channel]=Math.max(hi[channel],color.rgb[channel]);
+      }
+    }
+    const weights=[.30,.50,.20];
+    const ranges=weights.map((weight,i)=>(hi[i]-lo[i])**2*weight);
+    const channel=ranges.indexOf(Math.max(...ranges));
+    return {items,count,channel,score:ranges[channel]*Math.sqrt(count)};
+  }
+  const boxes=[box(colors)];
+  while(boxes.length<256){
+    let index=-1, score=0;
+    boxes.forEach((candidate,i)=>{
+      if(candidate.items.length>1&&candidate.score>score){index=i;score=candidate.score;}
+    });
+    if(index<0)break;
+    const {items,count,channel}=boxes[index];
+    items.sort((a,b)=>a.rgb[channel]-b.rgb[channel]);
+    let split=0, leftCount=0;
+    do{leftCount+=items[split++].count;}while(leftCount<count/2&&split<items.length-1);
+    boxes.splice(index,1,box(items.slice(0,split)),box(items.slice(split)));
+  }
+  const palette=new Uint8Array(768);
+  boxes.forEach(({items,count},index)=>{
+    for(let channel=0;channel<3;channel++){
+      const sum=items.reduce((total,color)=>total+color.rgb[channel]*color.count,0);
+      palette[index*3+channel]=Math.round(sum/count);
+    }
+  });
+  const lookup=new Uint8Array(32768);
+  for(let key=0;key<lookup.length;key++){
+    const r=((key>>10)&31)*8+3.5, g=((key>>5)&31)*8+3.5, b=(key&31)*8+3.5;
+    let nearest=0, minimum=Infinity;
+    for(let j=0;j<boxes.length;j++){
+      const i=j*3;
+      const distance=.30*(r-palette[i])**2+.50*(g-palette[i+1])**2+.20*(b-palette[i+2])**2;
+      if(distance<minimum){minimum=distance;nearest=j;}
+    }
+    lookup[key]=nearest;
+  }
+  return {palette,lookup};
+}
+
+function gifIndex(rgba,width,height,lookup){
+  const indexed=new Uint8Array(width*height);
+  const dither=[-3,1,-2,2,3,-1,4,0,-2,2,-3,1,4,0,3,-1];
+  const byte=value=>value<0?0:value>255?255:value;
+  for(let y=0;y<height;y++) for(let x=0;x<width;x++){
+    const p=y*width+x,i=p*4;
+    const shift=dither[((y&3)<<2)|(x&3)];
+    indexed[p]=lookup[gifColorKey(byte(rgba[i]+shift),byte(rgba[i+1]+shift),byte(rgba[i+2]+shift))];
+  }
+  return indexed;
+}
+
+function gifBounds(current,previous,width,height){
+  if(!previous)return {x:0,y:0,w:width,h:height};
+  let left=width,top=height,right=-1,bottom=-1;
+  for(let y=0;y<height;y++) for(let x=0;x<width;x++){
+    const i=y*width+x;
+    if(current[i]===previous[i])continue;
+    if(x<left)left=x;
+    if(x>right)right=x;
+    if(y<top)top=y;
+    if(y>bottom)bottom=y;
+  }
+  return right<0?{x:0,y:0,w:1,h:1}:{x:left,y:top,w:right-left+1,h:bottom-top+1};
+}
+
+function gifLZW(indexed,width,{x,y,w,h}){
+  const data=new Uint8Array(w*h*2+1024);
+  // A code is a prefix of up to 12 bits plus the next 8-bit pixel.
+  const codes=new Uint16Array(4096*256);
+  let length=0, pending=0, pendingBits=0, bits=9, nextCode=258;
+  function write(code){
+    pending|=code<<pendingBits;
+    pendingBits+=bits;
+    while(pendingBits>=8){
+      data[length++]=pending&255;
+      pending>>>=8;
+      pendingBits-=8;
+    }
+  }
+  write(256);
+  let prefix=indexed[y*width+x];
+  for(let row=0;row<h;row++){
+    for(let col=row===0?1:0;col<w;col++){
+      const color=indexed[(y+row)*width+x+col];
+      const key=(prefix<<8)|color;
+      const code=codes[key];
+      if(code){
+        prefix=code;
+        continue;
+      }
+      write(prefix);
+      if(nextCode<4096){
+        if(nextCode===(1<<bits))bits++;
+        codes[key]=nextCode++;
+      }else{
+        write(256);
+        codes.fill(0);
+        nextCode=258; bits=9;
+      }
+      prefix=color;
+    }
+  }
+  write(prefix);
+  if(nextCode===(1<<bits)&&bits<12)bits++;
+  write(257);
+  if(pendingBits)data[length++]=pending&255;
+  return data.subarray(0,length);
+}
+
+function gifHeader(width,height,palette){
+  return [
+    new TextEncoder().encode('GIF89a'),
+    Uint8Array.of(width&255,width>>8,height&255,height>>8,0xf7,0,0),
+    palette,
+    Uint8Array.of(0x21,0xff,0x0b,78,69,84,83,67,65,80,69,50,46,48,3,1,0,0,0)
+  ];
+}
+
+function gifFrame(indexed,previous,width,height,delay){
+  const bounds=gifBounds(indexed,previous,width,height);
+  const {x,y,w,h}=bounds;
+  const lzw=gifLZW(indexed,width,bounds);
+  const header=Uint8Array.of(
+    0x21,0xf9,4,4,delay&255,delay>>8,0,0,
+    0x2c,x&255,x>>8,y&255,y>>8,w&255,w>>8,h&255,h>>8,0,8
+  );
+  const frame=new Uint8Array(header.length+lzw.length+Math.ceil(lzw.length/255)+1);
+  frame.set(header);
+  let offset=header.length;
+  for(let i=0;i<lzw.length;i+=255){
+    const block=lzw.subarray(i,i+255);
+    frame[offset++]=block.length;
+    frame.set(block,offset); offset+=block.length;
+  }
+  return frame;
+}
+
+async function exportGIF(renderState){
+  const source=makeLayer(renderState.desk.width,renderState.desk.height);
+  const sourceCtx=source.getContext('2d');
+  const width=Math.min(source.width,900);
+  const height=Math.round(source.height*width/source.width);
+  const output=makeLayer(width,height);
+  const outputCtx=output.getContext('2d',{willReadFrequently:true});
+  outputCtx.imageSmoothingQuality='high';
+  function pixelsAt(at,still=false){
+    draw(at,still,sourceCtx,renderState);
+    outputCtx.drawImage(source,0,0,width,height);
+    return outputCtx.getImageData(0,0,width,height).data;
+  }
+  const end=contact+renderState.duration+emberTime;
+  const pause=()=>new Promise(resolve=>setTimeout(resolve,0));
+  const samples=[
+    pixelsAt(0,true),pixelsAt(contact*.56),pixelsAt(contact+renderState.duration*.53),
+    pixelsAt(end,true)
+  ];
+  const {palette,lookup}=gifPalette(samples,width,height);
+  const parts=gifHeader(width,height,palette);
+  let previous=null;
+  function append(rgba,delay){
+    const indexed=gifIndex(rgba,width,height,lookup);
+    parts.push(gifFrame(indexed,previous,width,height,delay));
+    previous=indexed;
+  }
+  append(samples[0],85);
+  const final=samples[3];
+  samples.length=0;
+  const count=Math.ceil(end*12/1000);
+  for(let index=0;index<count;index++){
+    const at=index*end/count;
+    const delay=Math.round((index+1)*end/count/10)-Math.round(at/10);
+    append(pixelsAt(at),delay);
+    if(index%3===0){
+      status.textContent='正在生成 GIF · '+Math.round((index+1)/(count+1)*100)+'%';
+      await pause();
+    }
+  }
+  append(final,145);
+  parts.push(Uint8Array.of(0x3b));
+  return new Blob(parts,{type:'image/gif'});
+}
+
+let exportURL='';
+let stillURLs=[];
+function showExport(blob,name,stills=[]){
+  const url=URL.createObjectURL(blob);
+  const previousURL=exportURL;
+  exportURL=url;
+  const link=get('exportDownload');
+  link.href=url; link.download=name;
+  link.textContent='下载 '+name.split('.').at(-1).toUpperCase();
+  get('exportName').textContent=name+' · '+(blob.size/1048576).toFixed(2)+' MB';
+
+  const preview=get('exportPreview'), image=get('exportImage');
+  preview.open=false;
+  preview.hidden=!blob.type.startsWith('image/');
+  image.removeAttribute('src');
+  preview.ontoggle=()=>{
+    if(preview.open&&!preview.hidden&&exportURL===url)image.src=url;
+  };
+
+  const share=get('exportShare');
+  share.hidden=true;
+  share.onclick=null;
+  if(typeof File==='function'&&typeof navigator.share==='function'&&typeof navigator.canShare==='function'){
+    const file=new File([blob],name,{type:blob.type});
+    if(navigator.canShare({files:[file]})){
+      share.hidden=false;
+      share.onclick=async ()=>{
+        try{
+          await navigator.share({files:[file]});
+        }catch(error){
+          if(error.name!=='AbortError')status.textContent='分享未完成，仍可点下方下载按钮。';
+        }
+      };
+    }
+  }
+  const stillLinks=[get('exportBefore'),get('exportAfter')];
+  const nextURLs=stills.map(([filename,png],index)=>{
+    const href=URL.createObjectURL(png);
+    stillLinks[index].href=href;
+    stillLinks[index].download=filename;
+    return href;
+  });
+  for(const link of stillLinks.slice(stills.length)){
+    link.removeAttribute('href');
+    link.removeAttribute('download');
+  }
+  get('exportStills').hidden=!stills.length;
+  for(const href of stillURLs)URL.revokeObjectURL(href);
+  stillURLs=nextURLs;
+  const result=get('exportResult');
+  result.hidden=false;
+  result.scrollIntoView({block:'nearest'});
+  if(previousURL)URL.revokeObjectURL(previousURL);
+}
+
+get('save').onclick=async ()=>{
+  if(exporting||patternLoading||loading.some(Boolean))return;
+  exporting=true; syncSave();
+  notifyStudio({type:'studio-busy',busy:true});
+  try{
+    cancelAnimationFrame(layerFrame); cancelAnimationFrame(frame);
+    const dual=hasTwoSets(), end=contact+duration;
+    time=end; rebuild();
+    const after=snapshot(end);
+    const before=dual?snapshot(0):null;
+    const [finished,original]=await Promise.all([after,before]);
+    const finalName='焰-燃烧后.png';
+    const stills=dual?[['焰-燃烧前.png',original],[finalName,finished]]:[];
+    const blob=dual?await zipPNGs(stills):finished;
+    showExport(blob,dual?'焰-燃烧前后.zip':finalName,stills);
+    status.textContent=dual?'两张 PNG 已生成，可打包下载或分别保存。':'PNG 已生成，点下方按钮下载。';
+  }catch{
+    status.textContent='静图导出失败，请重试。';
+  }finally{
+    exporting=false; syncSave();
+    notifyStudio({type:'studio-busy',busy:false});
+  }
+};
+get('saveGIF').onclick=async ()=>{
+  if(exporting||patternLoading||loading.some(Boolean))return;
+  exporting=true; syncSave();
+  notifyStudio({type:'studio-busy',busy:true});
+  status.textContent='正在准备 GIF…';
+  try{
+    cancelAnimationFrame(layerFrame); cancelAnimationFrame(frame);
+    rebuild();
+    const renderState={base,changed,desk,direction,duration};
+    await new Promise(resolve=>setTimeout(resolve,0));
+    const blob=await exportGIF(renderState);
+    showExport(blob,'焰-燃烧前后.gif');
+    status.textContent='GIF 已生成，点下方按钮下载。';
+  }catch{
+    status.textContent='GIF 导出失败，请重试。';
+  }finally{
+    exporting=false; syncSave();
+    notifyStudio({type:'studio-busy',busy:false});
+  }
+};
+rebuild();
+setupPaperPatterns();
+notifyStudio({type:'studio-ready'});
+</script></body></html>
