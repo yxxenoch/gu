@@ -17,12 +17,22 @@
 .text-controls textarea,.text-controls select{width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;background:#fffaf2;color:var(--ink);font:inherit}
 .text-controls textarea{resize:vertical}.text-controls input[type=color]{width:46px;height:35px;padding:2px;border:1px solid var(--line);border-radius:6px;background:#fffaf2}
 .paper-patterns{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.paper-choice{border:1px solid #cdbda8;border-radius:8px;background:#fffaf2;color:var(--ink);padding:4px;cursor:pointer;font:12px system-ui;text-align:center}.paper-choice img,.plain-paper{display:block;width:100%;height:32px;object-fit:cover;border-radius:4px;margin-bottom:4px}.plain-paper{background:linear-gradient(120deg,#f0ddb6,#d1a874)}.paper-choice[aria-pressed=true]{border-color:#a64020;box-shadow:0 0 0 1px #a64020}.paper-choice:focus-visible{outline:2px solid #a64020;outline-offset:2px}
+.floating-preview{position:fixed;z-index:4;right:max(12px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom));width:clamp(122px,24vw,184px);padding:5px;border:1px solid var(--line);border-radius:9px;background:#fffaf4;box-shadow:0 4px 18px #43291d30}
+.floating-preview[hidden],.floating-view[hidden]{display:none}
+.floating-view,.floating-toggle{display:block;width:100%;border:0;border-radius:5px;background:transparent;color:var(--ink);font:inherit;cursor:pointer}
+.floating-view{padding:0;overflow:hidden;background:#f8eee4}
+.floating-view canvas{display:block;width:100%;height:auto}
+.floating-toggle{min-height:32px;font-size:12px}
+.floating-preview.collapsed{width:auto}
+.floating-grip{display:block;text-align:center;font-size:11px;color:#786957;padding:4px;cursor:grab;touch-action:none;user-select:none}
+.floating-grip:active{cursor:grabbing}
+.export-quality{display:flex;align-items:center;gap:8px;margin-bottom:10px;font:13px system-ui}.export-quality select{font:inherit;padding:6px;border:1px solid var(--line);border-radius:7px;background:#fffaf2;color:var(--ink)}
 </style>
 </head>
 <body><main class="app">
 <header class="head"><div><div class="eyebrow">PAPER / FIRE / REVEAL</div><h1>焰</h1><p>让火焰从纸角掠过，带出另一段返图。</p></div><div class="eyebrow">返图模板</div></header>
 <div class="layout"><section class="panel">
-<div class="group"><h2>图片上传</h2><label class="upload"><span>第一套图片 · 燃烧前</span><input id="setA" type="file" accept="image/*" multiple></label><label class="upload"><span>第二套图片 · 燃烧后（可选）</span><input id="setB" type="file" accept="image/*" multiple></label><p class="hint">每套可上传任意张数。只上传第一套时，燃烧后仍是同一套图片，只增加焦痕；上传第二套后，燃烧会显影第二套。</p></div>
+<div class="group"><h2>图片上传</h2><label class="upload"><span>第一套图片 · 燃烧前</span><input id="setA" type="file" accept="image/*" multiple></label><label class="upload"><span>第二套图片 · 燃烧后（可选）</span><input id="setB" type="file" accept="image/*" multiple></label><div class="buttons" style="margin-top:8px"><button type="button" class="btn secondary" id="clearPhotos">清空图片</button></div><p class="hint">每套可上传任意张数。只上传第一套时，燃烧后仍是同一套图片，只增加焦痕；上传第二套后，燃烧会显影第二套。</p></div>
 <div class="group"><h2>纸面样式</h2><div class="choices" id="styleChoices"><button class="choice active" data-style="print">直接印刷</button><button class="choice" data-style="tape">照片与贴条</button></div>
 <div class="print-strength" id="printStrengthControls">
 <label for="printStrength">印刷强度 <output id="printStrengthLabel" for="printStrength">100%</output></label>
@@ -34,13 +44,14 @@
 <div class="text-controls">
 <label class="full">文字<textarea id="titleText" rows="2" placeholder="输入要烙在纸上的文字"></textarea></label>
 <label>字体<select id="titleFont"><option value="song">宋体</option><option value="kai">楷体</option><option value="sans">黑体</option><option value="mono">等宽</option></select></label>
-<label>字色<input id="titleColor" type="color" value="#2b160d"></label>
+<label>字色<input id="titleColor" type="color" value="#2b160d" data-color-title="字色" data-recent-colors></label>
 <label class="full">字号 <span><output id="titleSizeLabel">37</output> px</span><input id="titleSize" type="range" min="16" max="76" value="37"></label>
 <label class="full upload"><span>上传字体 · TTF / OTF / WOFF / WOFF2</span><input id="titleFile" type="file" accept=".ttf,.otf,.woff,.woff2"></label>
 </div><p class="hint">文字最多显示三行，留空时隐藏。上传字体可在本页使用。</p></div>
 <div class="group"><h2>燃烧方向</h2><div class="choices" id="directionChoices"><button class="choice active" data-dir="bottom-left">左下角</button><button class="choice" data-dir="top-left">左上角</button><button class="choice" data-dir="bottom-right">右下角</button><button class="choice" data-dir="top-right">右上角</button></div><p class="hint">方向会从选定纸角向内蔓延。</p></div>
 <div class="group"><h2>纸张比例</h2><div class="choices" id="ratioChoices"><button class="choice active" data-ratio="5/4">5:4</button><button class="choice" data-ratio="1/1">1:1</button><button class="choice" data-ratio="4/5">4:5</button></div><p class="hint">按原图比例自动排布，完整显示每张图片。多出的空间留在纸边。</p></div>
 <div class="group"><h2>燃烧速度</h2><input id="speed" type="range" min="1.5" max="6" step=".5" value="3"><p class="hint"><span id="speedLabel">3</span> 秒完成显影</p></div>
+<label class="export-quality">GIF 画质<select id="gif-quality"><option value="720">轻量 · 720 px</option><option value="900" selected>清晰 · 900 px</option><option value="1000">原尺寸 · 1000 px</option></select></label>
 <div class="buttons"><button class="btn fire" id="ignite">擦燃火柴</button><button class="btn secondary" id="reset">重置画面</button><button class="btn secondary" id="save">导出静图 PNG</button><button class="btn secondary" id="saveGIF">导出动图 GIF</button></div><div class="status" id="status" role="status">可直接点火试看，也可以上传自己的图片。</div>
 <div class="export-result" id="exportResult" hidden>
 <p class="export-name" id="exportName"></p>
@@ -51,14 +62,97 @@
 <details id="exportPreview" hidden><summary>预览图片</summary><img id="exportImage" alt="导出的返图"><p class="hint">可长按图片，查看浏览器提供的保存选项。</p></details>
 </div>
 </section>
-<section class="stage"><div class="scene" id="scene"><canvas id="art" width="1000" height="800" aria-label="火柴与纸张燃烧预览"></canvas></div></section></div></main>
+<section class="stage"><div class="scene" id="scene"><canvas id="art" tabindex="-1" width="1000" height="800" aria-label="火柴与纸张燃烧预览"></canvas></div></section></div></main>
+<aside id="floating-preview" class="floating-preview" aria-label="悬浮预览" hidden>
+<div id="floating-grip" class="floating-grip" tabindex="0" aria-label="移动预览，可用方向键移动">⠿ 拖动预览</div>
+<button id="floating-view" class="floating-view" type="button" aria-label="回到主预览"><canvas id="floating-canvas" aria-hidden="true"></canvas></button>
+<button id="floating-toggle" class="floating-toggle" type="button" aria-expanded="true" aria-controls="floating-view">收起预览</button>
+</aside>
 <script src="assets/petal-patterns/catalog.js?v=1"></script>
+<script src="studio-font-library.js?v=1"></script>
+<script defer src="huajian-colors.js?v=petal-2"></script>
 <script>
 const get = id => document.getElementById(id);
 const canvas = get('art');
 const ctx = canvas.getContext('2d');
 const scene = get('scene');
 const status = get('status');
+const floatingPreview=get("floating-preview"), floatingView=get("floating-view");
+const floatingCanvas=get("floating-canvas"), floatingToggle=get("floating-toggle");
+const floatingContext=floatingCanvas.getContext("2d");
+
+const floatingGrip=get("floating-grip");
+let previewDrag=null;
+function moveFloatingPreview(left,top){
+  const {width,height}=floatingPreview.getBoundingClientRect();
+  Object.assign(floatingPreview.style,{
+    left:Math.max(8,Math.min(innerWidth-width-8,left))+"px",
+    top:Math.max(8,Math.min(innerHeight-height-8,top))+"px",right:"auto",bottom:"auto"
+  });
+}
+function clampFloatingPreview(){
+  if(floatingPreview.hidden || !floatingPreview.style.left)return;
+  const {left,top}=floatingPreview.getBoundingClientRect();
+  moveFloatingPreview(left,top);
+}
+floatingGrip.addEventListener("pointerdown",event=>{
+  if(!event.isPrimary || event.button!==0)return;
+  const {left,top}=floatingPreview.getBoundingClientRect();
+  previewDrag={id:event.pointerId,x:event.clientX-left,y:event.clientY-top};
+  floatingGrip.setPointerCapture(event.pointerId);
+});
+floatingGrip.addEventListener("pointermove",event=>{
+  if(previewDrag?.id===event.pointerId)moveFloatingPreview(event.clientX-previewDrag.x,event.clientY-previewDrag.y);
+});
+floatingGrip.addEventListener("lostpointercapture",()=>{previewDrag=null;});
+floatingGrip.addEventListener("keydown",event=>{
+  const delta={ArrowLeft:[-20,0],ArrowRight:[20,0],ArrowUp:[0,-20],ArrowDown:[0,20]}[event.key];
+  if(!delta)return;
+  event.preventDefault();
+  const {left,top}=floatingPreview.getBoundingClientRect();
+  moveFloatingPreview(left+delta[0],top+delta[1]);
+});
+window.addEventListener("resize",clampFloatingPreview);
+
+function paintFloatingPreview(){
+  if(floatingPreview.hidden || floatingView.hidden || !canvas.width || !canvas.height)return;
+  const miniWidth=360, miniHeight=Math.max(1,Math.round(canvas.height*miniWidth/canvas.width));
+  if(floatingCanvas.width!==miniWidth || floatingCanvas.height!==miniHeight){
+    floatingCanvas.width=miniWidth;
+    floatingCanvas.height=miniHeight;
+  }
+  floatingContext.clearRect(0,0,miniWidth,miniHeight);
+  floatingContext.drawImage(canvas,0,0,miniWidth,miniHeight);
+}
+floatingView.addEventListener("click",()=>{
+  canvas.scrollIntoView({block:"center",behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});
+  canvas.focus({preventScroll:true});
+});
+floatingToggle.addEventListener("click",()=>{
+  const collapsed=!floatingView.hidden;
+  floatingView.hidden=collapsed;
+  floatingPreview.classList.toggle("collapsed",collapsed);
+  floatingToggle.setAttribute("aria-expanded",String(!collapsed));
+  floatingToggle.textContent=collapsed?"显示预览":"收起预览";
+  clampFloatingPreview();
+  paintFloatingPreview();
+});
+function syncFloatingPreview(){
+  const bounds=canvas.getBoundingClientRect();
+  const hidden=!bounds.height || bounds.bottom>48;
+  if(floatingPreview.hidden===hidden)return;
+  floatingPreview.hidden=hidden;
+  clampFloatingPreview();
+  paintFloatingPreview();
+}
+window.addEventListener("scroll",syncFloatingPreview,{passive:true});
+window.addEventListener("resize",syncFloatingPreview);
+window.addEventListener("message",event=>{
+  if(event.source===parent && event.origin===location.origin && event.data?.type==="studio-active"){
+    requestAnimationFrame(syncFloatingPreview);
+  }
+});
+
 const sets = [[], []];
 const versions = [0, 0];
 const loading = [false, false];
@@ -74,6 +168,8 @@ const syncSave=()=>{
   const disabled=exporting||patternLoading||loading.some(Boolean);
   get('save').disabled=disabled;
   get('saveGIF').disabled=disabled;
+  get('gif-quality').disabled=exporting;
+  get('clearPhotos').disabled=exporting||(!sets.some(images=>images.length)&&!loading.some(Boolean));
   get('save').textContent=hasTwoSets()?'导出两张 PNG（ZIP）':'导出静图 PNG';
 };
 const fonts=new Map([
@@ -751,6 +847,7 @@ function draw(t,still=false,c=ctx,state={base,changed,desk,direction,duration}) 
     c.save(); c.globalAlpha=1-leave;
     drawMatch(c,x,y,t,t>=260&&t<contact+45,flip<0?Math.PI+slant:slant); c.restore();
   }
+  if(c===ctx)paintFloatingPreview();
 }
 
 async function upload(event,index){
@@ -773,6 +870,18 @@ async function upload(event,index){
 
 get('setA').onchange=e=>upload(e,0);
 get('setB').onchange=e=>upload(e,1);
+get('clearPhotos').onclick=()=>{
+  if(exporting)return;
+  for(const [index,id] of ['setA','setB'].entries()){
+    versions[index]++;
+    sets[index]=[];
+    loading[index]=false;
+    get(id).value='';
+  }
+  cancelAnimationFrame(frame); time=0;
+  rebuild(); syncSave();
+  status.textContent='已清空两套图片。';
+};
 function choices(id,apply){
   get(id).querySelectorAll('button').forEach(button=>button.onclick=()=>{
     get(id).querySelectorAll('button').forEach(item=>item.classList.toggle('active',item===button));
@@ -823,28 +932,84 @@ get('printStrength').oninput=event=>{
   refreshLayers();
 };
 for(const id of ['titleText','titleSize','titleColor'])get(id).oninput=refreshTitle;
-get('titleFont').onchange=refreshTitle;
-get('titleFile').onchange=async event=>{
-  const file=event.target.files[0];
-  if(!file)return;
-  const version=++fontVersion;
-  const family='ScorchFont'+version;
+const fontSelect=get('titleFont');
+const loadedFonts=new Map();
+let appliedFont=fontSelect.value,fontCatalogVersion=0;
+function addFontOption(id,name){
+  if(![...fontSelect.options].some(option=>option.value===id))fontSelect.add(new Option(name,id));
+}
+async function refreshFontLibrary(){
+  const request=++fontCatalogVersion;
   try{
-    const face=await new FontFace(family,await file.arrayBuffer()).load();
-    if(version!==fontVersion)return;
-    document.fonts.add(face);
-    fonts.set(family,family+',serif');
-    const select=get('titleFont');
-    select.add(new Option(file.name,family));
-    select.value=family;
-    refreshTitle();
-    status.textContent='已载入字体 '+file.name+'。';
+    const records=await window.StudioFontLibrary?.list();
+    if(request!==fontCatalogVersion||!records)return;
+    for(const record of records)addFontOption('yan-font-'+record.id,record.name);
+  }catch{}
+}
+async function loadTitleFont(family,buffer){
+  if(!loadedFonts.has(family)){
+    const pending=(async()=>{
+      if(!buffer){
+        const record=await window.StudioFontLibrary?.get(family.slice('yan-font-'.length));
+        buffer=record?.buffer||await record?.blob?.arrayBuffer();
+      }
+      if(!buffer)throw new Error('Missing font');
+      const face=await new FontFace(family,buffer).load();
+      document.fonts.add(face);
+      fonts.set(family,'"'+family+'",serif');
+    })();
+    loadedFonts.set(family,pending);
+    pending.catch(()=>loadedFonts.delete(family));
+  }
+  await loadedFonts.get(family);
+}
+function applyTitleFont(family){
+  appliedFont=family;
+  fontSelect.value=family;
+  refreshTitle();
+}
+fontSelect.onchange=async ()=>{
+  const selected=fontSelect.value,request=++fontVersion;
+  if(fonts.has(selected)){
+    applyTitleFont(selected);
+    return;
+  }
+  fontSelect.value=appliedFont;
+  status.textContent='正在读取字体…';
+  try{
+    await loadTitleFont(selected);
+    if(request!==fontVersion)return;
+    applyTitleFont(selected);
+    status.textContent='已应用网站字体。';
   }catch{
-    if(version===fontVersion)status.textContent='无法读取该字体，请试用 TTF、OTF、WOFF 或 WOFF2。';
-  }finally{
-    if(version===fontVersion)event.target.value='';
+    if(request===fontVersion)status.textContent='无法读取这款字体。';
   }
 };
+get('titleFile').onchange=async event=>{
+  const file=event.target.files[0];
+  event.target.value='';
+  if(!file)return;
+  const request=++fontVersion,library=window.StudioFontLibrary;
+  try{
+    const buffer=await file.arrayBuffer();
+    const id=library?await library.id(buffer):null;
+    const family=id?'yan-font-'+id:'ScorchFont'+request;
+    await loadTitleFont(family,buffer);
+    let saved=false;
+    if(library){
+      try{await library.put(file.name,buffer);saved=true;}catch{}
+    }
+    addFontOption(family,file.name);
+    if(request!==fontVersion)return;
+    applyTitleFont(family);
+    status.textContent=saved?'已应用并存入网站字体库。':'已应用字体，可在本次编辑中使用。';
+  }catch{
+    if(request===fontVersion)status.textContent='无法读取该字体，请试用 TTF、OTF、WOFF 或 WOFF2。';
+  }
+};
+window.addEventListener('message',event=>{
+  if(event.source===parent&&event.origin===location.origin&&event.data?.type==='font-library-changed')refreshFontLibrary();
+});
 
 function snapshot(t){
   const output=makeLayer(canvas.width,canvas.height);
@@ -1061,10 +1226,10 @@ function gifFrame(indexed,previous,width,height,delay){
   return frame;
 }
 
-async function exportGIF(renderState){
+async function exportGIF(renderState,targetWidth=900){
   const source=makeLayer(renderState.desk.width,renderState.desk.height);
   const sourceCtx=source.getContext('2d');
-  const width=Math.min(source.width,900);
+  const width=Math.min(source.width,targetWidth);
   const height=Math.round(source.height*width/source.width);
   const output=makeLayer(width,height);
   const outputCtx=output.getContext('2d',{willReadFrequently:true});
@@ -1193,8 +1358,9 @@ get('saveGIF').onclick=async ()=>{
     cancelAnimationFrame(layerFrame); cancelAnimationFrame(frame);
     rebuild();
     const renderState={base,changed,desk,direction,duration};
+    const targetWidth=Number(get('gif-quality').value);
     await new Promise(resolve=>setTimeout(resolve,0));
-    const blob=await exportGIF(renderState);
+    const blob=await exportGIF(renderState,targetWidth);
     showExport(blob,'焰-燃烧前后.gif');
     status.textContent='GIF 已生成，点下方按钮下载。';
   }catch{
@@ -1206,5 +1372,8 @@ get('saveGIF').onclick=async ()=>{
 };
 rebuild();
 setupPaperPatterns();
+syncSave();
+refreshFontLibrary();
+syncFloatingPreview();
 notifyStudio({type:'studio-ready'});
 </script></body></html>
