@@ -640,6 +640,7 @@ function rim(w,h,burn,toward=orient(direction),dual=true) {
     const [u,v]=toward(x,y,w,h);
     return heat[i]*(u+v===0?53:12+noise(i+72)*10);
   });
+  const normals=[[0,1],[-1,0],[0,-1],[1,0]];
   const edges=sides.map((side,s)=>{
     const len=s%2?h:w;
     const start=trim[s]/len, stop=1-trim[(s+1)%4]/len;
@@ -653,7 +654,8 @@ function rim(w,h,burn,toward=orient(direction),dual=true) {
       const bite=(.45+.55*Math.max(0,1-distance*.45))*
         (3+38*Math.pow(softNoise(px/65,371*s+21),2.9)+
           8*softNoise(px/14,371*s+590)+3.3*softNoise(px/3.6,371*s+830));
-      return {p:side(t,heat*bite),heat};
+      const curl=smooth((heat-.54)/.46)*smooth((bite-9)/14)*smooth((softNoise(px/95,2100+s*83)-.44)/.39);
+      return {p:side(t,heat*bite),heat,side:s,normal:normals[s],curl};
     });
   });
   return edges.flatMap((edge,s)=>{
@@ -673,7 +675,84 @@ function rim(w,h,burn,toward=orient(direction),dual=true) {
   });
 }
 
-function scorch(c,points,w,h) {
+function warmLight(c,x,y,radius,opacity){
+  if(opacity<=0)return;
+  const light=c.createRadialGradient(x,y,0,x,y,radius);
+  light.addColorStop(0,'#ffd291');
+  light.addColorStop(.32,'#e9a25f85');
+  light.addColorStop(.68,'#ce693b32');
+  light.addColorStop(1,'#ce693b00');
+  c.save();
+  c.globalCompositeOperation='screen';
+  c.globalAlpha=opacity;
+  c.fillStyle=light;
+  c.fillRect(x-radius,y-radius,radius*2,radius*2);
+  c.restore();
+}
+
+function heatLights(front,w,h,heat,t){
+  const nearby=front.filter(([x,y])=>x>=-22&&x<=w+22&&y>=-22&&y<=h+22);
+  const count=Math.min(4,Math.ceil(nearby.length/13));
+  return Array.from({length:count},(_,i)=>{
+    const [x,y]=nearby[Math.floor((i+.5)*nearby.length/count)];
+    const edge=Math.min(x,w-x,y,h-y);
+    const fade=smooth((edge+22)/28);
+    return {x,y,level:heat*fade*(.83+.17*Math.sin(t*.011+i*2.1))};
+  });
+}
+
+function softenPattern(c,groups){
+  c.save();
+  for(let level=1;level<groups.length;level++){
+    if(!groups[level].length)continue;
+    const heat=level/11;
+    c.beginPath();
+    for(const [a,b] of groups[level]){
+      c.moveTo(...a); c.lineTo(...b);
+    }
+    c.globalCompositeOperation='saturation';
+    c.strokeStyle='#b7a99a';
+    c.globalAlpha=heat*.62;
+    c.lineWidth=50;
+    c.stroke();
+    c.globalCompositeOperation='source-over';
+    c.strokeStyle='#c89960';
+    c.globalAlpha=heat*.19;
+    c.lineWidth=37;
+    c.stroke();
+  }
+  c.restore();
+}
+
+function curlScorchedEdge(c,points){
+  c.save();
+  c.lineCap='round';
+  for(let i=0;i<points.length-2;i+=3){
+    const a=points[i],m=points[i+1],b=points[i+2];
+    if(a.side===undefined||a.side!==b.side)continue;
+    const lift=Math.min(a.curl,m.curl,b.curl);
+    if(lift<.18)continue;
+    const [nx,ny]=a.normal;
+    const inset=3+lift*7;
+    c.globalAlpha=lift*.48;
+    c.lineWidth=2+lift*2.3;
+    c.strokeStyle='#4c2d22';
+    c.beginPath();
+    c.moveTo(a.p[0]+nx*3,a.p[1]+ny*3);
+    c.quadraticCurveTo(m.p[0]+nx*inset,m.p[1]+ny*inset,b.p[0]+nx*3,b.p[1]+ny*3);
+    c.stroke();
+    c.globalAlpha=lift*.62;
+    c.lineWidth=1.05;
+    c.strokeStyle='#e3b682';
+    c.beginPath();
+    c.moveTo(a.p[0]+nx*1.3,a.p[1]+ny*1.3);
+    c.quadraticCurveTo(m.p[0]+nx*3.3,m.p[1]+ny*3.3,b.p[0]+nx*1.3,b.p[1]+ny*1.3);
+    c.stroke();
+  }
+  c.restore();
+}
+
+function scorch(c,points,w,h,patterned) {
   const groups=Array.from({length:12},()=>[]);
   points.forEach(({p,heat},i)=>{
     const next=points[(i+1)%points.length];
@@ -681,6 +760,7 @@ function scorch(c,points,w,h) {
     if(level)groups[level].push([p,next.p]);
   });
   c.lineCap='round'; c.lineJoin='round';
+  if(patterned)softenPattern(c,groups);
   const colors=['#75451d','#985322','#825027','#553321','#342019','#231916','#1b1513'];
   const widths=[58,42,31,21,12,6,2.9];
   const strengths=[.045,.09,.14,.24,.43,.68,.92];
@@ -762,8 +842,8 @@ function drawMatch(c,x,y,t,lit,angle) {
   if(lit) fireShape(c,x-2,y-4,39+Math.sin(t*.023)*4,t);
 }
 
-function draw(t,still=false,c=ctx,state={base,changed,desk,direction,duration}) {
-  const {base,changed,desk,direction,duration}=state;
+function draw(t,still=false,c=ctx,state={base,changed,desk,direction,duration,patterned:!!paperPattern}) {
+  const {base,changed,desk,direction,duration,patterned}=state;
   if(!base)return;
   const W=desk.width,H=desk.height,{w,h}=paper(W,H);
   const toward=orient(direction);
@@ -773,15 +853,21 @@ function draw(t,still=false,c=ctx,state={base,changed,desk,direction,duration}) 
   const points=rim(w,h,burn,toward,dual);
   const corner=toward(0,0,w,h);
   const angle=-.035, originX=W*.5, originY=H*.475;
+  const front=burn>0&&!end?burnFront(w,h,burn,dual,toward):[];
+  const heat=smooth(burn/.047)*(1-(dual ? .30 : 1)*smooth((burn-.77)/.23));
+  const lights=still?[]:heatLights(front,w,h,heat,t);
+  const ignition=still?0:smooth((t-260)/180)*(1-smooth((t-contact+30)/195));
+  const [startX,startY]=toward(w*.018,h*.024,w,h);
   c.drawImage(desk,0,0);
   c.save(); c.translate(originX,originY); c.rotate(angle); c.translate(-w/2,-h/2);
+  for(const {x,y,level} of lights)warmLight(c,x,y,94,level*.21);
+  warmLight(c,startX,startY,105,ignition*.31);
   const outline=()=>{trace(c,points.map(item=>item.p)); c.closePath();};
   outline(); c.shadowColor='#140b08ba'; c.shadowBlur=34; c.shadowOffsetY=19;
   c.fillStyle='#ebd4ac'; c.fill();
   c.shadowBlur=0; c.shadowOffsetY=0;
   c.save(); outline(); c.clip();
   c.drawImage(base,0,0,w,h,0,0,w,h);
-  const front=burn>0&&!end?burnFront(w,h,burn,dual,toward):[];
   const cut=front.length?closedPath(front):null;
   if(dual&&end)c.drawImage(changed,0,0,w,h,0,0,w,h);
   if(dual&&cut){
@@ -791,11 +877,13 @@ function draw(t,still=false,c=ctx,state={base,changed,desk,direction,duration}) 
     c.restore();
     scorchFront(c,cut,w,h,burn);
   }
-  if(burn>0)scorch(c,points,w,h);
-  if(cut&&!still){
-    const heat=smooth(burn/.047)*(1-(dual ? .30 : 1)*smooth((burn-.77)/.23));
-    glowFront(c,front,w,h,t,burn,heat);
+  for(const {x,y,level} of lights)warmLight(c,x,y,65,level*.16);
+  warmLight(c,startX,startY,63,ignition*.19);
+  if(burn>0){
+    scorch(c,points,w,h,patterned);
+    curlScorchedEdge(c,points);
   }
+  if(cut&&!still)glowFront(c,front,w,h,t,burn,heat);
   if(!still&&t>=contact-80&&burn<.055){
     const [x,y]=toward(burnOrigin[0]*w,burnOrigin[1]*h,w,h);
     const glow=c.createRadialGradient(x,y,1,x,y,25);
@@ -1357,7 +1445,7 @@ get('saveGIF').onclick=async ()=>{
   try{
     cancelAnimationFrame(layerFrame); cancelAnimationFrame(frame);
     rebuild();
-    const renderState={base,changed,desk,direction,duration};
+    const renderState={base,changed,desk,direction,duration,patterned:!!paperPattern};
     const targetWidth=Number(get('gif-quality').value);
     await new Promise(resolve=>setTimeout(resolve,0));
     const blob=await exportGIF(renderState,targetWidth);
