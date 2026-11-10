@@ -444,46 +444,59 @@ function drawPhotoTape(c,w,h,gap,index){
   c.restore();
 }
 
-function drawPhotoSlits(c,w,h,mat,x,y,slots){
-  const left=-w/2-mat,top=-h/2-mat;
-  const right=w/2+mat,bottom=h/2+2.1*mat;
-  const cut=mat*1.45;
+function mountHeat(x,y,w,h,burn,dual,toward){
+  if(!burn)return 0;
+  const [u,v]=toward(x,y,w,h);
+  const dx=u/w-burnOrigin[0],dy=v/h-burnOrigin[1];
+  const reach=burnRadius(Math.atan2(dy,dx),burn,dual);
+  return smooth((reach-Math.hypot(dx,dy))/.07+.4);
+}
+
+function photoSlits(w,h,mat,x,y){
+  return [
+    [x-w/2-mat,y-h/2-mat,mat,1],
+    [x+w/2+mat,y+h/2+2.1*mat,mat,-1]
+  ];
+}
+
+function drawPhotoSlit(c,cornerX,cornerY,mat,sign,heat){
+  const point=(u,v)=>[cornerX+sign*mat*u,cornerY+sign*mat*v];
+  const shrink=heat*.27;
+  const outerA=point(-.30,1.48),outerB=point(1.48,-.30);
   c.save();
-  for(const [cornerX,cornerY,sign] of [[left,top,1],[right,bottom,-1]]){
-    const point=(u,v)=>[cornerX+sign*mat*u,cornerY+sign*mat*v];
-    const a=point(0,1.45),b=point(1.45,0);
-    const outerA=point(-.30,1.48),outerB=point(1.48,-.30);
+  c.fillStyle=heat>.50?'#302019':'#54392b';
+  trace(c,[outerA,outerB,point(1.40,.13),point(.13,1.40)]);
+  c.closePath(); c.fill();
 
-    c.fillStyle='#54392b';
-    trace(c,[outerA,outerB,point(1.40,.13),point(.13,1.40)]);
-    c.closePath(); c.fill();
-
-    // This paper lip follows the same diagonal that trims the mat.
-    const face=c.createLinearGradient(...point(-.30,-.30),...point(.73,.73));
-    face.addColorStop(0,'#e6cda3');
-    face.addColorStop(.62,'#edd5ab');
-    face.addColorStop(1,'#c09b73');
-    c.fillStyle=face;
-    c.beginPath();
-    c.moveTo(...point(-.42,-.42));
-    c.lineTo(...outerB);
-    c.quadraticCurveTo(...point(.51,.54),...outerA);
-    c.closePath(); c.fill();
-
-    c.strokeStyle='#f8e8c5c9'; c.lineWidth=Math.min(1.45,mat*.16);
-    c.beginPath();
-    c.moveTo(...outerB);
-    c.quadraticCurveTo(...point(.49,.50),...outerA);
-    c.stroke();
-    slots.push([a.map((v,i)=>v+(i?y:x)),b.map((v,i)=>v+(i?y:x)),Math.min(3.5,cut*.23)]);
+  // Only the lip recedes. Its slot and the diagonally trimmed mat stay aligned.
+  const face=c.createLinearGradient(...point(-.30,-.30),...point(.73,.73));
+  face.addColorStop(0,'#e6cda3');
+  face.addColorStop(.62,'#edd5ab');
+  face.addColorStop(1,'#c09b73');
+  const tipA=point(-.30-shrink,1.48-shrink),tipB=point(1.48-shrink,-.30-shrink);
+  c.fillStyle=face;
+  c.beginPath();
+  c.moveTo(...point(-.42,-.42));
+  c.lineTo(...tipB);
+  c.quadraticCurveTo(...point(.51-shrink,.54-shrink),...tipA);
+  c.closePath(); c.fill();
+  if(heat){
+    c.globalAlpha=heat*.64;
+    c.fillStyle='#774629'; c.fill();
   }
+  c.globalAlpha=1;
+  c.strokeStyle=heat>.6?'#503020':'#f8e8c5c9'; c.lineWidth=Math.min(1.45,mat*.16);
+  c.beginPath();
+  c.moveTo(...tipB);
+  c.quadraticCurveTo(...point(.49-shrink,.50-shrink),...tipA);
+  c.stroke();
   c.restore();
 }
 
 function drawArchiveMount(c,w,h,mat,gap,index){
   const left=-w/2-mat,top=-h/2-mat;
   const tail=Math.min(42,gap*.56,w*.29);
-  const bottom=h/2+mat+tail, right=w/2+mat;
+  const bottom=h/2+mat+tail,right=w/2+mat;
   c.save();
   c.shadowColor='#20151281'; c.shadowBlur=8; c.shadowOffsetY=4;
   c.fillStyle='#483833';
@@ -494,49 +507,60 @@ function drawArchiveMount(c,w,h,mat,gap,index){
   trace(c,[[left+4,top+2],[right-7,top+2],[right-2,top+7],[right-2,bottom-2],[left+2,bottom-2],[left+2,top+4],[left+4,top+2]]);
   c.stroke();
   c.fillStyle='#ba9b77';
-  for(let i=0;i<4;i++){
-    const x=left+4+i*4;
-    c.fillRect(x,top+3,1.5,Math.min(3,mat*.38));
-  }
-  if(tail>=8){
-    const labelW=Math.min(w*.7,79), labelH=Math.min(tail*.79,28);
-    const labelX=left+5,labelY=h/2+mat+tail*.10;
-    c.save();
-    c.translate(labelX,labelY+labelH/2); c.rotate(-.065);
-    c.shadowColor='#1b130d80'; c.shadowBlur=3; c.shadowOffsetY=2;
-    c.fillStyle='#e4c89d';
-    trace(c,[[0,-labelH/2],[labelW-7,-labelH/2],[labelW,-labelH*.22],[labelW,labelH*.22],[labelW-7,labelH/2],[0,labelH/2]]);
-    c.closePath(); c.fill();
-    c.shadowBlur=0; c.shadowOffsetY=0;
-    const eye=labelW-5;
-    c.fillStyle='#624633'; c.beginPath(); c.arc(eye,0,2.1,0,Math.PI*2); c.fill();
-    c.fillStyle='#483329'; c.font='600 '+Math.min(labelH*.62,15)+'px monospace';
-    c.textBaseline='middle';
-    c.fillText('№ '+String(index+1).padStart(2,'0'),4,.5,Math.max(4,labelW-13));
-    c.strokeStyle='#ae8d64'; c.lineWidth=1.4;
+  for(let i=0;i<4;i++)c.fillRect(left+4+i*4,top+3,1.5,Math.min(3,mat*.38));
+  c.restore();
+  if(tail<8)return null;
+  return {x:left+5,y:h/2+mat+tail*.10+Math.min(tail*.79,28)/2,
+    width:Math.min(w*.7,79),height:Math.min(tail*.79,28),index};
+}
+
+function drawArchiveTag(c,tag,heat){
+  const {x,y,width,height,index}=tag;
+  const right=width-heat*Math.min(10,width*.18);
+  const curl=heat*height*.40;
+  c.save();
+  c.translate(x,y); c.rotate(-.065);
+  c.shadowColor='#1b130d80'; c.shadowBlur=3; c.shadowOffsetY=2;
+  c.fillStyle='#e4c89d';
+  trace(c,[[0,-height/2],[right-7,-height/2],[right,-height*.22-curl*.2],
+    [right-1,height*.22-curl],[right-8,height/2-curl*.4],[0,height/2]]);
+  c.closePath(); c.fill();
+  c.shadowBlur=0; c.shadowOffsetY=0;
+  if(heat){
+    const stain=c.createLinearGradient(right*.40,0,right,0);
+    stain.addColorStop(0,'#7e482400');
+    stain.addColorStop(.65,'#9b542d90');
+    stain.addColorStop(1,'#3b241b');
+    c.globalAlpha=heat; c.fillStyle=stain; c.fill();
+    c.fillStyle='#f1cca3';
     c.beginPath();
-    c.moveTo(eye,0); c.bezierCurveTo(eye+10,-8,eye+15,7,eye+22,1);
-    c.quadraticCurveTo(eye+26,-2,eye+29,3); c.stroke();
-    c.restore();
+    c.moveTo(right-8,height/2-curl*.4);
+    c.quadraticCurveTo(right-7,height*.18-curl,right-1,height*.22-curl);
+    c.lineTo(right-8,height/2-curl*.4); c.fill();
   }
+  c.globalAlpha=1;
+  const eye=right-5,eyeY=-curl*.36;
+  c.fillStyle='#624633'; c.beginPath(); c.arc(eye,eyeY,2.1,0,Math.PI*2); c.fill();
+  c.fillStyle='#483329'; c.font='600 '+Math.min(height*.62,15)+'px monospace';
+  c.textBaseline='middle';
+  c.fillText('№ '+String(index+1).padStart(2,'0'),4,.5,Math.max(4,right-13));
+  const length=29-heat*18;
+  c.strokeStyle=heat>.64?'#3d2b22':'#ae8d64'; c.lineWidth=1.4;
+  c.beginPath(); c.moveTo(eye,eyeY);
+  c.bezierCurveTo(eye+length*.34,eyeY-8,eye+length*.58,eyeY+7,eye+length,eyeY+1);
+  c.stroke();
   c.restore();
 }
 
-function scorchPhotoSlits(c,layer,w,h,burn,dual,toward){
-  if(!burn||!layer.paperSlits?.length)return;
-  c.save();
-  c.lineCap='round';
-  for(const [a,b,width] of layer.paperSlits){
-    const [x,y]=toward((a[0]+b[0])/2,(a[1]+b[1])/2,w,h);
-    const dx=x/w-burnOrigin[0],dy=y/h-burnOrigin[1];
-    const reach=burnRadius(Math.atan2(dy,dx),burn,dual);
-    const heat=smooth((reach-Math.hypot(dx,dy))/.07+.4);
-    if(heat<.015)continue;
-    trace(c,[a,b]);
-    c.globalAlpha=heat*.29; c.lineWidth=width; c.strokeStyle='#a16338'; c.stroke();
-    c.globalAlpha=heat*.76; c.lineWidth=width*.36; c.strokeStyle='#352017'; c.stroke();
+function drawMountDetails(c,layer,w,h,burn,dual,toward){
+  for(const [x,y,mat,sign] of layer.paperSlits||[]){
+    const heat=mountHeat(x+sign*mat*.7,y+sign*mat*.7,w,h,burn,dual,toward);
+    drawPhotoSlit(c,x,y,mat,sign,heat);
   }
-  c.restore();
+  for(const tag of layer.archiveTags||[]){
+    const heat=mountHeat(tag.x+tag.width*.75,tag.y,w,h,burn,dual,toward);
+    drawArchiveTag(c,tag,heat);
+  }
 }
 
 function printLayer(images) {
@@ -557,7 +581,7 @@ function printLayer(images) {
   c.drawImage(texture,0,0);
   const titleBottom=printTitle(c,w,h);
   const files = images.length ? images : [null,null,null];
-  const slots=[];
+  const slots=[],tags=[];
   const mounted=style==='slit'||style==='archive';
   const inset=w*(mounted ? .102 : .075);
   const top=Math.max(h*(mounted ? .12 : .088),titleBottom+h*.035);
@@ -580,7 +604,10 @@ function printLayer(images) {
       const tilt=Math.min(.035,frameGap*.40/Math.max(cw,ch));
       c.rotate(i%2?tilt:-tilt);
     }
-    if(style==='archive')drawArchiveMount(c,cw,ch,mat,frameGap,i);
+    if(style==='archive'){
+      const tag=drawArchiveMount(c,cw,ch,mat,frameGap,i);
+      if(tag)tags.push({...tag,x:x+tag.x,y:y+tag.y});
+    }
     else if(style!=='print')drawPhotoMat(c,cw,ch,mat,style==='slit');
     if(image){
       c.drawImage(image,-cw/2,-ch/2,cw,ch);
@@ -624,10 +651,11 @@ function printLayer(images) {
       }
     }
     if(style==='tape')drawPhotoTape(c,cw,ch,frameGap,i);
-    if(style==='slit')drawPhotoSlits(c,cw,ch,mat,x,y,slots);
+    if(style==='slit')slots.push(...photoSlits(cw,ch,mat,x,y));
     c.restore();
   });
   if(slots.length)layer.paperSlits=slots;
+  if(tags.length)layer.archiveTags=tags;
   return layer;
 }
 
@@ -1059,17 +1087,17 @@ function draw(t,still=false,c=ctx,state={base,changed,desk,direction,duration,pa
   shadePaper(c,outline,points);
   c.save(); outline(); c.clip();
   c.drawImage(base,0,0,w,h,0,0,w,h);
-  scorchPhotoSlits(c,base,w,h,burn,dual,toward);
+  drawMountDetails(c,base,w,h,burn,dual,toward);
   const cut=front.length?closedPath(front):null;
   if(dual&&end){
     c.drawImage(changed,0,0,w,h,0,0,w,h);
-    scorchPhotoSlits(c,changed,w,h,burn,dual,toward);
+    drawMountDetails(c,changed,w,h,burn,dual,toward);
   }
   if(dual&&cut){
     c.save();
     c.clip(cut);
     c.drawImage(changed,0,0,w,h,0,0,w,h);
-    scorchPhotoSlits(c,changed,w,h,burn,dual,toward);
+    drawMountDetails(c,changed,w,h,burn,dual,toward);
     c.restore();
     scorchFront(c,cut,w,h,burn);
   }
