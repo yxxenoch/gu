@@ -171,4 +171,4 @@ line([[88,-45],[121,-58]],'#789765',3);ctx.save();ctx.translate(107,-59);ctx.rot
 // feet animated stepping
 const a=Math.sin(phase),b=Math.sin(phase+Math.PI);for(const [offset,s] of [[-29,a],[28,b]]){let lift=Math.max(0,s)*14;line([[offset,64],[offset+10*s,80-lift]],'#c47d7f',5);line([[offset+10*s,80-lift],[offset+23*s+7,83-lift]],'#c47d7f',5);line([[offset+10*s,80-lift],[offset+23*s-4,87-lift]],'#c47d7f',4)}ctx.restore();frame++}const loading=document.getElementById('loading');let raf=0;function loop(now){raf=0;if(document.hidden||loading.hidden)return;if(now-last>=dt){draw();last=now}raf=requestAnimationFrame(loop)}function sync(){if(document.hidden||loading.hidden){if(raf)cancelAnimationFrame(raf);raf=0;return}if(!raf)raf=requestAnimationFrame(loop)}draw();if(!matchMedia('(prefers-reduced-motion: reduce)').matches){new MutationObserver(sync).observe(loading,{attributes:true,attributeFilter:['hidden']});document.addEventListener('visibilitychange',sync);sync()}})();
 
-</script><script defer src="gallery-live-previews.js?v=1.1"></script></body></html>
+</script><script defer src="gallery-live-previews.js?v=1.2"></script></body></html>
