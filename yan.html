@@ -416,11 +416,11 @@ function burnRadius(angle,burn,dual){
   return Math.pow(pace,1.15)*(dual?1.77:.68)*grain;
 }
 
-function burnFront(w,h,burn,dual,toward,inset=0){
+function burnFront(w,h,burn,dual,toward){
   const [ox,oy]=burnOrigin;
   return Array.from({length:208},(_,i)=>{
     const angle=i*Math.PI/104;
-    const radius=Math.max(0,burnRadius(angle,burn,dual)-inset);
+    const radius=burnRadius(angle,burn,dual);
     return toward((ox+Math.cos(angle)*radius)*w,(oy+Math.sin(angle)*radius)*h,w,h);
   });
 }
@@ -432,32 +432,82 @@ function closedPath(points){
   return path;
 }
 
-function glowRim(c,points,t){
-  const warm=new Path2D(), bright=new Path2D();
-  let active=false;
-  for(let i=0;i<points.length;i++){
-    const current=points[i],next=points[(i+1)%points.length];
-    const heat=(current.heat+next.heat)/2;
-    if(heat<.12||heat>.86)continue;
-    warm.moveTo(...current.p); warm.lineTo(...next.p);
-    const flicker=Math.sin(i*.19-t*.014)+Math.sin(i*.071+t*.009);
-    if(heat>.25&&heat<.72&&flicker>-.28){
-      bright.moveTo(...current.p); bright.lineTo(...next.p);
-    }
-    active=true;
-  }
-  if(!active)return;
+function scorchFront(c,path,w,h,burn){
+  const rimScale=.37+.63*smooth(burn/.14);
   c.save();
-  c.lineCap='round';
-  c.strokeStyle='#c77a3eab'; c.lineWidth=11;
-  c.shadowColor='#d18745'; c.shadowBlur=16;
-  c.stroke(warm);
-  c.strokeStyle='#f1bd71d4'; c.lineWidth=5;
-  c.shadowColor='#f1bd71'; c.shadowBlur=8;
-  c.stroke(bright);
-  c.strokeStyle='#fff0c6cb'; c.lineWidth=1.8;
-  c.shadowBlur=2;
-  c.stroke(bright);
+  c.clip(path);
+  // The lower layer darkens under the lip, giving the cut edge depth.
+  for(const [width,color] of [[23,'#1c100e27'],[12,'#1c100e54'],[5,'#170d0ab3']]){
+    c.lineWidth=width*rimScale; c.strokeStyle=color; c.stroke(path);
+  }
+  c.restore();
+
+  c.save();
+  const paperSide=new Path2D();
+  paperSide.rect(0,0,w,h);
+  paperSide.addPath(path);
+  c.clip(paperSide,'evenodd');
+  for(const [width,color] of [[51,'#74402216'],[34,'#80432145'],[21,'#572d1cb3'],[11,'#332019e8'],[4,'#1d1513']]){
+    c.lineWidth=width*rimScale;
+    c.strokeStyle=color; c.stroke(path);
+  }
+  c.restore();
+}
+
+function fireRibbon(samples,width,lift,tipOnly=false){
+  const bank=(side)=>{
+    const ordered=side===1?samples:[...samples].reverse();
+    return ordered.map(({x,y,nx,ny,body,hot,tip})=>{
+      const spread=width*(tipOnly?hot:body);
+      const raise=tip*lift*Math.max(0,-ny*side);
+      return [x+nx*spread*side+raise*.20,y+ny*spread*side-raise];
+    });
+  };
+  const path=closedPath(bank(1));
+  path.addPath(closedPath(bank(-1)));
+  return path;
+}
+
+function glowFront(c,front,w,h,t,burn,heat){
+  if(heat<=0)return;
+  const time=(t-contact)*.001;
+  const growth=.24+.76*smooth(burn/.11);
+  const samples=front.map(([x,y],i)=>{
+    const before=front[(i+front.length-1)%front.length];
+    const after=front[(i+1)%front.length];
+    const dx=after[0]-before[0],dy=after[1]-before[1];
+    const length=Math.hypot(dx,dy)||1;
+    const phase=i*Math.PI*2/front.length;
+    const flicker=.51+.20*Math.sin(phase*13-time*4.3)
+      +.16*Math.sin(phase*29+time*6.8)+.11*Math.sin(phase*47-time*8.1);
+    const hot=smooth((flicker-.44)/.48);
+    const curl=Math.max(0,Math.sin(phase*9-time*2.4))**4;
+    return {
+      x,y,nx:-dy/length,ny:dx/length,
+      body:growth*(.29+1.18*hot),
+      hot:growth*(.10+.98*hot**1.35),
+      tip:growth*curl*hot*28
+    };
+  });
+  if(!samples.some(({x,y})=>x>=-32&&x<=w+32&&y>=-32&&y<=h+32))return;
+  c.save();
+  // Broad reflected heat hugs the paper; the hotter layers stay near the lip.
+  c.globalAlpha=heat*.49;
+  c.fillStyle='#a94d2584';
+  c.shadowColor='#bd6034'; c.shadowBlur=26;
+  c.fill(fireRibbon(samples,14.5,1.10));
+  c.globalAlpha=heat*.83;
+  c.fillStyle='#d58b4bcb';
+  c.shadowColor='#e38b48'; c.shadowBlur=15;
+  c.fill(fireRibbon(samples,7.4,1.02));
+  c.globalAlpha=heat*.92;
+  c.fillStyle='#f1bd71';
+  c.shadowColor='#eeb26b'; c.shadowBlur=6;
+  c.fill(fireRibbon(samples,4.6,.77));
+  c.globalAlpha=heat*.88;
+  c.fillStyle='#fff0c6';
+  c.shadowColor='#f4cf83'; c.shadowBlur=3;
+  c.fill(fireRibbon(samples,3.2,.46,true));
   c.restore();
 }
 
@@ -635,20 +685,21 @@ function draw(t,still=false,c=ctx,state={base,changed,desk,direction,duration}) 
   c.shadowBlur=0; c.shadowOffsetY=0;
   c.save(); outline(); c.clip();
   c.drawImage(base,0,0,w,h,0,0,w,h);
+  const front=burn>0&&!end?burnFront(w,h,burn,dual,toward):[];
+  const cut=front.length?closedPath(front):null;
   if(dual&&end)c.drawImage(changed,0,0,w,h,0,0,w,h);
-  else if(dual&&burn>0){
-    // Feather the image transition; only the outer paper edge carries flame and char.
-    for(const [inset,opacity] of [[0,.32],[.009,.44],[.019,1]]){
-      const front=burnFront(w,h,burn,dual,toward,inset);
-      c.save();
-      c.clip(closedPath(front));
-      c.globalAlpha=opacity;
-      c.drawImage(changed,0,0,w,h,0,0,w,h);
-      c.restore();
-    }
+  if(dual&&cut){
+    c.save();
+    c.clip(cut);
+    c.drawImage(changed,0,0,w,h,0,0,w,h);
+    c.restore();
+    scorchFront(c,cut,w,h,burn);
   }
   if(burn>0)scorch(c,points,w,h);
-  if(!still&&burn>0&&!end)glowRim(c,points,t);
+  if(cut&&!still){
+    const heat=smooth(burn/.047)*(1-(dual ? .30 : 1)*smooth((burn-.77)/.23));
+    glowFront(c,front,w,h,t,burn,heat);
+  }
   if(!still&&t>=contact-80&&burn<.055){
     const [x,y]=toward(burnOrigin[0]*w,burnOrigin[1]*h,w,h);
     const glow=c.createRadialGradient(x,y,1,x,y,25);
@@ -659,6 +710,14 @@ function draw(t,still=false,c=ctx,state={base,changed,desk,direction,duration}) 
     c.fillRect(x-25,y-25,50,50); c.restore();
   }
   c.restore();
+  if(!still&&cut&&!end&&burn>.035){
+    const visible=front.filter(([x,y])=>x>0&&x<w&&y>0&&y<h);
+    if(visible.length){
+      const [x,y]=visible[Math.floor(visible.length*.56)];
+      const strength=smooth(burn/.14)*(1-smooth((burn-.70)/.30));
+      emberTrail(c,x,y,t*.0014,strength*.74);
+    }
+  }
   if(!still&&t>=contact+duration*.80&&t<contact+duration+emberTime){
     const edge=points.filter(({p:[px,py],heat})=>{
       const [u,v]=toward(px,py,w,h);

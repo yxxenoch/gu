@@ -9,7 +9,7 @@
 const studios=['fuguang','collage','guzhe','stitch','sunlit','food','zipbag','magazine','huajian','origami','petal-post-return','yan','theme','dark','ukiyo'],frames=studios.reduce((out,k)=>{out[k]=document.getElementById('studio-'+k);return out;},{});let active='fuguang',busy=false,loadTimer=0;
 
 const PAGE_VERSION='editor-controls-2';
-function studioURL(key){return key+'.html?v='+(key==='zipbag'?'zipbag-layout-1':key==='origami'?'origami-media-1':key==='petal-post-return'?'petal-shared-paper-1':key==='yan'?'yan-2':(key==='fuguang'||key==='collage')?'export-watermark-1':PAGE_VERSION)+(key==='dark'?'&flash=soft-1':'');}
+function studioURL(key){return key+'.html?v='+(key==='zipbag'?'zipbag-layout-1':key==='origami'?'origami-media-1':key==='petal-post-return'?'petal-shared-paper-1':key==='yan'?'yan-3':(key==='fuguang'||key==='collage')?'export-watermark-1':PAGE_VERSION)+(key==='dark'?'&flash=soft-1':'');}
 function syncLoading(){
  clearTimeout(loadTimer);
  document.querySelector('.loader-fallback')?.remove();
