@@ -33,8 +33,8 @@
 <header class="head"><div><div class="eyebrow">PAPER / FIRE / REVEAL</div><h1>焰</h1><p>让火焰从纸角掠过，带出另一段返图。</p></div><div class="eyebrow">返图模板</div></header>
 <div class="layout"><section class="panel">
 <div class="group"><h2>图片上传</h2><label class="upload"><span>第一套图片 · 燃烧前</span><input id="setA" type="file" accept="image/*" multiple></label><label class="upload"><span>第二套图片 · 燃烧后（可选）</span><input id="setB" type="file" accept="image/*" multiple></label><div class="buttons" style="margin-top:8px"><button type="button" class="btn secondary" id="clearPhotos">清空图片</button></div><p class="hint">每套可上传任意张数。只上传第一套时，燃烧后仍是同一套图片，只增加焦痕；上传第二套后，燃烧会显影第二套。</p></div>
-<div class="group"><h2>纸面样式</h2><div class="choices" id="styleChoices"><button class="choice active" data-style="print">直接印刷</button><button class="choice" data-style="tape">照片与贴条</button><button class="choice" data-style="slit" hidden>纸缝藏影</button><button class="choice" data-style="archive" hidden>余烬档案</button><button class="choice" data-style="pocket" hidden>半封</button></div>
-<p class="hint" id="trialStyleNote" hidden>装裱试做 · 用同一组照片切换三款样式。</p>
+<div class="group"><h2>纸面样式</h2><div class="choices" id="styleChoices"><button class="choice active" data-style="print">印刷</button><button class="choice" data-style="tape">胶贴</button><button class="choice" data-style="slit" hidden>嵌角</button><button class="choice" data-style="archive" hidden>档案</button></div>
+<p class="hint" id="trialStyleNote" hidden>装裱试做 · 用同一组照片对比印刷、嵌角和档案。</p>
 <div class="print-strength" id="printStrengthControls">
 <label for="printStrength">印刷强度 <output id="printStrengthLabel" for="printStrength">100%</output></label>
 <input id="printStrength" type="range" min="0" max="200" step="1" value="100">
@@ -522,75 +522,6 @@ function drawArchiveMount(c,w,h,mat,gap,index){
   c.restore();
 }
 
-function envelopeBounds(frames,inset,top,gap,w,h){
-  const margin=Math.min(24,gap*.56);
-  const left=Math.max(9,inset+Math.min(...frames.map(f=>f.x))-margin);
-  const right=Math.min(w-9,inset+Math.max(...frames.map(f=>f.x+f.w))+margin);
-  const first=top+Math.min(...frames.map(f=>f.y));
-  const lip=top+Math.max(...frames.map(f=>f.y+f.h))+.6;
-  const base=Math.min(h-14,lip+Math.min(65,Math.max(22,gap*1.36)));
-  return {left,right,first,lip,base,middle:(left+right)/2,apex:Math.max(10,first-Math.min(56,first*.65))};
-}
-
-function drawEnvelopeBack(c,g){
-  const {left,right,first,base,middle,apex}=g;
-  const foldY=first+10;
-  c.save();
-  const tone=c.createLinearGradient(0,apex,0,base);
-  tone.addColorStop(0,'#d5bc96');
-  tone.addColorStop(.42,'#b38b62');
-  tone.addColorStop(1,'#795741');
-  c.shadowColor='#39231862'; c.shadowBlur=10; c.shadowOffsetY=5;
-  c.fillStyle=tone;
-  c.beginPath();
-  c.moveTo(left,foldY);
-  c.lineTo(middle-9,apex+3);
-  c.quadraticCurveTo(middle,apex-4,middle+9,apex+3);
-  c.lineTo(right,foldY);
-  c.lineTo(right,base-5);
-  c.quadraticCurveTo(right,base,right-5,base);
-  c.lineTo(left+5,base);
-  c.quadraticCurveTo(left,base,left,base-5);
-  c.closePath(); c.fill();
-  c.shadowBlur=0; c.shadowOffsetY=0;
-  c.strokeStyle='#5c392842'; c.lineWidth=1.4;
-  trace(c,[[left,foldY],[right,foldY]]); c.stroke();
-  c.restore();
-}
-
-function drawEnvelopeFront(c,g,frames,inset,top,w,h){
-  const {left,right,lip,base,middle}=g;
-  const height=base-lip;
-  const notch=lip+height*.37;
-  const shoulder=lip-height*.30;
-  const foot=height*.31;
-  c.save();
-  const paperOnly=new Path2D();
-  paperOnly.rect(0,0,w,h);
-  for(const frame of frames)paperOnly.rect(inset+frame.x,top+frame.y,frame.w,frame.h);
-  c.clip(paperOnly,'evenodd');
-
-  c.fillStyle='#543a2e';
-  trace(c,[[left,shoulder-4],[middle,notch-5],[right,shoulder-4],[right,notch+4],[left,notch+4]]);
-  c.closePath(); c.fill();
-  const tone=c.createLinearGradient(0,shoulder,0,base);
-  tone.addColorStop(0,'#d8ba93');
-  tone.addColorStop(.42,'#c6a079');
-  tone.addColorStop(1,'#ac815b');
-  c.fillStyle=tone;
-  trace(c,[[left,shoulder],[middle,notch],[right,shoulder],[right,base-foot*.2],[right-foot*.6,base],[left+foot*.6,base],[left,base-foot*.2]]);
-  c.closePath(); c.fill();
-
-  c.fillStyle='#f3d6af84';
-  trace(c,[[left+foot*.6,base],[middle-foot,lip+height*.63],[middle+foot,lip+height*.63],[right-foot*.6,base]]);
-  c.closePath(); c.fill();
-  c.strokeStyle='#78553889'; c.lineWidth=1.1;
-  trace(c,[[left+foot*.6,base],[middle-foot,lip+height*.63],[middle+foot,lip+height*.63],[right-foot*.6,base]]); c.stroke();
-  c.strokeStyle='#f6dfbfcf'; c.lineWidth=1.25;
-  trace(c,[[left+1,shoulder+.8],[middle,notch+.8],[right-1,shoulder+.8]]); c.stroke();
-  c.restore();
-}
-
 function scorchPhotoSlits(c,layer,w,h,burn,dual,toward){
   if(!burn||!layer.paperSlits?.length)return;
   c.save();
@@ -627,10 +558,10 @@ function printLayer(images) {
   const titleBottom=printTitle(c,w,h);
   const files = images.length ? images : [null,null,null];
   const slots=[];
-  const mounted=style==='slit'||style==='archive'||style==='pocket';
+  const mounted=style==='slit'||style==='archive';
   const inset=w*(mounted ? .102 : .075);
   const top=Math.max(h*(mounted ? .12 : .088),titleBottom+h*.035);
-  const bottom=style==='pocket' ? .82 : style==='archive' ? .85 : .90;
+  const bottom=style==='archive' ? .85 : .90;
   const layoutWidth=w-inset*2,layoutHeight=h*bottom-top;
   const gap=Math.min(w*(mounted ? .064 : style==='print' ? .016 : .029),Math.min(layoutWidth,layoutHeight)/(files.length*1.65));
   const demoWidth=360,demoHeight=780;
@@ -638,8 +569,6 @@ function printLayer(images) {
     files.map(image=>image?image.naturalWidth/image.naturalHeight:demoWidth/demoHeight),
     layoutWidth,layoutHeight,gap
   );
-  const envelope=style==='pocket'?envelopeBounds(frames,inset,top,frameGap,w,h):null;
-  if(envelope)drawEnvelopeBack(c,envelope);
   files.forEach((image,i)=>{
     const frame=frames[i];
     const cw=frame.w,ch=frame.h;
@@ -698,7 +627,6 @@ function printLayer(images) {
     if(style==='slit')drawPhotoSlits(c,cw,ch,mat,x,y,slots);
     c.restore();
   });
-  if(envelope)drawEnvelopeFront(c,envelope,frames,inset,top,w,h);
   if(slots.length)layer.paperSlits=slots;
   return layer;
 }
