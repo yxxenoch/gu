@@ -1,0 +1,96 @@
+{
+  "version": 1,
+  "generatedAt": "2026-11-11T01:58:45.786Z",
+  "covers": [
+    {
+      "id": "fuguang",
+      "path": "assets/gallery-covers/fuguang.webp",
+      "bytes": 2798,
+      "source": "canvas"
+    },
+    {
+      "id": "collage",
+      "path": "assets/gallery-covers/collage.webp",
+      "bytes": 5252,
+      "source": "canvas"
+    },
+    {
+      "id": "guzhe",
+      "path": "assets/gallery-covers/guzhe.webp",
+      "bytes": 12356,
+      "source": "canvas"
+    },
+    {
+      "id": "stitch",
+      "path": "assets/gallery-covers/stitch.webp",
+      "bytes": 8776,
+      "source": "canvas"
+    },
+    {
+      "id": "sunlit",
+      "path": "assets/gallery-covers/sunlit.webp",
+      "bytes": 4266,
+      "source": "canvas"
+    },
+    {
+      "id": "food",
+      "path": "assets/gallery-covers/food.webp",
+      "bytes": 5786,
+      "source": "canvas"
+    },
+    {
+      "id": "zipbag",
+      "path": "assets/gallery-covers/zipbag.webp",
+      "bytes": 5496,
+      "source": "canvas"
+    },
+    {
+      "id": "magazine",
+      "path": "assets/gallery-covers/magazine.webp",
+      "bytes": 4326,
+      "source": "canvas"
+    },
+    {
+      "id": "huajian",
+      "path": "assets/gallery-covers/huajian.webp",
+      "bytes": 2692,
+      "source": "canvas"
+    },
+    {
+      "id": "origami",
+      "path": "assets/gallery-covers/origami.webp",
+      "bytes": 6396,
+      "source": "canvas"
+    },
+    {
+      "id": "petal-post-return",
+      "path": "assets/gallery-covers/petal-post-return.webp",
+      "bytes": 5918,
+      "source": "canvas"
+    },
+    {
+      "id": "yan",
+      "path": "assets/gallery-covers/yan.webp",
+      "bytes": 8944,
+      "source": "canvas"
+    },
+    {
+      "id": "theme",
+      "path": "assets/gallery-covers/theme.png",
+      "bytes": 107876,
+      "source": "stage:.stage"
+    },
+    {
+      "id": "dark",
+      "path": "assets/gallery-covers/dark.webp",
+      "bytes": 3280,
+      "source": "canvas"
+    },
+    {
+      "id": "ukiyo",
+      "path": "assets/gallery-covers/ukiyo.webp",
+      "bytes": 12274,
+      "source": "canvas"
+    }
+  ]
+}
