@@ -154,7 +154,7 @@ function syncDrawerPortal(){
 }
 syncDrawerPortal();
 mobile.addEventListener('change',syncDrawerPortal);
-function setLibrary(open){if(open&&document.body.classList.contains('focus-mode')){document.body.classList.remove('focus-mode');$('#focus').setAttribute('aria-pressed','false')}document.body.classList.toggle('library-open',open);if(!mobile.matches)document.body.classList.toggle('library-closed',!open);$('#choose').setAttribute('aria-expanded',String(open));if(open){render();/* Never auto-scroll the gallery when opening: this moved the whole mobile view. */}}
+function setLibrary(open){if(open&&document.body.classList.contains('focus-mode')){document.body.classList.remove('focus-mode');$('#focus').setAttribute('aria-pressed','false')}document.body.classList.toggle('library-open',open);if(!mobile.matches)document.body.classList.toggle('library-closed',!open);$('#choose').setAttribute('aria-expanded',String(open));if(mobile.matches){const f=frames.get(active);if(f){send(f,{type:'studio-active',active:!open});setFrameSleep(f,open);}}if(open){render();/* Gallery intentionally stays at its previous scroll position. */}}
 function libraryOpen(){return mobile.matches?document.body.classList.contains('library-open'):!document.body.classList.contains('library-closed')}
 function toggleLibrary(){setLibrary(!libraryOpen())}
 function counts(tag){return tag==='全部'?ITEMS.length:tag==='收藏'?favorites.size:tag==='最近'?recent.length:ITEMS.filter(x=>x.tags.includes(tag)).length}
