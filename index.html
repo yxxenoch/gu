@@ -39,58 +39,44 @@ body.focus-mode .library{margin-left:calc(-1 * var(--rail))}.top .mini-current{d
 @media(max-width:740px){:root{--header:58px;--rail:min(94vw,390px)}.top{padding:0 10px;padding-left:max(10px,env(safe-area-inset-left));padding-right:max(10px,env(safe-area-inset-right));gap:8px}.mark{width:33px;height:33px;border-radius:10px}.mark svg{width:22px}.logo{gap:6px}.logo-title{font-size:14px}.logo-sub,.top-rule,.current-label,.count{display:none}.top .mini-current{display:block;max-width:35vw;font-family:"Noto Serif SC","Songti SC",serif;font-size:12px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#e1e9dc}.current{display:none}.top-actions{margin-left:auto;gap:5px}.tool{min-height:36px;padding:7px 10px;font-size:11px}.tool.icon-only{width:33px;padding:6px}.top-actions .nav-arrow{display:none}.top-actions .open-alone{display:none}.top-actions .focus-btn{display:none}
 .library{position:fixed;top:var(--header);bottom:0;left:0;height:calc(100dvh - var(--header));width:var(--rail);margin-left:0!important;max-width:calc(100vw - 16px);z-index:31;transform:translateX(-105%);border-right:1px solid #d3d3c3;border-radius:0 18px 18px 0;box-shadow:var(--shadow)}body.library-open .library{transform:translateX(0)}.backdrop{position:fixed;inset:var(--header) 0 0;display:block;z-index:30;background:#12251d91;opacity:0;pointer-events:none;transition:opacity .2s}body.library-open .backdrop{opacity:1;pointer-events:auto}.close-library{display:grid;place-items:center}.library-head{padding:17px 17px 13px}.gallery{padding:4px 12px 24px}.art{height:100px}.editor{width:100%}.library-foot{padding-bottom:max(14px,env(safe-area-inset-bottom))}body.focus-mode .library{margin-left:0}.head-glyph{right:55px}}
 
-/* Android mobile gallery layering fix: no transformed fixed child in a flex workspace */
+/* Stable mobile drawer: a fixed sibling of the workspace, not a composited
+   descendant of the live editor. Avoid transforms, filters and containment. */
 @media(max-width:740px){
- .layout{position:relative;isolation:isolate;overflow:hidden}
- .library{position:absolute!important;left:0!important;top:0!important;bottom:0!important;height:100%!important;width:min(94vw,390px)!important;max-width:calc(100vw - 16px)!important;flex:none!important;margin:0!important;transform:none!important;transition:none!important;visibility:hidden;opacity:0;pointer-events:none;z-index:31!important;overflow:hidden!important;display:flex!important;flex-direction:column!important;background:#fdfbf5!important;box-shadow:3px 0 22px #222f252d}
- .library::before{display:none!important}
- body.library-open .library{visibility:visible!important;opacity:1!important;pointer-events:auto!important;transform:none!important}
- .backdrop{position:absolute!important;inset:0!important;z-index:30!important;transition:none!important;display:none!important;opacity:1!important;pointer-events:auto!important;background:#12251db0}
- body.library-open .backdrop{display:block!important}
- .library-head{position:relative;z-index:2;flex:0 0 auto!important;background:#fbf9f1!important}
- .library-meta{position:relative;z-index:1;flex:0 0 auto!important;background:#fdfbf5!important}
- .gallery{position:relative;z-index:1;flex:1 1 auto!important;min-height:0!important;max-height:100%!important;overflow-y:auto!important;overflow-x:hidden!important;background:#fdfbf5!important;-webkit-overflow-scrolling:touch;contain:layout style}
- .library-foot{position:relative;z-index:2;flex:0 0 auto!important;background:#faf8f0!important}
- .editor{position:relative;min-width:0;flex:1!important;z-index:0}
+  body .library{
+    position:fixed!important;
+    top:var(--header)!important;left:0!important;right:auto!important;bottom:0!important;
+    width:min(94vw,390px)!important;max-width:calc(100vw - 16px)!important;
+    height:calc(100dvh - var(--header))!important;
+    margin:0!important;flex:none!important;
+    z-index:110!important;display:flex!important;flex-direction:column!important;
+    background:#fdfbf5!important;box-shadow:5px 0 28px #172c2140;
+    transform:none!important;transition:none!important;filter:none!important;
+    backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+    visibility:hidden!important;pointer-events:none!important;
+    overflow:hidden!important;contain:none!important;isolation:auto!important;
+  }
+  body.library-open .library{visibility:visible!important;pointer-events:auto!important}
+  body .backdrop{position:fixed!important;inset:var(--header) 0 0!important;
+    z-index:109!important;display:none!important;transform:none!important;
+    opacity:1!important;background:#14251db3;transition:none!important}
+  body.library-open .backdrop{display:block!important;pointer-events:auto!important}
+  body.library-open .editor{visibility:hidden!important;pointer-events:none!important}
+  .library::before{display:none!important}
+  .library .library-head,.library .library-meta,.library .library-foot{
+    position:relative!important;transform:none!important;flex-shrink:0!important;
+    contain:none!important;filter:none!important;backdrop-filter:none!important;
+  }
+  .library .gallery{position:relative!important;flex:1 1 auto!important;
+    min-height:0!important;max-height:none!important;overflow-x:hidden!important;
+    overflow-y:auto!important;contain:none!important;isolation:auto!important;
+    transform:none!important;will-change:auto!important;overflow-anchor:none!important;
+    overscroll-behavior-y:contain!important;touch-action:pan-y!important;
+    -webkit-overflow-scrolling:touch;background:#fdfbf5!important}
+  .library .grid,.library .tile,.library .art{contain:none!important;transform:none}
+  .library .star{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+    background:#fdfaf1!important}
+  .library .art::after{opacity:.15}
 }
-
-/* Android compositor safety: keep the active editor iframe out of the
-   drawer's paint tree while the drawer is open. Visibility preserves
-   its DOM, uploaded photos, editor state and running draft saves. */
-@media(max-width:740px){
-  body.library-open .editor{
-    visibility:hidden!important;
-    pointer-events:none!important;
-  }
-  body.library-open #frames,
-  body.library-open #frames iframe{visibility:hidden!important}
-  body.library-open .library{
-    background:#fdfbf5!important;
-    isolation:isolate!important;
-    transform:none!important;
-    filter:none!important;
-    backdrop-filter:none!important;
-    -webkit-backdrop-filter:none!important;
-  }
-  body.library-open .library-head,
-  body.library-open .library-meta,
-  body.library-open .gallery,
-  body.library-open .library-foot{
-    background-color:#fdfbf5!important;
-    visibility:visible!important;
-    transform:none!important;
-  }
-  body.library-open .library-head{background-color:#fbf9f1!important}
-  body.library-open .library-foot{background-color:#faf8f0!important}
-  .library .gallery,.library .grid{
-    overflow-anchor:none!important;
-  }
-  .library .gallery{
-    overscroll-behavior-y:contain!important;
-    touch-action:pan-y!important;
-  }
-}
-
 @media(max-width:360px){.logo-title{font-size:12px}.top .mini-current{font-size:11px;max-width:28vw}.top-actions .tool-primary{padding:6px 8px}.top-actions .tool-primary span{display:none}.tile-title{font-size:11px}.art{height:88px}}
 </style>
 </head>
@@ -158,6 +144,16 @@ const frames=new Map(),loaded=new Set(),itemsById=Object.fromEntries(ITEMS.map(x
 function isRemotePreview(){return location.protocol==='file:'}
 function studioURL(id){const base=isRemotePreview()?'https://yxxenoch.github.io/gu/':'./';const versions={zipbag:'zipbag-picker-1',origami:'origami-media-1','petal-post-return':'petal-picker-1',yan:'yan-11',huajian:'huajian-picker-1',fuguang:'export-watermark-1',collage:'export-watermark-1'};return base+encodeURIComponent(id)+'.html?v='+(versions[id]||'editor-controls-2')+(id==='dark'?'&flash=soft-1':'')}
 function notify(msg){const el=$('#toast');el.textContent=msg;el.classList.add('is-visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('is-visible'),3100)}
+/* On phones move the drawer outside the iframe workspace so Android
+   cannot mix its painted layers with live editor canvases. */
+function syncDrawerPortal(){
+ const layout=document.querySelector('.layout'),editor=$('#editor'),drawer=$('#library'),backdrop=$('#backdrop');
+ if(!layout||!editor||!drawer||!backdrop)return;
+ if(mobile.matches){document.body.append(backdrop,drawer);}
+ else{layout.insertBefore(backdrop,editor);layout.insertBefore(drawer,editor);}
+}
+syncDrawerPortal();
+mobile.addEventListener('change',syncDrawerPortal);
 function setLibrary(open){if(open&&document.body.classList.contains('focus-mode')){document.body.classList.remove('focus-mode');$('#focus').setAttribute('aria-pressed','false')}document.body.classList.toggle('library-open',open);if(!mobile.matches)document.body.classList.toggle('library-closed',!open);$('#choose').setAttribute('aria-expanded',String(open));if(open){render();/* Never auto-scroll the gallery when opening: this moved the whole mobile view. */}}
 function libraryOpen(){return mobile.matches?document.body.classList.contains('library-open'):!document.body.classList.contains('library-closed')}
 function toggleLibrary(){setLibrary(!libraryOpen())}
@@ -209,4 +205,4 @@ line([[88,-45],[121,-58]],'#789765',3);ctx.save();ctx.translate(107,-59);ctx.rot
 // feet animated stepping
 const a=Math.sin(phase),b=Math.sin(phase+Math.PI);for(const [offset,s] of [[-29,a],[28,b]]){let lift=Math.max(0,s)*14;line([[offset,64],[offset+10*s,80-lift]],'#c47d7f',5);line([[offset+10*s,80-lift],[offset+23*s+7,83-lift]],'#c47d7f',5);line([[offset+10*s,80-lift],[offset+23*s-4,87-lift]],'#c47d7f',4)}ctx.restore();frame++}const loading=document.getElementById('loading');let raf=0;function loop(now){raf=0;if(document.hidden||loading.hidden)return;if(now-last>=dt){draw();last=now}raf=requestAnimationFrame(loop)}function sync(){if(document.hidden||loading.hidden){if(raf)cancelAnimationFrame(raf);raf=0;return}if(!raf)raf=requestAnimationFrame(loop)}draw();if(!matchMedia('(prefers-reduced-motion: reduce)').matches){new MutationObserver(sync).observe(loading,{attributes:true,attributeFilter:['hidden']});document.addEventListener('visibilitychange',sync);sync()}})();
 
-</script><script defer src="gallery-live-previews.js?v=1.2"></script></body></html>
+</script><!-- Disabled experimental background thumbnail rendering on mobile/desktop until stable. --></body></html>
