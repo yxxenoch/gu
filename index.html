@@ -148,7 +148,7 @@ const ITEMS=[
 const $=s=>document.querySelector(s),mobile=matchMedia('(max-width:740px)'),IDs=new Set(ITEMS.map(x=>x.id)),filters=['全部','纸感','拼贴','趣味','展示','收藏','最近'];
 const storage={get(k,fallback){try{return JSON.parse(localStorage.getItem(k))??fallback}catch{return fallback}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}};
 let favorites=new Set(storage.get('gu-favorite-studios',[]).filter(x=>IDs.has(x))),recent=storage.get('gu-recent-studios',[]).filter(x=>IDs.has(x));
-let previous='fuguang';try{const raw=localStorage.getItem('fuguang-active-studio');previous=IDs.has(raw)?raw:storage.get('fuguang-active-studio','fuguang')}catch{}let active=location.hash&&IDs.has(decodeURIComponent(location.hash.slice(1)))?decodeURIComponent(location.hash.slice(1)):previous;if(!IDs.has(active))active='fuguang';
+const safeHash=()=>{try{return decodeURIComponent(location.hash.slice(1))}catch{return ''}};let previous='fuguang';try{const raw=localStorage.getItem('fuguang-active-studio');previous=IDs.has(raw)?raw:storage.get('fuguang-active-studio','fuguang')}catch{}let active=location.hash&&IDs.has(safeHash())?safeHash():previous;if(!IDs.has(active))active='fuguang';
 let filter='全部',query='',busy=false,toastTimer=0,loadTimer=0,firstVisit=storage.get('gu-has-visited',false)===false;
 const frames=new Map(),loaded=new Set(),itemsById=Object.fromEntries(ITEMS.map(x=>[x.id,x]));
 function isRemotePreview(){return location.protocol==='file:'}
@@ -195,7 +195,7 @@ $('#search').addEventListener('input',e=>{query=e.target.value;render()});$('#ch
 $('#retry').onclick=()=>{const f=frames.get(active);loaded.delete(active);delete f.dataset.ready;showLoading(active);f.src=studioURL(active)+(studioURL(active).includes('?')?'&':'?')+'retry='+Date.now()};
 $('#open-alone').addEventListener('click',e=>{if(busy){e.preventDefault();notify('请完成当前导出后再打开')}});
 addEventListener('keydown',event=>{if(event.key==='Escape'&&libraryOpen()){setLibrary(false);return}if(event.key==='/'&&!/input|textarea/i.test(document.activeElement?.tagName)&&!event.ctrlKey&&!event.metaKey){event.preventDefault();setLibrary(true);$('#search').focus()}});
-addEventListener('hashchange',()=>{const next=decodeURIComponent(location.hash.slice(1));if(IDs.has(next)&&next!==active)activate(next)});
+addEventListener('hashchange',()=>{const next=safeHash();if(IDs.has(next)&&next!==active)activate(next)});
 mobile.addEventListener('change',()=>{if(mobile.matches){document.body.classList.remove('library-closed','focus-mode');setLibrary(false)}else{document.body.classList.remove('library-open');setLibrary(true)}});
 makeFilters();activate(active);if(mobile.matches){document.body.classList.remove('library-closed');setLibrary(false)}else setLibrary(true);storage.set('gu-has-visited',true);
 })();
