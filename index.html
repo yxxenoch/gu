@@ -77,6 +77,16 @@ body.focus-mode .library{margin-left:calc(-1 * var(--rail))}.top .mini-current{d
     background:#fdfaf1!important}
   .library .art::after{opacity:.15}
 }
+
+/* Permanent gallery covers are ordinary static files committed to the repo.
+   They never initialize the template renderer or read the user's draft. */
+.tile .art .gu-static-cover{position:absolute;inset:0;width:100%;height:100%;z-index:4;
+  display:block;object-fit:contain;background:#f7f4ed;opacity:0;pointer-events:none;
+  transition:none!important;transform:none!important}
+.tile .art .gu-static-cover.is-ready{opacity:1}
+.tile .art:has(.gu-static-cover.is-ready)::after{display:none}
+@media(max-width:740px){.library .art .gu-static-cover{transform:none!important}}
+
 @media(max-width:360px){.logo-title{font-size:12px}.top .mini-current{font-size:11px;max-width:28vw}.top-actions .tool-primary{padding:6px 8px}.top-actions .tool-primary span{display:none}.tile-title{font-size:11px}.art{height:88px}}
 </style>
 </head>
@@ -154,14 +164,17 @@ function syncDrawerPortal(){
 }
 syncDrawerPortal();
 mobile.addEventListener('change',syncDrawerPortal);
-function setLibrary(open){if(open&&document.body.classList.contains('focus-mode')){document.body.classList.remove('focus-mode');$('#focus').setAttribute('aria-pressed','false')}document.body.classList.toggle('library-open',open);if(!mobile.matches)document.body.classList.toggle('library-closed',!open);$('#choose').setAttribute('aria-expanded',String(open));if(mobile.matches){const f=frames.get(active);if(f){send(f,{type:'studio-active',active:!open});setFrameSleep(f,open);}}if(open){render();/* Gallery intentionally stays at its previous scroll position. */}}
+function setLibrary(open){if(open&&document.body.classList.contains('focus-mode')){document.body.classList.remove('focus-mode');$('#focus').setAttribute('aria-pressed','false')}document.body.classList.toggle('library-open',open);if(!mobile.matches)document.body.classList.toggle('library-closed',!open);$('#choose').setAttribute('aria-expanded',String(open));if(mobile.matches){const f=frames.get(active);if(f){send(f,{type:'studio-active',active:!open});setFrameSleep(f,open);}}/* Opening the gallery must not rebuild cards or reset their images/scroll. */}
 function libraryOpen(){return mobile.matches?document.body.classList.contains('library-open'):!document.body.classList.contains('library-closed')}
 function toggleLibrary(){setLibrary(!libraryOpen())}
 function counts(tag){return tag==='全部'?ITEMS.length:tag==='收藏'?favorites.size:tag==='最近'?recent.length:ITEMS.filter(x=>x.tags.includes(tag)).length}
 function makeFilters(){const box=$('#filters');box.replaceChildren();filters.forEach(tag=>{const b=document.createElement('button');b.className='filter';b.type='button';b.setAttribute('aria-pressed',String(filter===tag));b.innerHTML='';b.append(document.createTextNode(tag));const n=document.createElement('span');n.className='n';n.textContent=counts(tag);b.append(n);b.onclick=()=>{filter=tag;makeFilters();render()};box.append(b)})}
 function matching(){let source=filter==='最近'?recent.map(k=>itemsById[k]):ITEMS;return source.filter(item=>{if(filter==='收藏'&&!favorites.has(item.id))return false;if(!['收藏','最近','全部'].includes(filter)&&!item.tags.includes(filter))return false;const hay=[item.name,item.sub,...item.tags].join(' ').toLowerCase();return hay.includes(query.trim().toLowerCase())})}
 function createTile(item){const tile=document.createElement('div');tile.tabIndex=0;tile.setAttribute('role','button');tile.className='tile';tile.dataset.id=item.id;tile.setAttribute('aria-current',String(active===item.id));tile.setAttribute('aria-label','打开模板 '+item.name);tile.style.setProperty('--art-a',item.colors[0]);tile.style.setProperty('--art-b',item.colors[1]);tile.style.setProperty('--art-light',item.colors[2]);tile.style.setProperty('--art-ink',item.colors[3]);tile.style.setProperty('--art-rot',((ITEMS.indexOf(item)%5)-2)*2+'deg');tile.innerHTML='<div class="art"><span class="art-symbol"></span><span class="art-line"><span>GU STUDIO</span><i></i><span>№ '+String(ITEMS.indexOf(item)+1).padStart(2,'0')+'</span></span></div><div class="tile-info"><span class="tile-title"></span></div><div class="tile-sub"></div>';
- tile.querySelector('.art-symbol').textContent=item.symbol;tile.querySelector('.tile-title').textContent=item.name;tile.querySelector('.tile-sub').textContent=item.sub;tile.onclick=()=>activate(item.id);tile.onkeydown=e=>{if(e.target!==tile)return;if(e.key==='Enter'||e.key===' '){e.preventDefault();activate(item.id)}};
+ tile.querySelector('.art-symbol').textContent=item.symbol;tile.querySelector('.tile-title').textContent=item.name;tile.querySelector('.tile-sub').textContent=item.sub;
+ // Only load a committed default screenshot. The fallback keeps the original illustrated cover.
+ const still=document.createElement('img');still.className='gu-static-cover';still.loading='lazy';still.decoding='async';still.alt='';still.onload=()=>still.classList.add('is-ready');still.onerror=()=>{if(still.dataset.fallback!=='png'){still.dataset.fallback='png';still.src='assets/gallery-covers/'+item.id+'.png';}else still.remove();};still.src='assets/gallery-covers/'+item.id+'.webp';tile.querySelector('.art').append(still);
+ tile.onclick=()=>activate(item.id);tile.onkeydown=e=>{if(e.target!==tile)return;if(e.key==='Enter'||e.key===' '){e.preventDefault();activate(item.id)}};
  const star=document.createElement('button');star.className='star';star.type='button';star.setAttribute('aria-label',(favorites.has(item.id)?'取消收藏 ':'收藏 ')+item.name);star.setAttribute('aria-pressed',String(favorites.has(item.id)));star.textContent=favorites.has(item.id)?'★':'☆';star.onclick=event=>{event.stopPropagation();favorites.has(item.id)?favorites.delete(item.id):favorites.add(item.id);storage.set('gu-favorite-studios',[...favorites]);makeFilters();render();notify(favorites.has(item.id)?'已收藏「'+item.name+'」':'已取消收藏')};
  // Favorite is an independent button inside a keyboard-accessible card surface.
  tile.append(star);return tile}
@@ -184,7 +197,7 @@ $('#open-alone').addEventListener('click',e=>{if(busy){e.preventDefault();notify
 addEventListener('keydown',event=>{if(event.key==='Escape'&&libraryOpen()){setLibrary(false);return}if(event.key==='/'&&!/input|textarea/i.test(document.activeElement?.tagName)&&!event.ctrlKey&&!event.metaKey){event.preventDefault();setLibrary(true);$('#search').focus()}});
 addEventListener('hashchange',()=>{const next=decodeURIComponent(location.hash.slice(1));if(IDs.has(next)&&next!==active)activate(next)});
 mobile.addEventListener('change',()=>{if(mobile.matches){document.body.classList.remove('library-closed','focus-mode');setLibrary(false)}else{document.body.classList.remove('library-open');setLibrary(true)}});
-makeFilters();render();activate(active);if(mobile.matches){document.body.classList.remove('library-closed');setLibrary(false)}else setLibrary(true);storage.set('gu-has-visited',true);
+makeFilters();activate(active);if(mobile.matches){document.body.classList.remove('library-closed');setLibrary(false)}else setLibrary(true);storage.set('gu-has-visited',true);
 })();
 </script>
 <script>
