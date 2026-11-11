@@ -53,6 +53,44 @@ body.focus-mode .library{margin-left:calc(-1 * var(--rail))}.top .mini-current{d
  .library-foot{position:relative;z-index:2;flex:0 0 auto!important;background:#faf8f0!important}
  .editor{position:relative;min-width:0;flex:1!important;z-index:0}
 }
+
+/* Android compositor safety: keep the active editor iframe out of the
+   drawer's paint tree while the drawer is open. Visibility preserves
+   its DOM, uploaded photos, editor state and running draft saves. */
+@media(max-width:740px){
+  body.library-open .editor{
+    visibility:hidden!important;
+    pointer-events:none!important;
+  }
+  body.library-open #frames,
+  body.library-open #frames iframe{visibility:hidden!important}
+  body.library-open .library{
+    background:#fdfbf5!important;
+    isolation:isolate!important;
+    transform:none!important;
+    filter:none!important;
+    backdrop-filter:none!important;
+    -webkit-backdrop-filter:none!important;
+  }
+  body.library-open .library-head,
+  body.library-open .library-meta,
+  body.library-open .gallery,
+  body.library-open .library-foot{
+    background-color:#fdfbf5!important;
+    visibility:visible!important;
+    transform:none!important;
+  }
+  body.library-open .library-head{background-color:#fbf9f1!important}
+  body.library-open .library-foot{background-color:#faf8f0!important}
+  .library .gallery,.library .grid{
+    overflow-anchor:none!important;
+  }
+  .library .gallery{
+    overscroll-behavior-y:contain!important;
+    touch-action:pan-y!important;
+  }
+}
+
 @media(max-width:360px){.logo-title{font-size:12px}.top .mini-current{font-size:11px;max-width:28vw}.top-actions .tool-primary{padding:6px 8px}.top-actions .tool-primary span{display:none}.tile-title{font-size:11px}.art{height:88px}}
 </style>
 </head>
@@ -120,7 +158,7 @@ const frames=new Map(),loaded=new Set(),itemsById=Object.fromEntries(ITEMS.map(x
 function isRemotePreview(){return location.protocol==='file:'}
 function studioURL(id){const base=isRemotePreview()?'https://yxxenoch.github.io/gu/':'./';const versions={zipbag:'zipbag-picker-1',origami:'origami-media-1','petal-post-return':'petal-picker-1',yan:'yan-11',huajian:'huajian-picker-1',fuguang:'export-watermark-1',collage:'export-watermark-1'};return base+encodeURIComponent(id)+'.html?v='+(versions[id]||'editor-controls-2')+(id==='dark'?'&flash=soft-1':'')}
 function notify(msg){const el=$('#toast');el.textContent=msg;el.classList.add('is-visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('is-visible'),3100)}
-function setLibrary(open){if(open&&document.body.classList.contains('focus-mode')){document.body.classList.remove('focus-mode');$('#focus').setAttribute('aria-pressed','false')}document.body.classList.toggle('library-open',open);if(!mobile.matches)document.body.classList.toggle('library-closed',!open);$('#choose').setAttribute('aria-expanded',String(open));if(open){render();setTimeout(()=>{const a=$('.tile[aria-current="true"]'),g=$('.gallery');if(!a||!g)return;const ar=a.getBoundingClientRect(),gr=g.getBoundingClientRect();if(ar.top<gr.top||ar.bottom>gr.bottom)g.scrollTop+=ar.top-gr.top-12},80)}}
+function setLibrary(open){if(open&&document.body.classList.contains('focus-mode')){document.body.classList.remove('focus-mode');$('#focus').setAttribute('aria-pressed','false')}document.body.classList.toggle('library-open',open);if(!mobile.matches)document.body.classList.toggle('library-closed',!open);$('#choose').setAttribute('aria-expanded',String(open));if(open){render();/* Never auto-scroll the gallery when opening: this moved the whole mobile view. */}}
 function libraryOpen(){return mobile.matches?document.body.classList.contains('library-open'):!document.body.classList.contains('library-closed')}
 function toggleLibrary(){setLibrary(!libraryOpen())}
 function counts(tag){return tag==='全部'?ITEMS.length:tag==='收藏'?favorites.size:tag==='最近'?recent.length:ITEMS.filter(x=>x.tags.includes(tag)).length}
