@@ -10,7 +10,7 @@ const scale=ctx=>{const t=ctx.getTransform();return Math.hypot(t.a,t.b)||1;};
 function rr(ctx,x,y,w,h,r){r=clamp(r,0,Math.min(w,h)/2);ctx.beginPath();ctx.roundRect?ctx.roundRect(x,y,w,h,r):ctx.rect(x,y,w,h);}
 // 层叠投影：5 层由近到远，颜色取纸面色相而非纯黑，光源统一在左上
 function cardBase(ctx,r,rad,fill){const[h,s]=paper(),k=scale(ctx),sat=clamp(s*.7+.12,.12,.45);ctx.fillStyle=fill;rr(ctx,r.x,r.y,r.w,r.h,rad);
- for(const[d,a]of[[1,.14],[2.5,.10],[6,.085],[13,.07],[26,.06]]){ctx.shadowColor=hsla(h,sat,.2,a);ctx.shadowBlur=d*1.6*k;ctx.shadowOffsetX=d*.45*k;ctx.shadowOffsetY=d*k;ctx.fill();}
+ const L=r.lift||1;for(const[d0,a0]of[[1,.14],[2.5,.10],[6,.085],[13,.07],[26,.06]]){const d=d0<2?d0:d0*L,a=d0<2?a0:a0/Math.sqrt(L);ctx.shadowColor=hsla(h,sat,.2,a);ctx.shadowBlur=d*1.6*k;ctx.shadowOffsetX=d*.45*k;ctx.shadowOffsetY=d*k;ctx.fill();}
  ctx.shadowColor='transparent';ctx.shadowOffsetX=ctx.shadowOffsetY=0;ctx.shadowBlur=0;}
 // 胶片漏光：暖色从左上溢入、冷色在右下回应，再加一层同色暗角收住画面
 function leak(ctx,W,H,time,animate,night){const ph=animate?(Math.sin(time/4200)+1)/2:.4,M=Math.max(W,H),[h]=paper();
@@ -20,16 +20,8 @@ function leak(ctx,W,H,time,animate,night){const ph=animate?(Math.sin(time/4200)+
  ctx.globalCompositeOperation='multiply';blob(-.05+.06*ph,-.04,.85,'255,178,128',night?.25:.62);blob(.34+.1*ph,-.08,.45,'255,150,160',night?.18:.38);blob(1.04,1.04,.7,'150,186,236',night?.25:.42);
  ctx.globalCompositeOperation='screen';blob(-.05+.06*ph,-.04,.6,'255,196,140',night?.30:.22);
  ctx.globalCompositeOperation='multiply';const v=ctx.createRadialGradient(W/2,H*.47,Math.min(W,H)*.34,W/2,H/2,Math.hypot(W,H)*.58);v.addColorStop(0,'rgba(255,255,255,0)');v.addColorStop(1,hsla(h,.30,night?.38:.6,night?.55:.5));ctx.fillStyle=v;ctx.fillRect(0,0,W,H);ctx.restore();}
-// 和纸胶带：半透明、锯齿撕口、细斜纹，每张卡颜色和角度不同
-const TAPES=['232,201,168','206,217,194','236,190,190','198,210,226','240,222,166','214,200,228'];
-function tape(ctx,r,transform){const i=r.index||0,c=TAPES[Math.floor(hash(i+7)*TAPES.length)],w=clamp(r.w*.36,52,128),h=clamp(w*.25,17,30),k=scale(ctx);
- ctx.save();transform&&transform();ctx.translate(r.x+r.w*(.5+(hash(i+13)-.5)*.2),r.y+2);ctx.rotate((hash(i+11)-.5)*.34);
- ctx.beginPath();ctx.moveTo(-w/2,-h/2);ctx.lineTo(w/2,-h/2);for(let j=1;j<=6;j++)ctx.lineTo(w/2+(j%2?-2.6:0),-h/2+h*j/6);ctx.lineTo(-w/2,h/2);for(let j=5;j>=0;j--)ctx.lineTo(-w/2+(j%2?2.6:0),-h/2+h*j/6);ctx.closePath();
- ctx.shadowColor='rgba(70,48,28,.20)';ctx.shadowBlur=3*k;ctx.shadowOffsetY=1.2*k;ctx.fillStyle=`rgba(${c},.80)`;ctx.fill();ctx.shadowColor='transparent';
- ctx.clip();ctx.strokeStyle='rgba(255,255,255,.22)';ctx.lineWidth=2.4;for(let x=-w;x<w;x+=8){ctx.beginPath();ctx.moveTo(x,-h/2);ctx.lineTo(x+h,h/2);ctx.stroke();}
- ctx.fillStyle='rgba(255,255,255,.20)';ctx.fillRect(-w/2,-h/2,w,h*.3);ctx.restore();}
 const drift=(t,i)=>Math.sin(t/(1900+hash(i)*1600)+i*2.3)*(5+hash(i+3)*5);
 const wobble=(t,i)=>Math.sin(t/(2600+hash(i+9)*1800)+i)*.07;
 function burst(t){const L=1.35,seg=Math.floor(t/L),local=t-seg*L;if(hash(seg)<.38)return 0;const n=1+Math.floor(hash(seg+17)*3);for(let q=0;q<n;q++){const s=.12+q*(.11+hash(seg+q)*.06);if(local>s&&local<s+.055+hash(seg+q*5)*.03)return 1;}return 0;}
-window.GuArt={cardBase,leak,tape,drift,wobble,burst,tear:easeInOutCubic};
+window.GuArt={cardBase,leak,drift,wobble,burst,tear:easeInOutCubic};
 })();
