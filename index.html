@@ -152,7 +152,7 @@ const safeHash=()=>{try{return decodeURIComponent(location.hash.slice(1))}catch{
 let filter='全部',query='',busy=false,toastTimer=0,loadTimer=0,firstVisit=storage.get('gu-has-visited',false)===false;
 const frames=new Map(),loaded=new Set(),itemsById=Object.fromEntries(ITEMS.map(x=>[x.id,x]));
 function isRemotePreview(){return location.protocol==='file:'}
-function studioURL(id){const base=isRemotePreview()?'https://yxxenoch.github.io/gu/':'./';const versions={zipbag:'zipbag-picker-1',origami:'origami-media-1','petal-post-return':'petal-picker-1',yan:'yan-11',huajian:'huajian-picker-1',fuguang:'export-watermark-1',collage:'export-watermark-1'};return base+encodeURIComponent(id)+'.html?v='+(versions[id]||'editor-controls-2')+(id==='dark'?'&flash=soft-1':'')}
+function studioURL(id){const base=isRemotePreview()?'https://yxxenoch.github.io/gu/':'./';const versions={zipbag:'zipbag-picker-1',origami:'origami-media-1','petal-post-return':'petal-picker-1',yan:'yan-11',huajian:'huajian-picker-1',fuguang:'film-light-v3',collage:'film-light-v3'};return base+encodeURIComponent(id)+'.html?v='+(versions[id]||'editor-controls-2')+(id==='dark'?'&flash=soft-1':'')}
 function notify(msg){const el=$('#toast');el.textContent=msg;el.classList.add('is-visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('is-visible'),3100)}
 /* On phones move the drawer outside the iframe workspace so Android
    cannot mix its painted layers with live editor canvases. */
