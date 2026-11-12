@@ -14,9 +14,12 @@ function cardBase(ctx,r,rad,fill){const[h,s]=paper(),k=scale(ctx),sat=clamp(s*.7
  ctx.shadowColor='transparent';ctx.shadowOffsetX=ctx.shadowOffsetY=0;ctx.shadowBlur=0;}
 // 胶片漏光：暖色从左上溢入、冷色在右下回应，再加一层同色暗角收住画面
 function leak(ctx,W,H,time,animate,night){const ph=animate?(Math.sin(time/4200)+1)/2:.4,M=Math.max(W,H),[h]=paper();
- ctx.save();ctx.globalCompositeOperation='screen';
- for(const[x,y,R,c,a]of[[-.04+.05*ph,-.03,.78,'255,166,104',night?.26:.46],[.30+.10*ph,-.06,.42,'255,120,128',night?.16:.28],[1.03,1.02,.62,'128,176,255',night?.18:.18]]){const g=ctx.createRadialGradient(x*W,y*H,0,x*W,y*H,R*M);g.addColorStop(0,`rgba(${c},${a})`);g.addColorStop(.42,`rgba(${c},${a*.42})`);g.addColorStop(1,`rgba(${c},0)`);ctx.fillStyle=g;ctx.fillRect(0,0,W,H);}
- ctx.globalCompositeOperation='multiply';const v=ctx.createRadialGradient(W/2,H*.47,Math.min(W,H)*.38,W/2,H/2,Math.hypot(W,H)*.6);v.addColorStop(0,'rgba(255,255,255,0)');v.addColorStop(1,hsla(h,.32,night?.4:.66,night?.5:.42));ctx.fillStyle=v;ctx.fillRect(0,0,W,H);ctx.restore();}
+ const blob=(x,y,R,c,a)=>{const g=ctx.createRadialGradient(x*W,y*H,0,x*W,y*H,R*M);g.addColorStop(0,`rgba(${c},${a})`);g.addColorStop(.45,`rgba(${c},${a*.45})`);g.addColorStop(1,`rgba(${c},0)`);ctx.fillStyle=g;ctx.fillRect(0,0,W,H);};
+ ctx.save();
+ // 浅色纸面上 screen 几乎无效，先用 multiply 给纸面染上暖色，再用 screen 让照片高光发亮
+ ctx.globalCompositeOperation='multiply';blob(-.05+.06*ph,-.04,.85,'255,178,128',night?.25:.62);blob(.34+.1*ph,-.08,.45,'255,150,160',night?.18:.38);blob(1.04,1.04,.7,'150,186,236',night?.25:.42);
+ ctx.globalCompositeOperation='screen';blob(-.05+.06*ph,-.04,.6,'255,196,140',night?.30:.22);
+ ctx.globalCompositeOperation='multiply';const v=ctx.createRadialGradient(W/2,H*.47,Math.min(W,H)*.34,W/2,H/2,Math.hypot(W,H)*.58);v.addColorStop(0,'rgba(255,255,255,0)');v.addColorStop(1,hsla(h,.30,night?.38:.6,night?.55:.5));ctx.fillStyle=v;ctx.fillRect(0,0,W,H);ctx.restore();}
 // 和纸胶带：半透明、锯齿撕口、细斜纹，每张卡颜色和角度不同
 const TAPES=['232,201,168','206,217,194','236,190,190','198,210,226','240,222,166','214,200,228'];
 function tape(ctx,r,transform){const i=r.index||0,c=TAPES[Math.floor(hash(i+7)*TAPES.length)],w=clamp(r.w*.36,52,128),h=clamp(w*.25,17,30),k=scale(ctx);
