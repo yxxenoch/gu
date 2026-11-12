@@ -43,66 +43,68 @@ function leak(ctx,W,H,time,animate,night,color){const ph=animate?(Math.sin(time/
  ctx.globalCompositeOperation='multiply';const v=ctx.createRadialGradient(W/2,H*.47,Math.min(W,H)*.34,W/2,H/2,Math.hypot(W,H)*.58);v.addColorStop(0,'rgba(255,255,255,0)');v.addColorStop(1,hsla(h,.30,night?.38:.6,night?.55:.5));ctx.fillStyle=v;ctx.fillRect(0,0,W,H);ctx.restore();}
 // v2 相片级漏光：只覆盖照片本身，禁止跨越相框、纸张、文字、贴纸
 // 三种艺术倾向，不做整页 multiply 染色。静态可复现，高清导出与预览一致。
+// V3: 光影仅在单张照片内部，静态、可复现，不遮盖模板文字与纸纹
 function filmLight(ctx,r,img,opt={}){
- if(!img||opt.enabled===false)return;
- const w=r.w,h=r.h;
- if(!(w>1&&h>1))return;
- const style=['film','prism','haze'].includes(opt.style)?opt.style:'film';
- const value=Number.isFinite(+opt.strength)?+opt.strength:36;
- const t=Math.pow(clamp(value,0,100)/100,.9)*(opt.night?.84:1);
- if(t<=0)return;
- const base=tone(img)||{r:203,g:171,b:151};
- const mix=(arr,q)=>arr.map((v,i)=>Math.round(v*(1-q)+base[['r','g','b'][i]]*q));
- const amber=mix([255,172,119],.16),pink=mix([244,139,164],.14),blue=mix([146,199,231],.13),milk=[255,239,211];
- const rgba=(rgb,a)=>'rgba('+rgb.join(',')+','+Math.min(.95,Math.max(0,a)).toFixed(4)+')';
- const ellipse=(x,y,rx,ry,color,alpha)=>{
-  if(rx<=0||ry<=0||alpha<=0)return;
-  ctx.save();ctx.translate(x,y);ctx.scale(rx,ry);
-  const g=ctx.createRadialGradient(0,0,0,0,0,1);
-  g.addColorStop(0,rgba(color,alpha));
-  g.addColorStop(.25,rgba(color,alpha*.78));
-  g.addColorStop(.68,rgba(color,alpha*.23));
-  g.addColorStop(1,rgba(color,0));
-  ctx.fillStyle=g;ctx.fillRect(-1,-1,2,2);ctx.restore();
- };
- const strip=(color,alpha,width,fromRight=false)=>{
-  const g=ctx.createLinearGradient(fromRight?w:0,0,fromRight?w-width:width,0);
-  g.addColorStop(0,rgba(color,alpha));g.addColorStop(.12,rgba(color,alpha*.5));
-  g.addColorStop(.5,rgba(color,alpha*.11));g.addColorStop(1,rgba(color,0));
-  ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
- };
- const dir=(Number(opt.seed)||0)%2===0?1:-1;
- ctx.save();ctx.translate(r.x,r.y);
- ctx.beginPath();ctx.rect(0,0,w,h);ctx.clip();
- // soft-light 仅给照片染色，保留图像原有明暗，不形成不透明的色块
- ctx.globalCompositeOperation='soft-light';
- if(style==='film'){
-  strip(amber,t*.65,w*.43,dir<0);
-  ellipse(dir>0?-w*.03:w*1.03,h*.16,w*.58,h*.22,amber,t*.68);
-  ellipse(dir>0?w*.01:w*.99,h*.61,w*.48,h*.27,pink,t*.43);
-  ellipse(dir>0?w*.92:w*.08,h*.87,w*.31,h*.18,blue,t*.24);
- }else if(style==='prism'){
-  ctx.save();ctx.translate(w*.35,h*.48);ctx.rotate(-.16*dir);
-  ellipse(-dir*w*.36,-h*.17,w*.31,h*.42,amber,t*.62);
-  ellipse(-dir*w*.23,-h*.10,w*.24,h*.44,pink,t*.49);
-  ellipse(-dir*w*.08,-h*.03,w*.17,h*.45,blue,t*.39);
-  ctx.restore();
- }else{
-  ellipse(w*.18,h*.24,w*.9,h*.34,milk,t*.55);
-  ellipse(w*.72,h*.71,w*.76,h*.33,pink,t*.19);
+ if(!img||opt.enabled===false||r.w<=1||r.h<=1)return;
+ const w=r.w,h=r.h,style=['film','prism','haze'].includes(opt.style)?opt.style:'film';
+ const amount=Number.isFinite(Number(opt.strength))?Number(opt.strength):36;
+ const t=Math.pow(clamp(amount,0,100)/100,.96)*(opt.night?.90:1);
+ if(t<.001)return;
+ const base=tone(img)||{r:185,g:168,b:151};
+ const adjust=(a,q)=>a.map((v,i)=>Math.round(v*(1-q)+base[['r','g','b'][i]]*q));
+ const coral=adjust([248,112,122],.15),orange=adjust([255,164,102],.16);
+ const gold=adjust([255,209,148],.09),icy=adjust([128,198,227],.12);
+ const lavender=adjust([181,158,227],.13),pearl=[255,248,232];
+ const rgba=(c,a)=>'rgba('+c[0]+','+c[1]+','+c[2]+','+clamp(a,0,.92).toFixed(4)+')';
+ function bloom(x,y,rx,ry,col,opacity,angle=0){
+  if(!opacity)return;ctx.save();ctx.translate(x,y);ctx.rotate(angle);ctx.scale(rx,ry);
+  const grd=ctx.createRadialGradient(-.10,-.04,.01,0,0,1);
+  grd.addColorStop(0,rgba(col,opacity));grd.addColorStop(.17,rgba(col,opacity*.91));
+  grd.addColorStop(.44,rgba(col,opacity*.52));grd.addColorStop(.76,rgba(col,opacity*.105));
+  grd.addColorStop(1,rgba(col,0));ctx.fillStyle=grd;ctx.fillRect(-1,-1,2,2);ctx.restore();
  }
- // screen 高光淡淡透出，不在整幅画布添加暗角
- ctx.globalCompositeOperation='screen';
+ function ribbon(x,y,span,length,col,opacity,angle){
+  ctx.save();ctx.translate(x,y);ctx.rotate(angle);
+  const g=ctx.createLinearGradient(-span/2,0,span/2,0);
+  g.addColorStop(0,rgba(col,0));g.addColorStop(.18,rgba(col,opacity*.12));
+  g.addColorStop(.42,rgba(col,opacity*.69));g.addColorStop(.53,rgba(col,opacity));
+  g.addColorStop(.69,rgba(col,opacity*.42));g.addColorStop(1,rgba(col,0));
+  ctx.fillStyle=g;ctx.fillRect(-span/2,-length/2,span,length);ctx.restore();
+ }
+ const dir=(Math.abs(Math.trunc(Number(opt.seed)||0))%2===0)?1:-1;
+ const X=x=>dir===1?x*w:(1-x)*w;
+ ctx.save();ctx.translate(r.x,r.y);ctx.beginPath();ctx.rect(0,0,w,h);ctx.clip();
  if(style==='film'){
-  ellipse(dir>0?w*.035:w*.965,h*.24,w*.37,h*.17,milk,t*.45);
-  ellipse(dir>0?w*.035:w*.965,h*.68,w*.31,h*.21,amber,t*.29);
-  strip(milk,t*.16,w*.13,dir<0);
+  ctx.globalCompositeOperation='soft-light';
+  bloom(X(-.13),h*.20,w*.55,h*.55,orange,t*.83,-dir*.08);
+  bloom(X(.045),h*.60,w*.36,h*.32,coral,t*.64,dir*.17);
+  bloom(X(-.09),h*.83,w*.29,h*.25,gold,t*.30);
+  bloom(X(.24),-h*.03,w*.35,h*.27,coral,t*.19);
+  ctx.globalCompositeOperation='screen';
+  bloom(X(-.04),h*.22,w*.25,h*.19,pearl,t*.57);
+  bloom(X(.045),h*.57,w*.18,h*.17,gold,t*.32);
+  ribbon(X(-.015),h*.49,w*.14,h*1.24,orange,t*.21,dir*.016);
+  bloom(X(-.02),h*.78,w*.12,h*.09,pearl,t*.20);
  }else if(style==='prism'){
-  ellipse(dir>0?w*.07:w*.93,h*.31,w*.28,h*.24,milk,t*.37);
-  ellipse(dir>0?w*.27:w*.73,h*.56,w*.22,h*.25,blue,t*.25);
+  const ang=dir*.21;
+  ctx.globalCompositeOperation='soft-light';
+  bloom(X(.04),h*.39,w*.53,h*.69,lavender,t*.28,ang);
+  ribbon(X(.10),h*.43,w*.31,h*1.48,coral,t*.51,ang);
+  ribbon(X(.20),h*.42,w*.22,h*1.51,gold,t*.54,ang);
+  ribbon(X(.30),h*.42,w*.28,h*1.54,icy,t*.45,ang);
+  ctx.globalCompositeOperation='screen';
+  bloom(X(.09),h*.19,w*.24,h*.27,pearl,t*.33,ang);
+  ribbon(X(.175),h*.45,w*.10,h*1.38,pearl,t*.18,ang);
+  bloom(X(.36),h*.77,w*.27,h*.23,lavender,t*.14);
  }else{
-  ellipse(w*.16,h*.22,w*.78,h*.27,milk,t*.42);
-  ellipse(w*.66,h*.73,w*.45,h*.24,amber,t*.19);
+  ctx.globalCompositeOperation='soft-light';
+  bloom(w*.11,h*.13,w*.82,h*.47,pearl,t*.72,-.16);
+  bloom(w*.85,h*.67,w*.71,h*.53,gold,t*.38,.15);
+  bloom(w*.36,h*.92,w*.58,h*.34,lavender,t*.11);
+  ctx.globalCompositeOperation='screen';
+  bloom(w*.17,h*.22,w*.42,h*.27,pearl,t*.30,-.13);
+  bloom(w*.79,h*.72,w*.31,h*.27,pearl,t*.16);
+  bloom(w*.05,h*.52,w*.20,h*.19,gold,t*.10);
  }
  ctx.restore();
 }
