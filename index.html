@@ -160,7 +160,7 @@ const ITEMS=[
  {id:'theme',name:'主题预览专供',sub:'主题截图 · 动态展示',tags:['展示'],symbol:'▣',colors:['#506b6a','#adbfc1','#ecf2ea','#f6ede3']},
  {id:'dark',name:'信号丢失',sub:'故障美学 · 雾面玻璃',tags:['拼贴','展示'],symbol:'⌁',colors:['#242933','#85829b','#d8e0e6','#d0c6e1']},
  {id:'ukiyo',name:'浮世三景',sub:'和风 · 屏风 · 花瓣',tags:['纸感','展示'],symbol:'三',colors:['#355e75','#c6a18a','#f1dbc1','#f2eee0']},
- {id:'relics',name:'针线圣物匣',sub:'绣框 · 布艺 · 手作拼贴',tags:['拼贴','纸感'],symbol:'匣',colors:['#29464a','#e9dfd0','#f1e2d9','#a96b43']}
+ {id:'relics',name:'绣样帖',sub:'布绣 · 拼布 · 古董样帖',tags:['拼贴','纸感'],symbol:'帖',colors:['#29464a','#e9dfd0','#f1e2d9','#a96b43']}
 ];
 const $=s=>document.querySelector(s),mobile=matchMedia('(max-width:740px)'),IDs=new Set(ITEMS.map(x=>x.id)),filters=['全部','纸感','拼贴','趣味','展示','收藏','最近'];
 const storage={get(k,fallback){try{return JSON.parse(localStorage.getItem(k))??fallback}catch{return fallback}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}};
