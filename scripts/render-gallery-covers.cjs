@@ -53,7 +53,21 @@ async function captureStage(page){
     if(!await el.count())continue;
     const box=await el.boundingBox().catch(()=>null);
     if(!box||box.width<120||box.height<90)continue;
-    try{return {buffer:await el.screenshot({type:'png',timeout:6000,animations:'disabled'}),selector};}catch{}
+    try{
+      const png=await el.screenshot({type:'png',timeout:6000,animations:'disabled'});
+      // Re-encode the stage screenshot as WebP inside the page so every cover
+      // shares one format (and stays small) regardless of capture source.
+      const dataUrl=await page.evaluate(async b64=>{
+        const img=new Image();
+        img.src='data:image/png;base64,'+b64;
+        await img.decode();
+        const c=document.createElement('canvas');
+        c.width=img.naturalWidth;c.height=img.naturalHeight;
+        c.getContext('2d').drawImage(img,0,0);
+        return c.toDataURL('image/webp',0.85);
+      },png.toString('base64'));
+      if(dataUrl.startsWith('data:image/webp;base64,'))return {buffer:Buffer.from(dataUrl.split(',')[1],'base64'),selector};
+    }catch{}
   }
   return null;
 }
@@ -77,7 +91,9 @@ async function captureStage(page){
           if(stage){output=stage.buffer;kind='stage:'+stage.selector;}
         }
       }catch(e){error=String(e.message||e).slice(0,160);}
-      const ext=kind==='canvas'?'webp':'png';
+      // Canvas captures are already WebP data URLs; stage captures are
+      // converted to WebP by captureStage, so every committed cover is .webp.
+      const ext='webp';
       if(output&&output.length>2000){
         const filename=id+'.'+ext;
         fs.writeFileSync(path.join(outDir,filename),output);
