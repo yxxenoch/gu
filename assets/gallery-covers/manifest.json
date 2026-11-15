@@ -76,8 +76,8 @@
     },
     {
       "id": "theme",
-      "path": "assets/gallery-covers/theme.png",
-      "bytes": 107876,
+      "path": "assets/gallery-covers/theme.webp",
+      "bytes": 13264,
       "source": "stage:.stage"
     },
     {

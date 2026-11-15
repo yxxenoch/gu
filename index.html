@@ -5,6 +5,21 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#263c35">
 <meta name="description" content="咕の返图：十六款风格各异的返图模板。挑选喜欢的纸感、拼贴与动态风格，上传照片，在手机上完成制作。">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/brand/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="assets/brand/favicon-64.png">
+<link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="咕の返图">
+<meta property="og:title" content="咕の返图 · 一座随身返图画室">
+<meta property="og:description" content="十六款风格各异的返图模板。挑选喜欢的纸感、拼贴与动态风格，上传照片，在手机上完成制作。">
+<meta property="og:url" content="https://yxxenoch.github.io/gu/">
+<meta property="og:image" content="https://yxxenoch.github.io/gu/assets/brand/og-image.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="咕の返图 · 一座随身返图画室">
+<meta name="twitter:description" content="十六款风格各异的返图模板。挑选喜欢的纸感、拼贴与动态风格，上传照片，在手机上完成制作。">
+<meta name="twitter:image" content="https://yxxenoch.github.io/gu/assets/brand/og-image.jpg">
 <title>咕の返图 · 一座随身返图画室</title>
 <style>
 :root{--pine:#263c35;--ink:#314239;--cream:#f6f3eb;--paper:#fdfbf5;--line:#dddcd1;--mute:#7e897e;--gold:#b89d73;--shadow:0 20px 65px #1a2e2928;--header:62px;--rail:348px;color-scheme:light}
@@ -175,7 +190,7 @@ function matching(){let source=filter==='最近'?recent.map(k=>itemsById[k]):ITE
 function createTile(item){const tile=document.createElement('div');tile.tabIndex=0;tile.setAttribute('role','button');tile.className='tile';tile.dataset.id=item.id;tile.setAttribute('aria-current',String(active===item.id));tile.setAttribute('aria-label','打开模板 '+item.name);tile.style.setProperty('--art-a',item.colors[0]);tile.style.setProperty('--art-b',item.colors[1]);tile.style.setProperty('--art-light',item.colors[2]);tile.style.setProperty('--art-ink',item.colors[3]);tile.style.setProperty('--art-rot',((ITEMS.indexOf(item)%5)-2)*2+'deg');tile.innerHTML='<div class="art"><span class="art-symbol"></span><span class="art-line"><span>GU STUDIO</span><i></i><span>№ '+String(ITEMS.indexOf(item)+1).padStart(2,'0')+'</span></span></div><div class="tile-info"><span class="tile-title"></span></div><div class="tile-sub"></div>';
  tile.querySelector('.art-symbol').textContent=item.symbol;tile.querySelector('.tile-title').textContent=item.name;tile.querySelector('.tile-sub').textContent=item.sub;
  // Only load a committed default screenshot. The fallback keeps the original illustrated cover.
- const still=document.createElement('img');still.className='gu-static-cover';still.loading='lazy';still.decoding='async';still.alt='';still.onload=()=>still.classList.add('is-ready');still.onerror=()=>still.remove();still.src='assets/gallery-covers/'+item.id+(item.id==='theme'?'.png':'.webp');tile.querySelector('.art').append(still);
+ const still=document.createElement('img');still.className='gu-static-cover';still.loading='lazy';still.decoding='async';still.alt='';still.onload=()=>still.classList.add('is-ready');still.onerror=()=>still.remove();still.src='assets/gallery-covers/'+item.id+'.webp';tile.querySelector('.art').append(still);
  tile.onclick=()=>activate(item.id);tile.onkeydown=e=>{if(e.target!==tile)return;if(e.key==='Enter'||e.key===' '){e.preventDefault();activate(item.id)}};
  const star=document.createElement('button');star.className='star';star.type='button';star.setAttribute('aria-label',(favorites.has(item.id)?'取消收藏 ':'收藏 ')+item.name);star.setAttribute('aria-pressed',String(favorites.has(item.id)));star.textContent=favorites.has(item.id)?'★':'☆';star.onclick=event=>{event.stopPropagation();favorites.has(item.id)?favorites.delete(item.id):favorites.add(item.id);storage.set('gu-favorite-studios',[...favorites]);makeFilters();render();notify(favorites.has(item.id)?'已收藏「'+item.name+'」':'已取消收藏')};
  // Favorite is an independent button inside a keyboard-accessible card surface.
