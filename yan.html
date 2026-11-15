@@ -801,7 +801,7 @@ function rim(w,h,burn,toward=orient(direction),dual=true) {
         (3+38*Math.pow(softNoise(px/65,371*s+21),2.9)+
           8*softNoise(px/14,371*s+590)+3.3*softNoise(px/3.6,371*s+830));
       const curl=smooth((heat-.54)/.46)*smooth((bite-9)/14)*smooth((softNoise(px/95,2100+s*83)-.44)/.39);
-      const deckle=(softNoise(px/240,733+s*91)-.5)*6;
+      const deckle=(softNoise(px/240,733+s*91)-.5)*14+(softNoise(px/70,411+s*57)-.5)*4;
       return {p:side(t,heat*bite+deckle),heat,side:s,normal:normals[s],curl};
     });
   });
