@@ -801,7 +801,7 @@ function rim(w,h,burn,toward=orient(direction),dual=true) {
         (3+38*Math.pow(softNoise(px/65,371*s+21),2.9)+
           8*softNoise(px/14,371*s+590)+3.3*softNoise(px/3.6,371*s+830));
       const curl=smooth((heat-.54)/.46)*smooth((bite-9)/14)*smooth((softNoise(px/95,2100+s*83)-.44)/.39);
-      const deckle=(softNoise(px/240,733+s*91)-.5)*14+(softNoise(px/70,411+s*57)-.5)*4;
+      const deckle=(softNoise(px/17,733+s*91)-.5)*4.4+(softNoise(px/5.5,411+s*57)-.5)*1.8;
       return {p:side(t,heat*bite+deckle),heat,side:s,normal:normals[s],curl};
     });
   });
@@ -1077,6 +1077,23 @@ function draw(t,still=false,c=ctx,state={base,changed,desk,direction,duration,pa
     c.fillRect(x-25,y-25,50,50); c.restore();
   }
   c.restore();
+  if(burn<.02){
+    c.save();
+    c.lineWidth=.7; c.lineCap='round'; c.globalAlpha=.42; c.strokeStyle='#f7ecd4';
+    for(let i=0;i<points.length;i+=2){
+      const {p,heat,normal}=points[i];
+      if(!normal||heat>.4)continue;
+      const [x,y]=p,[nx,ny]=normal;
+      const len=2.5+noise(i*12.9898)*6;
+      const tx=-ny,ty=nx;
+      const jx=(noise(i*78.233)-.5)*2,jy=(noise(i*37.719)-.5)*2;
+      c.beginPath();
+      c.moveTo(x-nx*.6+tx*jx*.3,y-ny*.6+ty*jy*.3);
+      c.lineTo(x-nx*len+tx*jx,y-ny*len+ty*jy);
+      c.stroke();
+    }
+    c.restore();
+  }
   if(!still&&cut&&!end&&burn>.035){
     const visible=front.filter(([x,y])=>x>0&&x<w&&y>0&&y<h);
     if(visible.length){
