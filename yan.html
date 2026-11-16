@@ -570,6 +570,12 @@ function printLayer(images) {
     else if(style==='slit')drawPhotoMat(c,cw,ch,mat);
     if(image){
       c.drawImage(image,-cw/2,-ch/2,cw,ch);
+      c.save();
+      c.globalCompositeOperation='multiply'; c.globalAlpha=.10; c.fillStyle='#e9cf9f';
+      c.fillRect(-cw/2,-ch/2,cw,ch);
+      c.globalCompositeOperation='screen'; c.globalAlpha=.05; c.fillStyle='#ffe9c4';
+      c.fillRect(-cw/2,-ch/2,cw,ch);
+      c.restore();
     }else{
       c.save();
       const scale=cw/demoWidth;
@@ -640,6 +646,12 @@ function rebuild() {
       c.strokeStyle=i%2?'#e5d2bc0b':'#16100f1a';
       c.beginPath(); c.moveTo(x,y); c.lineTo(x+length,y-length*.27); c.stroke();
     }
+    const lamp=c.createRadialGradient(w*.42,h*.30,10,w*.42,h*.30,w*.75);
+    lamp.addColorStop(0,'#e8b96a1f'); lamp.addColorStop(.5,'#c98d4a0d'); lamp.addColorStop(1,'#c98d4a00');
+    c.fillStyle=lamp; c.fillRect(0,0,w,h);
+    const vignette=c.createRadialGradient(w*.5,h*.5,w*.35,w*.5,h*.5,w*.95);
+    vignette.addColorStop(0,'#00000000'); vignette.addColorStop(1,'#0d0a08b8');
+    c.fillStyle=vignette; c.fillRect(0,0,w,h);
   }
   draw(time);
 }
