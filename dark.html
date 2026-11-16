@@ -132,6 +132,7 @@ function drawDroplets(g,W,H,t){
   }
   g.restore();
 }
+const darkLayers={};
 function darkLayer(name,g,W,H,key,refs,paint){let layer=darkLayers[name];if(!layer||layer.key!==key||refs.some((v,i)=>v!==layer.refs[i])){const c=document.createElement('canvas');c.width=W;c.height=H;paint(c.getContext('2d'));layer=darkLayers[name]={key,refs:refs.slice(),c};}g.drawImage(layer.c,0,0);}
 const rawDarkBackground=drawBackground,rawDarkCloud=drawCloud;
 drawBackground=function(g,W,H,t){darkLayer('background',g,W,H,JSON.stringify([W,H,state.bgOpacity,state.noise]),[backgroundImage],q=>rawDarkBackground(q,W,H,t));};
