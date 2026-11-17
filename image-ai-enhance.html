@@ -185,11 +185,11 @@
         <span class="tag right">原图</span>
         <span id="resInfo"></span>
         <div id="divider"><div class="knob">⇄</div></div>
-        <div id="zoomBar">
-          <button class="zbtn" id="zoomIn" aria-label="放大">＋</button>
-          <button class="zbtn pct" id="zoomFit" aria-label="复位">100%</button>
-          <button class="zbtn" id="zoomOut" aria-label="缩小">－</button>
-        </div>
+      </div>
+      <div id="zoomBar">
+        <button class="zbtn" id="zoomIn" aria-label="放大">＋</button>
+        <button class="zbtn pct" id="zoomFit" aria-label="复位">100%</button>
+        <button class="zbtn" id="zoomOut" aria-label="缩小">－</button>
       </div>
       <div id="progressWrap">
         <div id="progressBar"><div id="progressFill"></div></div>
@@ -782,10 +782,13 @@
   }
   function clampPan() {
     var r = compareWrap.getBoundingClientRect();
+    // compareInner 在 wrap 里 flex 居中：图像实际左/上缘 = 居中偏移 + pan
+    var ox = (r.width - compareInner.offsetWidth) / 2;
+    var oy = (r.height - compareInner.offsetHeight) / 2;
     var iw = compareInner.offsetWidth * zoom, ih = compareInner.offsetHeight * zoom;
     var m = Math.min(r.width, r.height) * 0.25;
-    panX = Math.min(r.width - m, Math.max(panX, m - iw));
-    panY = Math.min(r.height - m, Math.max(panY, m - ih));
+    panX = Math.min(r.width - m - ox, Math.max(panX, m - iw - ox));
+    panY = Math.min(r.height - m - oy, Math.max(panY, m - ih - oy));
   }
   function zoomTo(nz, cx, cy) {
     nz = Math.min(MAXZ, Math.max(1, nz));
