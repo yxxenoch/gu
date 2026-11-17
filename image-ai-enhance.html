@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="AI 图片修复">
+<meta name="theme-color" content="#0f1115">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/brand/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="assets/brand/favicon-64.png">
+<link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png">
+<title>AI 图片修复 · 本地处理</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Segoe UI", sans-serif;
+    background: #0f1115; color: #e8eaf0;
+    display: flex; flex-direction: column;
+    min-height: 100vh; min-height: 100dvh;
+  }
+  header {
+    padding: 14px 18px; display: flex; align-items: center; gap: 10px;
+    border-bottom: 1px solid #23262e;
+  }
+  header h1 { font-size: 17px; font-weight: 600; }
+  header .badge {
+    font-size: 11px; color: #8f96a8; border: 1px solid #2c303b;
+    border-radius: 999px; padding: 2px 8px;
+  }
+  main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  #uploadView {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 18px; padding: 24px;
+  }
+  #dropZone {
+    width: 100%; max-width: 420px; padding: 44px 20px;
+    border: 2px dashed #3a4050; border-radius: 20px;
+    display: flex; flex-direction: column; align-items: center; gap: 14px;
+    text-align: center; transition: border-color .2s, background .2s;
+    background: #16181f;
+  }
+  #dropZone.over { border-color: #4f8cff; background: #1a2233; }
+  #dropZone .icon { font-size: 44px; }
+  #dropZone p { color: #9aa1b5; font-size: 14px; line-height: 1.6; }
+  .btn {
+    border: none; border-radius: 999px; padding: 13px 28px;
+    font-size: 15px; font-weight: 600; cursor: pointer;
+    background: #4f8cff; color: #fff; transition: transform .1s, opacity .2s;
+  }
+  .btn:active { transform: scale(.96); }
+  .btn.secondary { background: #262b38; color: #cfd4e2; }
+  .btn:disabled { opacity: .4; }
+  .hint { font-size: 12px; color: #6b7286; text-align: center; line-height: 1.6; }
+
+  #editorView { flex: 1; display: none; flex-direction: column; overflow: hidden; }
+  #compareWrap {
+    position: relative; flex: 1; min-height: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: #0a0c10; overflow: hidden; touch-action: none;
+  }
+  #compareInner { position: relative; max-width: 100%; max-height: 100%; }
+  #compareInner canvas { display: block; }
+  #afterWrap { position: absolute; inset: 0; overflow: hidden; width: 50%; }
+  #divider {
+    position: absolute; top: 0; bottom: 0; left: 50%; width: 2px;
+    background: #fff; box-shadow: 0 0 6px rgba(0,0,0,.8);
+    transform: translateX(-1px); z-index: 3;
+  }
+  #divider .knob {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+    width: 40px; height: 40px; border-radius: 50%;
+    background: #fff; color: #111;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: 700; box-shadow: 0 2px 8px rgba(0,0,0,.5);
+  }
+  .tag {
+    position: absolute; top: 10px; font-size: 11px; padding: 3px 9px;
+    border-radius: 999px; background: rgba(0,0,0,.55); color: #fff; z-index: 2;
+  }
+  .tag.left { left: 10px; }
+  .tag.right { right: 10px; }
+  #resInfo {
+    position: absolute; bottom: 10px; left: 10px; font-size: 11px;
+    padding: 3px 9px; border-radius: 999px; background: rgba(0,0,0,.55);
+    color: #cfd4e2; z-index: 2;
+  }
+
+  #progressWrap {
+    position: absolute; inset: 0; display: none;
+    align-items: center; justify-content: center; flex-direction: column;
+    background: rgba(10,12,16,.75); z-index: 5; gap: 14px; padding: 0 30px;
+  }
+  #progressBar {
+    width: 100%; max-width: 300px; height: 6px; border-radius: 3px;
+    background: #2c3140; overflow: hidden;
+  }
+  #progressFill { height: 100%; width: 0%; background: #4f8cff; transition: width .2s; }
+  #progressText { font-size: 13px; color: #cfd4e2; }
+  #cancelBtn { font-size: 13px; color: #9aa1b5; background: none; border: 1px solid #3a4050; border-radius: 999px; padding: 8px 20px; }
+
+  #panel {
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+    background: #14161d; border-top: 1px solid #23262e;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .modeRow { display: flex; gap: 8px; }
+  .modeBtn {
+    flex: 1; padding: 10px 0; border-radius: 12px; border: 1px solid #2c3140;
+    background: #1a1d26; color: #9aa1b5; font-size: 13px; font-weight: 600;
+    text-align: center; cursor: pointer;
+  }
+  .modeBtn.active { border-color: #4f8cff; color: #4f8cff; background: #1a2233; }
+  .sliderRow { display: flex; align-items: center; gap: 12px; }
+  .sliderRow label { font-size: 13px; color: #aab0c2; width: 52px; flex-shrink: 0; }
+  .sliderRow output { font-size: 12px; color: #e8eaf0; width: 38px; text-align: right; flex-shrink: 0; }
+  input[type=range] {
+    flex: 1; -webkit-appearance: none; appearance: none;
+    height: 4px; border-radius: 2px; background: #2c3140; outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: #4f8cff; border: 3px solid #fff;
+    box-shadow: 0 1px 4px rgba(0,0,0,.5); cursor: pointer;
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 20px; height: 20px; border-radius: 50%;
+    background: #4f8cff; border: 3px solid #fff; cursor: pointer;
+  }
+  #actions { display: flex; gap: 10px; }
+  #actions .btn { flex: 1; padding: 13px 0; }
+  #toast {
+    position: fixed; left: 50%; bottom: 90px; transform: translateX(-50%);
+    background: #2c3140; color: #fff; font-size: 13px; text-align: center;
+    padding: 10px 18px; border-radius: 999px; opacity: 0; max-width: 86vw;
+    transition: opacity .3s; pointer-events: none; z-index: 99;
+  }
+  #fileInput { display: none; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>AI 图片修复</h1>
+  <span class="badge">本地推理 · 图片不上传</span>
+</header>
+
+<main>
+  <div id="uploadView">
+    <div id="dropZone">
+      <div class="icon">✨</div>
+      <p id="loadStatus">正在加载 AI 引擎…</p>
+      <button class="btn" id="pickBtn" disabled>选择图片</button>
+    </div>
+    <p class="hint">AI 超分模型在你的手机浏览器里运行，图片不会上传。<br>首次使用需联网下载模型（约 1MB），建议 WiFi。</p>
+  </div>
+
+  <div id="editorView">
+    <div id="compareWrap">
+      <div id="compareInner">
+        <canvas id="beforeCanvas"></canvas>
+        <div id="afterWrap"><canvas id="afterCanvas"></canvas></div>
+        <span class="tag left">修复后</span>
+        <span class="tag right">原图</span>
+        <span id="resInfo"></span>
+        <div id="divider"><div class="knob">⇄</div></div>
+      </div>
+      <div id="progressWrap">
+        <div id="progressBar"><div id="progressFill"></div></div>
+        <div id="progressText">AI 修复中…</div>
+        <button id="cancelBtn">取消</button>
+      </div>
+    </div>
+
+    <div id="panel">
+      <div class="modeRow">
+        <div class="modeBtn" data-mode="fast" id="modeFast">极速 2×<br><span style="font-weight:400;font-size:11px">最快 · 大图先用它</span></div>
+        <div class="modeBtn active" data-mode="hd2" id="modeHd2">超清 2×<br><span style="font-weight:400;font-size:11px">清晰 · 较慢</span></div>
+        <div class="modeBtn" data-mode="hd4" id="modeHd4">超分 4×<br><span style="font-weight:400;font-size:11px">小图放大 · 最慢</span></div>
+      </div>
+      <div class="sliderRow">
+        <label>清晰度</label>
+        <input type="range" id="sharp" min="0" max="150" value="40">
+        <output id="sharpVal">40%</output>
+      </div>
+      <div class="sliderRow">
+        <label>对比度</label>
+        <input type="range" id="contrast" min="50" max="180" value="100">
+        <output id="contrastVal">100%</output>
+      </div>
+      <div class="sliderRow">
+        <label>饱和度</label>
+        <input type="range" id="saturate" min="0" max="200" value="100">
+        <output id="satVal">100%</output>
+      </div>
+      <div id="actions">
+        <button class="btn secondary" id="newBtn">换图片</button>
+        <button class="btn" id="saveBtn" disabled>保存图片</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<input type="file" id="fileInput" accept="image/*">
+<div id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@upscalerjs/default-model@1.0.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/upscaler@1.0.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/@upscalerjs/esrgan-slim@1.0.0"></script>
+<script>
+(function () {
+  'use strict';
+
+  var $ = function (id) { return document.getElementById(id); };
+  var uploadView = $('uploadView'), editorView = $('editorView');
+  var fileInput = $('fileInput'), pickBtn = $('pickBtn'), loadStatus = $('loadStatus');
+  var beforeCanvas = $('beforeCanvas'), afterCanvas = $('afterCanvas');
+  var compareInner = $('compareInner'), compareWrap = $('compareWrap');
+  var afterWrap = $('afterWrap'), divider = $('divider'), resInfo = $('resInfo');
+  var progressWrap = $('progressWrap'), progressFill = $('progressFill'), progressText = $('progressText');
+  var toast = $('toast'), saveBtn = $('saveBtn'), cancelBtn = $('cancelBtn');
+
+  var sliders = {
+    sharp:    { el: $('sharp'),    out: $('sharpVal'),    unit: '%' },
+    contrast: { el: $('contrast'), out: $('contrastVal'), unit: '%' },
+    saturate: { el: $('saturate'), out: $('satVal'),      unit: '%' }
+  };
+  var defaults = { sharp: 40, contrast: 100, saturate: 100 };
+
+  var srcCanvas = null;           // 原图（已限尺寸）
+  var aiCanvas = null;            // AI 超分输出（后处理的底图）
+  var workCanvas = null;          // AI + 后处理最终结果
+  var blurCanvas = null;
+  var postTimer = null;
+  var currentMode = 'hd2';
+  var currentImg = null;
+  var upscalerCache = {};         // scale -> Upscaler instance
+  var busy = false;
+  var cancelled = false;
+
+  // 每种模式的放大倍数和输入尺寸上限（输出 = 输入 × scale）
+  var MODES = {
+    fast: { scale: 2, maxIn: 768  },   // 输出 ≤1536px，最快
+    hd2:  { scale: 2, maxIn: 1500 },   // 输出 ≤3000px
+    hd4:  { scale: 4, maxIn: 750  }    // 输出 ≤3000px，适合小图
+  };
+  var PATCH = 128, PADDING = 10;
+
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.style.opacity = '1';
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(function () { toast.style.opacity = '0'; }, 2200);
+  }
+
+  /* ---------- AI 引擎初始化 ---------- */
+  function engineReady() {
+    return (typeof tf !== 'undefined') && (typeof Upscaler !== 'undefined') &&
+           (typeof ESRGANSlim !== 'undefined');
+  }
+
+  var enginePromise = null;
+  function initEngine() {
+    var tries = 0;
+    (function poll() {
+      if (engineReady()) {
+        enginePromise = pickBackend();
+        enginePromise.then(function (backend) {
+          loadStatus.textContent = 'AI 引擎就绪（' + backend + '）· 点击选择照片';
+          pickBtn.disabled = false;
+        });
+      } else if (++tries > 60) {
+        loadStatus.textContent = 'AI 引擎加载失败，请检查网络后刷新';
+      } else {
+        setTimeout(poll, 500);
+      }
+    })();
+  }
+  function pickBackend() {
+    // webgl 初始化在某些环境会挂住：竞速超时后退回 cpu
+    var done = false;
+    return Promise.race([
+      tf.setBackend('webgl').then(function (ok) {
+        done = true;
+        return ok ? 'webgl' : tf.setBackend('cpu').then(function () { return 'cpu'; });
+      }),
+      new Promise(function (resolve) {
+        setTimeout(function () {
+          if (!done) tf.setBackend('cpu').then(function () { resolve('cpu'); });
+        }, 12000);
+      })
+    ]).catch(function () {
+      return tf.setBackend('cpu').then(function () { return 'cpu'; });
+    });
+  }
+  initEngine();
+
+  function getUpscaler(scale) {
+    if (!upscalerCache[scale]) {
+      var def = scale === 2 ? ESRGANSlim.x2 : ESRGANSlim.x4;
+      upscalerCache[scale] = new Upscaler({ model: def });
+    }
+    return upscalerCache[scale];
+  }
+
+  /* ---------- 读图 ---------- */
+  function loadFile(file) {
+    if (!file || !file.type || file.type.indexOf('image/') !== 0) {
+      showToast('请选择图片文件');
+      return;
+    }
+    var url = URL.createObjectURL(file);
+    var img = new Image();
+    img.onload = function () {
+      URL.revokeObjectURL(url);
+      currentImg = img;
+      // 大图自动用极速模式，避免长时间等待
+      if (Math.max(img.naturalWidth, img.naturalHeight) > 1400 && currentMode !== 'fast') {
+        setMode('fast', true);
+        showToast('图片较大，已自动用极速模式（可切换到超清）');
+      }
+      setupImage(img);
+    };
+    img.onerror = function () { URL.revokeObjectURL(url); showToast('图片读取失败'); };
+    img.src = url;
+  }
+
+  function setupImage(img) {
+    var w = img.naturalWidth, h = img.naturalHeight;
+    // 保证 输出 = 输入×scale 不超上限
+    var maxIn = MODES[currentMode].maxIn;
+    var scale = Math.min(1, maxIn / Math.max(w, h));
+    if (scale < 1) {
+      showToast('图片太大，已缩放至 ' + Math.round(w * scale) + '×' + Math.round(h * scale) + ' 后修复');
+    }
+    var cw = Math.max(1, Math.round(w * scale)), ch = Math.max(1, Math.round(h * scale));
+
+    srcCanvas = document.createElement('canvas');
+    srcCanvas.width = cw; srcCanvas.height = ch;
+    srcCanvas.getContext('2d').drawImage(img, 0, 0, cw, ch);
+
+    beforeCanvas.width = cw; beforeCanvas.height = ch;
+    beforeCanvas.getContext('2d').drawImage(srcCanvas, 0, 0);
+
+    aiCanvas = workCanvas = blurCanvas = null;
+    saveBtn.disabled = true;
+    resInfo.textContent = w + '×' + h;
+
+    uploadView.style.display = 'none';
+    editorView.style.display = 'flex';
+    requestAnimationFrame(fitCompare);
+    runAI();
+  }
+
+  function fitCompare() {
+    if (!srcCanvas) return;
+    var rect = compareWrap.getBoundingClientRect();
+    var dw = (aiCanvas || srcCanvas).width, dh = (aiCanvas || srcCanvas).height;
+    var scale = Math.min(rect.width / dw, rect.height / dh);
+    compareInner.style.width = Math.floor(dw * scale) + 'px';
+    compareInner.style.height = Math.floor(dh * scale) + 'px';
+    beforeCanvas.style.width = '100%';
+    beforeCanvas.style.height = '100%';
+    afterCanvas.style.width = compareInner.style.width;
+    afterCanvas.style.height = compareInner.style.height;
+  }
+  window.addEventListener('resize', fitCompare);
+
+  /* ---------- AI 超分 ---------- */
+  function setProgress(p, text) {
+    progressFill.style.width = Math.round(p * 100) + '%';
+    if (text) progressText.textContent = text;
+  }
+
+  function runAI() {
+    if (busy || !srcCanvas) return;
+    busy = true; cancelled = false;
+    progressWrap.style.display = 'flex';
+    setProgress(0, '加载模型中…');
+
+    var upscaler;
+    try {
+      upscaler = getUpscaler(MODES[currentMode].scale);
+    } catch (e) {
+      progressWrap.style.display = 'none'; busy = false;
+      showToast('AI 引擎初始化失败'); return;
+    }
+
+    (enginePromise || Promise.resolve()).then(function () {
+      if (cancelled) return;
+      return upscaler.upscale(srcCanvas, {
+      output: 'tensor',
+      patchSize: PATCH,
+      padding: PADDING,
+      awaitNextFrame: true,
+      progress: function (rate) {
+        if (typeof rate === 'number') {
+          setProgress(0.05 + rate * 0.9, 'AI 修复中… ' + Math.round(rate * 100) + '%');
+        }
+      }
+    }).then(function (tensor) {
+      if (cancelled) { if (tensor && tensor.dispose) tensor.dispose(); return; }
+      setProgress(0.97, '渲染结果…');
+      // 张量直接渲到画布，省掉 base64 编解码（iOS 内存峰值崩溃的主要原因）
+      var t = tensor;
+      if (t.rank === 4) t = t.squeeze([0]);
+      if (t.dtype === 'float32') t = t.div(255);
+      var h = t.shape[0], w = t.shape[1];
+
+      aiCanvas = document.createElement('canvas');
+      aiCanvas.width = w; aiCanvas.height = h;
+      var done = function () {
+        t.dispose();
+        workCanvas = document.createElement('canvas');
+        workCanvas.width = w; workCanvas.height = h;
+        blurCanvas = document.createElement('canvas');
+        blurCanvas.width = w; blurCanvas.height = h;
+
+        afterCanvas.width = w; afterCanvas.height = h;
+        resInfo.textContent = srcCanvas.width + '×' + srcCanvas.height + ' → ' + w + '×' + h;
+        fitCompare();
+        applyPost();
+        saveBtn.disabled = false;
+        progressWrap.style.display = 'none';
+        busy = false;
+        // 释放输入画布内存，降低 iOS 内存压力（切模式会重新解码）
+        srcCanvas.width = 1; srcCanvas.height = 1;
+      };
+      var p = tf.browser.toPixels(t, aiCanvas);
+      if (p && p.then) p.then(done); else done();
+    }).catch(function (e) {
+      progressWrap.style.display = 'none'; busy = false;
+      if (!cancelled) {
+        showToast('AI 修复失败：' + (e && e.message ? e.message : '内存不足'));
+      }
+    });
+    });
+  }
+
+  /* ---------- 后处理：USM 锐化 + 对比度 + 饱和度 ---------- */
+  function applyPost() {
+    if (!aiCanvas) return;
+    clearTimeout(postTimer);
+    postTimer = setTimeout(runPost, 60);
+  }
+
+  // iOS <18 不支持 ctx.filter：用 JS 盒式模糊代替
+  var CANVAS_FILTER_OK = (function () {
+    var c = document.createElement('canvas').getContext('2d');
+    return typeof c.filter !== 'undefined';
+  })();
+
+  function boxBlurPass(src, dst, w, h, horizontal, r) {
+    var div = 2 * r + 1;
+    var dim1 = horizontal ? h : w, dim2 = horizontal ? w : h;
+    for (var a = 0; a < dim1; a++) {
+      var sr = 0, sg = 0, sb = 0;
+      for (var x = -r; x <= r; x++) {
+        var p = Math.min(dim2 - 1, Math.max(0, x));
+        var i = (horizontal ? a * w + p : p * w + a) * 4;
+        sr += src[i]; sg += src[i + 1]; sb += src[i + 2];
+      }
+      for (x = 0; x < dim2; x++) {
+        var o = (horizontal ? a * w + x : x * w + a) * 4;
+        dst[o] = sr / div; dst[o + 1] = sg / div; dst[o + 2] = sb / div; dst[o + 3] = src[o + 3];
+        var iAdd = (horizontal ? a * w + Math.min(dim2 - 1, x + r + 1) : Math.min(dim2 - 1, x + r + 1) * w + a) * 4;
+        var iSub = (horizontal ? a * w + Math.max(0, x - r) : Math.max(0, x - r) * w + a) * 4;
+        sr += src[iAdd] - src[iSub];
+        sg += src[iAdd + 1] - src[iSub + 1];
+        sb += src[iAdd + 2] - src[iSub + 2];
+      }
+    }
+  }
+
+  var blurBuf = null;
+  function getBlurData(srcImgData, w, h) {
+    var s = srcImgData.data;
+    if (!CANVAS_FILTER_OK) {
+      if (!blurBuf || blurBuf.length !== s.length) blurBuf = new Uint8ClampedArray(s.length);
+      var out = new Uint8ClampedArray(s.length);
+      boxBlurPass(s, blurBuf, w, h, true, 2);
+      boxBlurPass(blurBuf, out, w, h, false, 2);
+      boxBlurPass(out, blurBuf, w, h, true, 2);
+      boxBlurPass(blurBuf, out, w, h, false, 2);
+      return out;
+    }
+    var bctx = blurCanvas.getContext('2d');
+    bctx.clearRect(0, 0, w, h);
+    try {
+      bctx.filter = 'blur(3px)';
+      bctx.drawImage(aiCanvas, 0, 0);
+      bctx.filter = 'none';
+    } catch (e) { bctx.drawImage(aiCanvas, 0, 0); }
+    return bctx.getImageData(0, 0, w, h).data;
+  }
+
+  function runPost() {
+    var w = aiCanvas.width, h = aiCanvas.height;
+    var amount = sliders.sharp.el.value / 100;
+    var contrast = sliders.contrast.el.value / 100;
+    var sat = sliders.saturate.el.value / 100;
+
+    var srcImg = aiCanvas.getContext('2d').getImageData(0, 0, w, h);
+    var s = srcImg.data;
+    var b = amount > 0 ? getBlurData(srcImg, w, h) : s;
+    var out = workCanvas.getContext('2d').createImageData(w, h);
+    var o = out.data;
+    var cOffset = 128 * (1 - contrast);
+
+    for (var i = 0; i < s.length; i += 4) {
+      var r = s[i] + amount * (s[i] - b[i]);
+      var g = s[i + 1] + amount * (s[i + 1] - b[i + 1]);
+      var bl = s[i + 2] + amount * (s[i + 2] - b[i + 2]);
+      r = r * contrast + cOffset;
+      g = g * contrast + cOffset;
+      bl = bl * contrast + cOffset;
+      var luma = 0.299 * r + 0.587 * g + 0.114 * bl;
+      r = luma + (r - luma) * sat;
+      g = luma + (g - luma) * sat;
+      bl = luma + (bl - luma) * sat;
+      o[i]     = r < 0 ? 0 : r > 255 ? 255 : r;
+      o[i + 1] = g < 0 ? 0 : g > 255 ? 255 : g;
+      o[i + 2] = bl < 0 ? 0 : bl > 255 ? 255 : bl;
+      o[i + 3] = s[i + 3];
+    }
+    workCanvas.getContext('2d').putImageData(out, 0, 0);
+    afterCanvas.getContext('2d').drawImage(workCanvas, 0, 0);
+  }
+
+  Object.keys(sliders).forEach(function (k) {
+    var s = sliders[k];
+    s.el.addEventListener('input', function () {
+      s.out.textContent = s.el.value + s.unit;
+      applyPost();
+    });
+  });
+
+  /* ---------- 模式切换 ---------- */
+  function setMode(mode, silent) {
+    currentMode = mode;
+    ['fast', 'hd2', 'hd4'].forEach(function (m) {
+      $('mode' + m.charAt(0).toUpperCase() + m.slice(1)).classList.toggle('active', m === mode);
+    });
+  }
+  ['modeFast', 'modeHd2', 'modeHd4'].forEach(function (id) {
+    $(id).addEventListener('click', function () {
+      var mode = $(id).dataset.mode;
+      if (mode === currentMode || !currentImg) return;
+      if (busy) { cancelled = true; Object.keys(upscalerCache).forEach(function (k) { try { upscalerCache[k].abort(); } catch (e) {} }); busy = false; }
+      setMode(mode);
+      setupImage(currentImg);   // 重新按新模式限尺寸并重跑
+    });
+  });
+
+  /* ---------- 对比拖动 ---------- */
+  var dragging = false;
+  function setSplit(clientX) {
+    var rect = compareInner.getBoundingClientRect();
+    var x = Math.min(Math.max(clientX - rect.left, 0), rect.width);
+    var pct = x / rect.width * 100;
+    afterWrap.style.width = pct + '%';
+    divider.style.left = pct + '%';
+  }
+  compareWrap.addEventListener('pointerdown', function (e) {
+    dragging = true;
+    compareWrap.setPointerCapture(e.pointerId);
+    setSplit(e.clientX);
+  });
+  compareWrap.addEventListener('pointermove', function (e) { if (dragging) setSplit(e.clientX); });
+  compareWrap.addEventListener('pointerup', function () { dragging = false; });
+  compareWrap.addEventListener('pointercancel', function () { dragging = false; });
+
+  /* ---------- 事件 ---------- */
+  pickBtn.addEventListener('click', function () { fileInput.click(); });
+  fileInput.addEventListener('change', function () {
+    loadFile(fileInput.files[0]);
+    fileInput.value = '';
+  });
+  var dropZone = $('dropZone');
+  ['dragover', 'dragenter'].forEach(function (ev) {
+    dropZone.addEventListener(ev, function (e) { e.preventDefault(); dropZone.classList.add('over'); });
+  });
+  ['dragleave', 'drop'].forEach(function (ev) {
+    dropZone.addEventListener(ev, function (e) { e.preventDefault(); dropZone.classList.remove('over'); });
+  });
+  dropZone.addEventListener('drop', function (e) { loadFile(e.dataTransfer.files[0]); });
+  document.addEventListener('paste', function (e) {
+    var items = e.clipboardData && e.clipboardData.items;
+    if (!items) return;
+    for (var i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf('image/') === 0) { loadFile(items[i].getAsFile()); break; }
+    }
+  });
+
+  cancelBtn.addEventListener('click', function () {
+    cancelled = true;
+    Object.keys(upscalerCache).forEach(function (k) {
+      try { upscalerCache[k].abort(); } catch (e) {}
+    });
+    progressWrap.style.display = 'none';
+    busy = false;
+  });
+
+  $('newBtn').addEventListener('click', function () { fileInput.click(); });
+
+  saveBtn.addEventListener('click', function () {
+    if (!workCanvas) return;
+    workCanvas.toBlob(function (blob) {
+      if (!blob) { showToast('导出失败'); return; }
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'ai-enhanced-' + Date.now() + '.png';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+      showToast('已导出 PNG');
+    }, 'image/png');
+  });
+})();
+</script>
+</body>
+</html>
