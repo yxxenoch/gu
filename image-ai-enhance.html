@@ -156,7 +156,7 @@
       <p id="loadStatus">正在加载 AI 引擎…</p>
       <button class="btn" id="pickBtn" disabled>选择图片</button>
     </div>
-    <p class="hint">AI 超分模型在你的手机浏览器里运行，图片不会上传。<br>首次使用需联网下载模型（约 1MB），建议 WiFi。</p>
+    <p class="hint">AI 超分模型在你的手机浏览器里运行，图片不会上传。<br>首次使用按档位联网下载模型（1~3MB），建议 WiFi。</p>
   </div>
 
   <div id="editorView">
@@ -179,8 +179,8 @@
     <div id="panel">
       <div class="modeRow">
         <div class="modeBtn" data-mode="fast" id="modeFast">极速 2×<br><span style="font-weight:400;font-size:11px">最快 · 大图先用它</span></div>
-        <div class="modeBtn active" data-mode="hd2" id="modeHd2">超清 2×<br><span style="font-weight:400;font-size:11px">清晰 · 较慢</span></div>
-        <div class="modeBtn" data-mode="hd4" id="modeHd4">超分 4×<br><span style="font-weight:400;font-size:11px">小图放大 · 最慢</span></div>
+        <div class="modeBtn active" data-mode="hd2" id="modeHd2">超清 2×<br><span style="font-weight:400;font-size:11px">大模型 · 较慢</span></div>
+        <div class="modeBtn" data-mode="hd4" id="modeHd4">超分 4×<br><span style="font-weight:400;font-size:11px">大模型 · 最慢</span></div>
       </div>
       <div class="sliderRow">
         <label>清晰度</label>
@@ -212,6 +212,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@upscalerjs/default-model@1.0.0"></script>
 <script src="https://cdn.jsdelivr.net/npm/upscaler@1.0.0"></script>
 <script src="https://cdn.jsdelivr.net/npm/@upscalerjs/esrgan-slim@1.0.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/@upscalerjs/esrgan-medium@1.0.0"></script>
 <script>
 (function () {
   'use strict';
@@ -262,7 +263,7 @@
   /* ---------- AI 引擎初始化 ---------- */
   function engineReady() {
     return (typeof tf !== 'undefined') && (typeof Upscaler !== 'undefined') &&
-           (typeof ESRGANSlim !== 'undefined');
+           (typeof ESRGANSlim !== 'undefined') && (typeof ESRGANMedium !== 'undefined');
   }
 
   var enginePromise = null;
@@ -301,12 +302,15 @@
   }
   initEngine();
 
-  function getUpscaler(scale) {
-    if (!upscalerCache[scale]) {
-      var def = scale === 2 ? ESRGANSlim.x2 : ESRGANSlim.x4;
-      upscalerCache[scale] = new Upscaler({ model: def });
+  function getUpscaler(mode) {
+    if (!upscalerCache[mode]) {
+      // fast 用轻量模型；hd 档换更大的 ESRGAN-medium（~2.8MB），效果明显更好
+      var def = mode === 'fast' ? ESRGANSlim.x2
+              : mode === 'hd4' ? ESRGANMedium.x4
+              : ESRGANMedium.x2;
+      upscalerCache[mode] = new Upscaler({ model: def });
     }
-    return upscalerCache[scale];
+    return upscalerCache[mode];
   }
 
   function stopRun() {
@@ -414,7 +418,7 @@
 
     var upscaler;
     try {
-      upscaler = getUpscaler(MODES[currentMode].scale);
+      upscaler = getUpscaler(currentMode);
     } catch (e) {
       progressWrap.style.display = 'none'; busy = false;
       showToast('AI 引擎初始化失败'); return;
