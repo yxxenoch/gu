@@ -1,0 +1,616 @@
+<!doctype html><html lang="zh-Hant" data-guzhe-app="2"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#263a30"><meta name="description" content="上传图片，制作裱布烫金封面的古风折页拼图。支持自定义字体、材质、展开动画和 GIF 导出。"><meta name="apple-mobile-web-app-capable" content="yes"><title>古摺頁拼圖工坊</title><style>
+*{box-sizing:border-box}body{margin:0;background:#e9e4d9;color:#2c3730;font-family:Georgia,'Noto Serif TC','Songti TC',serif}header{padding:25px 6%;background:#263a30;color:#eee6d3}header small{letter-spacing:.22em;color:#bcb59e}h1{font-size:26px;letter-spacing:.18em;margin:8px 0}header p{font-size:13px;color:#c8c5b6;margin:0}main{max-width:1500px;margin:auto;padding:22px;display:grid;grid-template-columns:320px 1fr;gap:22px}.panel,.preview{background:#faf8f2;border:1px solid #d9d0c1;padding:22px;box-shadow:0 5px 20px #4c423313}.panel h2{font-size:16px;margin:0 0 14px}.group{border-top:1px solid #e5ddd0;padding:16px 0}.group:first-of-type{border:0;padding-top:0}label{font-size:13px;display:block;margin:10px 0 6px}input,select,button{font:inherit}input[type=text],select{width:100%;padding:9px;border:1px solid #cfc5b3;background:white;color:#27362e}input[type=range]{width:100%;accent-color:#a34738}input[type=file]{max-width:100%;font-size:12px}button{cursor:pointer;border:1px solid #304638;background:#304638;color:#fff;padding:11px 14px;width:100%;margin-top:8px}button.secondary{background:transparent;color:#304638}.hint{font-size:12px;color:#817b6d;line-height:1.7}.preview-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:15px;font-size:13px}.preview-head strong{font-size:17px}.stage{background:#d4cec2;padding:22px;overflow:auto}canvas{display:block;width:100%;height:auto;box-shadow:0 10px 30px #34382c40}.files{font-size:12px;line-height:1.7;color:#777}.row{display:flex;gap:8px}.row button{flex:1}@media(max-width:800px){main{grid-template-columns:1fr;padding:12px}.panel{padding:18px}.stage{padding:8px}header{padding:20px}}
+.material-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:10px 0}.material-choice{padding:3px;margin:0;background:#fff;color:#3a4439;border:1px solid #c8bfad;font-size:10px;line-height:1.3}.material-choice[aria-pressed=true]{outline:2px solid #997545;outline-offset:0}.material-choice canvas{width:100%;height:48px;object-fit:cover;box-shadow:none;margin-bottom:4px}.material-choice span{display:block}.material-status{font-size:12px;color:#7a705e;line-height:1.6}select:disabled{opacity:.5}output{float:right;color:#8a6b43}input[type=number]{width:100%;padding:9px;border:1px solid #cfc5b3;background:white;color:#27362e}.text-settings{margin:15px 0;padding:12px 0;border-top:1px solid #ddd4c5}.text-settings summary{font-size:14px;cursor:pointer;font-weight:bold}.text-settings fieldset{border:1px solid #e1d8c8;margin:12px 0;padding:10px}.text-settings legend{font-size:12px;padding:0 4px}.text-row{display:grid;grid-template-columns:70px 1fr;gap:10px}progress{width:100%;margin-top:12px;accent-color:#8d6d38}.preview-actions{margin-bottom:10px}.preview-actions button{margin:0}.preview{align-self:start}.hint{overflow-wrap:anywhere}button:disabled{opacity:.45;cursor:default}.mobile-jump{display:none}#editor,#preview{scroll-margin-top:58px}input,select,button{min-height:38px}.panel{max-height:calc(100vh - 36px);overflow:auto;scrollbar-width:thin}.preview{position:sticky;top:18px}@media(max-width:800px){.mobile-jump{display:flex;position:sticky;top:0;z-index:10;gap:8px;padding:8px 12px;background:#ece7dc;border-bottom:1px solid #d3c9b7}.mobile-jump a{flex:1;text-align:center;padding:9px;background:#faf8f2;color:#304638;text-decoration:none;border:1px solid #c6bca9;font-size:13px}.panel{max-height:none;overflow:visible}.preview{position:static;grid-row:1}.preview-head span{display:none}.hint{font-size:12px}header p{line-height:1.6}}
+[hidden]{display:none!important}button:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid #c6944f;outline-offset:3px}
+.app-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.app-actions button{width:auto;margin:0;background:#efe5cc;color:#263a30;border-color:#b7aa8b;font-size:12px;padding:8px 12px}.app-note{font-size:12px;line-height:1.7;color:#d3cbb6;margin-top:9px}
+.float-preview{position:fixed;right:16px;top:85px;width:320px;max-width:calc(100vw - 24px);z-index:80;background:#faf6ec;border:1px solid #8d8067;border-radius:12px;overflow:hidden;box-shadow:0 12px 42px #191b174d;contain:layout}.float-head{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:7px 9px;background:#2e4337;color:#eee7d5;touch-action:none;cursor:move;user-select:none}.float-title{font-size:12px;white-space:nowrap}.float-tools{display:flex;gap:4px}.float-head button{width:30px;min-height:30px;height:30px;margin:0;padding:0;border:1px solid #d5cdb65c;background:#ffffff0d;color:#fff;font-size:16px;border-radius:5px;cursor:pointer}.float-preview canvas{display:block;width:100%;height:auto;max-height:42vh;object-fit:contain;background:#d4c8ae;box-shadow:none}.float-footer{display:flex;justify-content:space-between;gap:8px;padding:6px 10px;font-size:12px;color:#746752}.float-footer button{width:auto;padding:2px 8px;margin:0;min-height:26px;font-size:12px;background:transparent;color:#304638;border:1px solid #c7bba3}.float-preview.collapsed .float-body{display:none}.float-reopen{position:fixed;right:14px;bottom:calc(18px + env(safe-area-inset-bottom));z-index:79;width:auto;border-radius:30px;box-shadow:0 6px 22px #17261d3d;padding:11px 18px}.font-list{display:grid;gap:5px}.font-item{display:flex;align-items:center;gap:6px;font-size:12px;padding:7px;border:1px solid #e1d8c8}.font-item span{flex:1;min-width:0;overflow-wrap:anywhere}.font-item button{width:auto;min-height:30px;margin:0;padding:4px 8px;font-size:12px;background:transparent;color:#734b37;border-color:#cfc2aa}.paper-grid{grid-template-columns:repeat(3,1fr)}.paper-grid .material-choice img{display:block;width:100%;height:62px;object-fit:cover;margin-bottom:4px}.value-row{display:flex;justify-content:space-between;gap:8px}.cache-state{font-size:12px;line-height:1.6;color:#806e4d}.panel{overscroll-behavior:contain}
+@media(max-width:800px){.preview{grid-row:auto}.float-preview{width:260px;top:75px;right:12px}.float-head{padding:6px 8px}.float-footer{padding:4px 8px}.float-title{font-size:12px}.app-actions button{flex:1}.stage{overflow:hidden}main{padding-bottom:80px}}
+</style><script>(()=>{'use strict';
+function grid(W,H,n,aspect,gap,options={}){const left=options.left??50,right=options.right??left,top=options.top??180,bottom=options.bottom??100,pad=options.pad??18,label=options.label??30,frame={x:left,y:top,w:W-left-right,h:Math.max(80,H-top-bottom)},A=frame.w-pad*2,B=frame.h-pad*2;let best=null;for(let cols=1;cols<=n;cols++){const rows=Math.ceil(n/cols);if(options.maxRows&&rows>options.maxRows)continue;const gy=gap+(options.rowGap??24),cw=(A-(cols-1)*gap)/cols,ch=(B-(rows-1)*gy)/rows-label,w=Math.min(cw,ch*aspect),h=w/aspect;if(w<15||h<15)continue;const score=w*h*n*(rows===1?1.025:1);if(!best||score>best.score)best={cols,rows,w,h,gy,score};}if(!best)return{list:[],frame};const {cols,rows,w,h,gy}=best,list=[],totalH=rows*(h+label)+(rows-1)*gy,dy=frame.y+(frame.h-totalH)/2;for(let i=0;i<n;i++){const row=Math.floor(i/cols),col=i%cols,count=Math.min(cols,n-row*cols),total=count*w+(count-1)*gap,x=(W-total)/2+col*(w+gap),y=dy+row*(h+label+gy);list.push({index:i,row,x,y,w,h,cx:x+w/2,cy:y+h/2,rotate:0,labelY:y+h+22});}return{list,frame};}
+const colors=new WeakMap();
+function dominant(image){if(colors.has(image))return colors.get(image);const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d',{willReadFrequently:true});g.drawImage(image,0,0,64,64);const data=g.getImageData(0,0,64,64).data,bins=new Map();for(let p=0;p<data.length;p+=4){if(data[p+3]<150)continue;const r=data[p],gg=data[p+1],b=data[p+2],max=Math.max(r,gg,b),min=Math.min(r,gg,b),l=(r+gg+b)/3,sat=max?(max-min)/max:0;if(l<22||l>240)continue;const key=(r>>4)*256+(gg>>4)*16+(b>>4),v=bins.get(key)||{n:0,r:0,g:0,b:0,s:0};v.n++;v.r+=r;v.g+=gg;v.b+=b;v.s+=sat;bins.set(key,v);}const all=[...bins.values()],vivid=all.filter(b=>b.n>=24&&b.s/b.n>=.22),pool=vivid.length?vivid:all;let best=null,score=-1;for(const b of pool){const q=b.n*(.3+Math.sqrt(b.s/b.n)*1.8);if(q>score){score=q;best=b;}}if(!best){const p=data;let r=0,g=0,b=0,n=0;for(let i=0;i<p.length;i+=4)if(p[i+3]>150){r+=p[i];g+=p[i+1];b+=p[i+2];n++;}if(!n)throw Error('首图是全透明图片，无法提取主色');best={r,g,b,n};}const hex='#'+['r','g','b'].map(k=>Math.round(best[k]/best.n).toString(16).padStart(2,'0')).join('');colors.set(image,hex);return hex;}
+window.GuDesign={grid,dominant};})();
+</script><style>
+/* Corner font controls need room for the slider's two buttons and touch track. */
+.text-settings fieldset{min-width:0;max-width:100%;box-sizing:border-box}
+.text-settings .text-row{grid-template-columns:minmax(0,1fr);gap:16px}
+.text-settings .text-row>div{min-width:0;max-width:100%}
+.text-settings .text-row select{box-sizing:border-box;display:block;width:100%;max-width:100%;min-height:44px}
+.text-settings .gu-font-slider{box-sizing:border-box;display:flex;width:100%;gap:12px;min-height:48px;clear:both}
+.text-settings .gu-font-slider button{width:44px!important;min-width:44px;min-height:44px!important}
+.text-settings .gu-font-slider input[type=range]{flex:1 1 0;min-width:0;max-width:100%;height:44px}
+.text-settings .gu-font-readout{display:block;float:none;margin:4px 0}
+</style><meta name="reeden-template-version" content="1">
+<meta name="reeden-template-name" content="gu · 古风折页（原绘制版）">
+<meta name="reeden-template-type" content="themePreview">
+<meta name="reeden-template-width" content="640">
+<meta name="reeden-template-screens" content="[{&quot;id&quot;:&quot;s1&quot;,&quot;label&quot;:&quot;首页&quot;,&quot;page&quot;:&quot;home&quot;},{&quot;id&quot;:&quot;s2&quot;,&quot;label&quot;:&quot;阅读页&quot;,&quot;page&quot;:&quot;reader&quot;},{&quot;id&quot;:&quot;s3&quot;,&quot;label&quot;:&quot;书架&quot;,&quot;page&quot;:&quot;bookshelf&quot;},{&quot;id&quot;:&quot;s4&quot;,&quot;label&quot;:&quot;统计&quot;,&quot;page&quot;:&quot;statistics&quot;},{&quot;id&quot;:&quot;s5&quot;,&quot;label&quot;:&quot;我的&quot;,&quot;page&quot;:&quot;profile&quot;},{&quot;id&quot;:&quot;s6&quot;,&quot;label&quot;:&quot;启动&quot;,&quot;page&quot;:&quot;splash&quot;}]">
+<meta data-red-param="param.themeTitle" data-red-type="text" data-red-label="主题名覆盖">
+<meta data-red-param="param.themeAuthor" data-red-type="text" data-red-label="制作者覆盖">
+<meta data-red-param="param.themeDescription" data-red-type="text" data-red-label="副标题覆盖">
+<meta data-red-param="param.count" data-red-type="select" data-red-label="count" data-red-default="3" data-red-group="原模板设置" data-red-options="3:3,4:4,5:5,6:6,7:7,8:8">
+<meta data-red-param="param.fit" data-red-type="select" data-red-label="fit" data-red-default="cover" data-red-group="原模板设置" data-red-options="cover:填滿頁面（可能裁切）,contain:完整顯示（留白）">
+<meta data-red-param="param.pagewidth" data-red-type="range" data-red-label="pagewidth" data-red-default="100" data-red-group="原模板设置" data-red-min="60" data-red-max="160" data-red-step="1">
+<meta data-red-param="param.pageheight" data-red-type="range" data-red-label="pageheight" data-red-default="100" data-red-group="原模板设置" data-red-min="60" data-red-max="150" data-red-step="1">
+<meta data-red-param="param.bookoffset" data-red-type="range" data-red-label="bookoffset" data-red-default="0" data-red-group="原模板设置" data-red-min="-15" data-red-max="15" data-red-step="1">
+<meta data-red-param="param.fold" data-red-type="range" data-red-label="折页开合" data-red-default="55" data-red-group="原模板设置" data-red-min="0" data-red-max="100" data-red-step="1">
+<meta data-red-param="param.theme" data-red-type="select" data-red-label="theme" data-red-default="wood" data-red-group="原模板设置" data-red-options="wood:深色木案,lightwood:淺色木案,bamboo:竹席 · 密编细篾,bambooscreen:竹帘 · 疏排穿绳,gauze:素色紗布,paper:宣紙米白">
+<meta data-red-param="param.coverCustom" data-red-type="color" data-red-label="cover-custom" data-red-default="#293f33" data-red-group="原模板设置">
+<meta data-red-param="param.fabric" data-red-type="select" data-red-label="布封材质" data-red-default="sample1" data-red-group="原模板设置" data-red-options="sample1:1 · 黛青旧织,sample2:2 · 米黄旧织,sample3:3 · 赭褐旧织,sample4:4 · 朱红团花锦,sample5:5 · 赭金团花锦,sample6:6 · 金黄织锦,sample7:7 · 黛褐蓝花锦,sample8:8 · 灰绿粗麻,linen:素织 · 原有细麻效果,coarse:素织 · 原有粗麻效果,silk:素锦 · 原有效果,brocade:花锦 · 原有效果,uploaded:我上传的布料">
+<meta data-red-param="param.tintstrength" data-red-type="range" data-red-label="tintstrength" data-red-default="20" data-red-group="原模板设置" data-red-min="0" data-red-max="100" data-red-step="1">
+<meta data-red-param="param.papermaterial" data-red-type="select" data-red-label="纸张肌理" data-red-default="classic" data-red-group="原模板设置" data-red-options="classic:原有 · 微黄竹纤维纸,leaf1:1 · 米白细纤维,leaf2:2 · 花瓣手工纸,leaf3:3 · 茶染旧宣,leaf4:4 · 浅黄长纤维,leaf5:5 · 本白皱纹纸,leaf6:6 · 淡粉草纤维,leaf7:7 · 斑驳旧笺,leaf8:8 · 青灰刷纹,leaf9:9 · 朱砂洒金,uploaded:我上传的纸质">
+<meta data-red-param="param.paperstrength" data-red-type="range" data-red-label="纸纹强度" data-red-default="38" data-red-group="原模板设置" data-red-min="0" data-red-max="100" data-red-step="1">
+<meta data-red-param="param.paperage" data-red-type="range" data-red-label="纸张旧化" data-red-default="75" data-red-group="原模板设置" data-red-min="0" data-red-max="100" data-red-step="1">
+<meta data-red-param="param.light" data-red-type="range" data-red-label="光影" data-red-default="75" data-red-group="原模板设置" data-red-min="0" data-red-max="100" data-red-step="1">
+<style id="gu-red-reeden-view">html,body{margin:0!important;padding:0!important;width:640px!important;min-width:640px!important;max-width:640px!important;height:auto!important;min-height:0!important;overflow:visible!important;background:transparent!important;display:block!important}body>:not(#gu-reeden-output):not(script):not(style){position:absolute!important;left:-20000px!important;top:0!important;min-width:960px!important;max-width:none!important;visibility:visible!important}#gu-reeden-output{display:block!important;position:relative!important;left:auto!important;top:auto!important;width:640px!important;max-width:640px!important;min-height:360px!important;height:auto!important;padding:0!important;margin:0!important;background:#f1eee7!important;overflow:hidden!important;z-index:999!important;border:0!important}#gu-reeden-img{display:block!important;position:relative!important;width:640px!important;min-height:360px!important;height:auto!important;object-fit:contain!important;max-width:640px!important}</style>
+</head><body>
+<div id="gu-reeden-output" data-reeden-capture=""><img id="gu-reeden-img" alt="古风折页原画布"></div>
+<script>window.guPreviewReady=function(){if(!window.__guPreviewReady){window.__guPreviewReady=true;if(parent!==window)parent.postMessage({type:'studio-ready'},location.origin==='null'?'*':location.origin);}};</script><a href="index.html" id="return-styles" style="position:fixed;bottom:12px;right:12px;z-index:150;background:#263f37;color:white;padding:8px 12px;border-radius:12px;text-decoration:none;font:12px sans-serif" hidden>返回款式</a><script>if(parent===window)document.getElementById("return-styles").hidden=false;</script><header><small>古折页工坊 · 在线版</small><h1>古风折页</h1><p>將圖片收進一冊展開的古書，製作屬於你的閱讀手記。</p><div class="app-actions"><button id="installapp">安装到手机桌面</button><button id="showfloat">显示悬浮预览</button><button id="saveoffline">下载单文件离线版</button></div><div class="app-note" id="appstatus" role="status">可添加到桌面；首次联网载入后，自动准备离线素材。</div></header><nav class="mobile-jump"><a href="#preview">查看预览</a><a href="#editor">编辑与导出</a></nav><main><section class="panel" id="editor"><h2>編輯你的摺頁</h2><button id="cleartext" class="secondary">一键清除本款文字</button><button id="undotext" class="secondary" hidden>撤销清除文字</button><p class="hint" id="cleartextstatus" role="status">清除书名与四角文字，可撤销。</p><div class="group"><label>上傳圖片（依選取順序排列，最多 8 張）</label><input id="upload" type="file" accept="image/*" multiple><div id="files" class="files">尚未上傳圖片，預覽顯示示意頁。</div><button id="clear" class="secondary">一键清空本款图片</button><button id="undo-clear" class="secondary" hidden>撤销清空</button><p class="hint">包含图片、上传的封面布料与纸质；文字和字体保留。</p></div><div class="group"><label>封面書名</label><input id="title" type="text" value="古风折页" maxlength="24"><label for="titlesize">书名字号</label><input id="titlesize" type="number" min="16" max="96" step="1" value="56"><details class="text-settings" open><summary>四角文字 · 内容、字号、字体</summary><p class="hint">内容留空即可隐藏。系统字体因设备而异；可上传字体文件后分别选择。</p><fieldset><legend>左上角</legend><label for="topleft">内容</label><input id="topleft" type="text" value="一册一景 · 慢读时光" maxlength="160"><div class="text-row"><div><label for="topleftsize">字号</label><input id="topleftsize" type="number" min="10" max="48" value="24"></div><div><label for="topleftfont">字体</label><select id="topleftfont"><option value="serif">宋／明朝 · 系统</option><option value="kai">楷体 · 系统</option><option value="fangsong">仿宋 · 系统</option><option value="hei">黑体 · 系统</option></select></div></div></fieldset><fieldset><legend>右上角</legend><label for="topright">内容</label><input id="topright" type="text" value="AN ACCORDION OF MEMORIES / 01" maxlength="160"><div class="text-row"><div><label for="toprightsize">字号</label><input id="toprightsize" type="number" min="10" max="48" value="20"></div><div><label for="toprightfont">字体</label><select id="toprightfont"><option value="serif">宋／明朝 · 系统</option><option value="kai">楷体 · 系统</option><option value="fangsong">仿宋 · 系统</option><option value="hei">黑体 · 系统</option></select></div></div></fieldset><fieldset><legend>左下角</legend><label for="author">内容</label><input id="author" type="text" value="一页一景　慢读时光" maxlength="160"><div class="text-row"><div><label for="bottomleftsize">字号</label><input id="bottomleftsize" type="number" min="10" max="48" value="28"></div><div><label for="bottomleftfont">字体</label><select id="bottomleftfont"><option value="serif">宋／明朝 · 系统</option><option value="kai">楷体 · 系统</option><option value="fangsong">仿宋 · 系统</option><option value="hei">黑体 · 系统</option></select></div></div></fieldset><fieldset><legend>右下角</legend><label for="bottomright">内容</label><input id="bottomright" type="text" value="COLLECT THE MOMENTS THAT MATTER" maxlength="160"><div class="text-row"><div><label for="bottomrightsize">字号</label><input id="bottomrightsize" type="number" min="10" max="48" value="18"></div><div><label for="bottomrightfont">字体</label><select id="bottomrightfont"><option value="serif">宋／明朝 · 系统</option><option value="kai">楷体 · 系统</option><option value="fangsong">仿宋 · 系统</option><option value="hei">黑体 · 系统</option></select></div></div></fieldset></details><label>頁數（不含封面）</label><select id="count"><option>3</option><option selected>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select><label>圖片呈現</label><select id="fit"><option value="cover">填滿頁面（可能裁切）</option><option value="contain">完整顯示（留白）</option></select><details class="text-settings"><summary>折页宽高与位置</summary><label for="pagewidth">纸页宽窄（百分比）</label><input id="pagewidth" type="range" min="60" max="160" value="100"><label for="pageheight">纸页高度（百分比）</label><input id="pageheight" type="range" min="60" max="150" value="100"><label for="bookoffset">书册上下位置</label><input id="bookoffset" type="range" min="-15" max="15" value="0"><p class="hint">宽高可分别调整，超出画布时整册会按比例缩小。</p></details><label>摺痕深度</label><input id="fold" type="range" min="0" max="100" value="55"><label>畫布比例</label><select id="ratio"><option value="land">橫式 3:2</option><option value="square">方形 1:1</option><option value="portrait">直式 4:5</option></select><label>桌面材質</label><select id="theme"><option value="wood">深色木案</option><option value="lightwood">淺色木案</option><option value="bamboo">竹席 · 密编细篾</option><option value="bambooscreen">竹帘 · 疏排穿绳</option><option value="gauze">素色紗布</option><option value="paper">宣紙米白</option></select><label for="covercolor">融合时使用的封面颜色</label><select id="covercolor"><option value="#293f33">黛綠</option><option value="#833e34">磚紅</option><option value="#263b43">鴉青</option><option value="#45404f">黛紫</option><option value="#826b4b">茶褐</option></select><div class="row" style="margin-top:12px"><label for="cover-custom">自定义封面色</label><input id="cover-custom" type="color" value="#293f33"></div><label for="fabric">封面布料 · 八款内置素材</label><select id="fabric"><option value="sample1">1 · 黛青旧织</option><option value="sample2">2 · 米黄旧织</option><option value="sample3">3 · 赭褐旧织</option><option value="sample4">4 · 朱红团花锦</option><option value="sample5">5 · 赭金团花锦</option><option value="sample6">6 · 金黄织锦</option><option value="sample7">7 · 黛褐蓝花锦</option><option value="sample8">8 · 灰绿粗麻</option><option value="linen">素织 · 原有细麻效果</option><option value="coarse">素织 · 原有粗麻效果</option><option value="silk">素锦 · 原有效果</option><option value="brocade">花锦 · 原有效果</option><option value="uploaded">我上传的布料</option></select><div id="materials" class="material-grid" aria-label="八款布料预览"></div><label for="fabricblend">布料与封面颜色</label><select id="fabricblend"><option value="original">不融合 · 保留布料原色</option><option value="tint">叠加颜色 · 自定义深浅</option></select><label for="tintstrength">颜色图层深浅 <output id="tintvalue">20%</output></label><input id="tintstrength" type="range" min="0" max="100" value="20"><p class="hint">0% 保留原色；20% 为轻染。拉高会加深染色，同时保留布纹明暗。</p><label for="fabricfile">上传自己的布料（可选）</label><input id="fabricfile" type="file" accept="image/*"><p id="fabricstatus" class="material-status" aria-live="polite">八款素材已内置，无需再次上传。</p><details class="text-settings" open><summary>折页纸质 · 九款实物素材</summary><label for="papermaterial">纸质素材</label><select id="papermaterial"><option value="classic">原有 · 微黄竹纤维纸</option><option value="leaf1" selected>1 · 米白细纤维</option><option value="leaf2">2 · 花瓣手工纸</option><option value="leaf3">3 · 茶染旧宣</option><option value="leaf4">4 · 浅黄长纤维</option><option value="leaf5">5 · 本白皱纹纸</option><option value="leaf6">6 · 淡粉草纤维</option><option value="leaf7">7 · 斑驳旧笺</option><option value="leaf8">8 · 青灰刷纹</option><option value="leaf9">9 · 朱砂洒金</option><option value="uploaded">我上传的纸质</option></select><div id="papermaterials" class="material-grid paper-grid" aria-label="九款纸质预览"></div><label for="paperstrength">图片上的纸纹强度 <output id="paperstrengthvalue">38%</output></label><input id="paperstrength" type="range" min="0" max="100" value="38"><p class="hint">页边使用所选纸质；此滑杆控制纸纹在图片上的叠加强度，0% 保留图片原色。</p><label for="paperfile">上传自定义纸质</label><input id="paperfile" type="file" accept="image/*"><p id="paperstatus" class="material-status" role="status">九款素材已内置，可直接切换。</p></details><label for="scrap">左下角舊紙貼片</label><select id="scrap"><option value="mix">墨书、朱栏混搭包角</option><option value="manuscript">泛黄墨书包角</option><option value="ruled">朱栏旧笺包角</option><option value="none">不贴碎纸</option></select><label for="papercount">包角贴片数量</label><select id="papercount"><option>3</option><option selected>4</option><option>5</option></select><label for="paperage">旧纸与纤维强度</label><input id="paperage" type="range" min="0" max="100" value="75"><label for="boardthickness">硬殼厚度 <output id="thicknessvalue">薄</output></label><input id="boardthickness" type="range" min="1" max="6" step="0.5" value="2.5"><label>書名字體</label><select id="font"><option value="serif">宋／明朝 · 系统</option><option value="kai">楷体 · 系统</option><option value="fangsong">仿宋 · 系统</option><option value="hei">黑体 · 系统</option></select><label>上傳字體（可選，TTF / OTF / WOFF）</label><input id="fontfile" type="file" multiple accept=".ttf,.otf,.woff,.woff2"><p id="fontstatus" class="hint" role="status">正在载入本机字体库…</p><div id="fontlist" class="font-list" aria-label="本机已保存字体"></div><p class="cache-state">字体与通用返图共用，退出后重新打开会自动载入。清除浏览器数据会删除字体，请保留原文件。</p><label>光影強度</label><input id="light" type="range" min="0" max="100" value="75"></div><div class="group"><label for="pngwidth">静图清晰度（长边）</label><select id="pngwidth"><option value="800" selected>800 像素 · 节省空间</option><option value="1600">1600 像素 · 清晰</option><option value="original">原始尺寸 · 高清</option></select><button id="download">生成并保存 PNG 静图</button><details class="text-settings" open><summary>展开动画与 GIF</summary><label for="animduration">展开时长（秒）</label><input id="animduration" type="number" min="2" max="12" step="0.5" value="4.5"><label for="gifwidth">GIF 清晰度</label><select id="gifwidth"><option value="800" selected>800 px · 清晰均衡（推荐）</option><option value="1000">1000 像素 · 清晰适中（推荐）</option><option value="1400">1400 像素 · 高清大图</option></select><label for="giffps">GIF 帧率</label><select id="giffps"><option value="8" selected>8 帧/秒 · 节省体积</option><option value="12">12 帧/秒 · 均衡（推荐）</option><option value="15">15 帧/秒 · 更流畅</option></select><label for="gifloop">播放方式</label><select id="gifloop"><option value="loop">循环播放</option><option value="once">只播放一次</option></select><button id="exportgif">导出展开 GIF</button><progress id="gifprogress" hidden max="100" value="0"></progress><p id="gifstatus" class="hint" role="status" aria-live="polite">导出包含完整展开过程，结尾停留 1.5 秒。复杂图片的文件会更大。</p></details><p class="hint">圖片只在本機瀏覽器處理，不會上傳。支持静图与展开动图，均在本机生成；未上传图片的页面保留示意内容。</p></div></section><section class="preview" id="preview"><div class="preview-head"><strong>成品預覽</strong><span>薄殼裱布 · 凹印燙金 · 舊箋</span></div><div class="row preview-actions"><button id="playanimation" class="secondary">播放展开动画</button><button id="pauseanimation" class="secondary">暂停</button></div><label for="openprogress">展开进度</label><input id="openprogress" type="range" min="0" max="100" value="100"><div class="stage"><canvas id="canvas" width="1800" height="1200"></canvas></div><p class="hint">設計重點：平放的薄硬殼以同色裱布收邊；書名直接凹印燙金，左下角以多张旧纸包角；八款素材可保留原色或与封面色融合。內頁仍保留交錯摺角、紙纖維和光影。</p></section></main><aside class="float-preview" id="floatingpreview" aria-label="悬浮实时预览"><div class="float-head" id="floatdrag" tabindex="0" aria-label="拖动悬浮窗口，也可用方向键移动"><span class="float-title">实时预览 · 拖动标题移动</span><div class="float-tools"><button id="floatsmaller" aria-label="缩小预览窗口" title="缩小">−</button><button id="floatlarger" aria-label="放大预览窗口" title="放大">＋</button><button id="floatmin" aria-label="收起预览" aria-expanded="true" title="收起">⌄</button><button id="floatclose" aria-label="关闭悬浮预览" title="关闭">×</button></div></div><div class="float-body"><canvas id="floatcanvas" width="640" height="427" role="img" aria-label="与主预览同步的成品"></canvas><div class="float-footer"><span>与下方成品同步</span><button id="floatplay">播放展开</button></div></div></aside><button id="floatreopen" class="float-reopen" hidden>打开悬浮预览</button><script>const studioOrigin=(()=>{try{return parent.location.origin}catch{return location.origin}})();</script><script>(() => {
+ 'use strict';
+ // Coalesce input bursts, cap interactive preview work, and cancel hidden work.
+ function scheduler(render,active,interval=50){
+  let frame=0,timer=0,last=-Infinity,dirty=false;
+  function cancel(){if(frame)cancelAnimationFrame(frame);if(timer)clearTimeout(timer);frame=timer=0;dirty=false;}
+  function request(){dirty=true;if(!active()||frame||timer)return;frame=requestAnimationFrame(flush);}
+  function flush(now){frame=0;if(!active()){dirty=false;return;}const remaining=interval-(now-last);
+   if(remaining>0){timer=setTimeout(()=>{timer=0;if(dirty)request();},remaining);return;}
+   dirty=false;last=now;if(render(now)!==false)window.guPreviewReady();if(dirty)request();
+  }
+  return {request,cancel};
+ }
+ function edge(){return 1100;}
+ window.StudioPreview={scheduler,edge};
+})();
+</script><script>(() => {
+ 'use strict';
+ const pending=new Map();let busy=false;
+ function announce(value){if(parent!==window)parent.postMessage({type:'studio-busy',busy:value},studioOrigin==='null'?'*':studioOrigin);}
+ function receive(value){const waiter=pending.get(value?.id);if(!waiter)return;pending.delete(value.id);value.status==='saved'?waiter.resolve(value.message):waiter.reject(Error(value.status==='cancelled'?'cancelled':(value.message||'保存失败')));}
+ window.addEventListener('guzheNativeExport',e=>receive(e.detail));
+ window.addEventListener('message',e=>{if(e.origin===studioOrigin&&e.source===parent&&e.data?.type==='native-result')receive(e.data.detail);});
+ function chunk64(blob){return new Promise((resolve,reject)=>{const r=new FileReader;r.onerror=()=>reject(Error('无法读取导出文件'));r.onload=()=>resolve(String(r.result).split(',')[1]);r.readAsDataURL(blob);});}
+ async function save(blob,name){
+  if(busy)throw Error('请先完成上一次保存');
+  if(!['image/png','image/jpeg','image/gif','application/json'].includes(blob.type))throw Error('不支持的导出格式');
+  if(!window.GuzheFiles){const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),60000);return;}
+  busy=true;announce(true);let token;
+  try{token=GuzheFiles.begin(name,blob.type,blob.size);if(!token)throw Error('无法准备保存，请降低尺寸或等待上次保存结束');for(let p=0;p<blob.size;p+=131072){if(!GuzheFiles.append(token,await chunk64(blob.slice(p,p+131072))))throw Error('导出数据传输未完成');}
+   return await new Promise((resolve,reject)=>{pending.set(token,{resolve,reject});if(!GuzheFiles.finish(token)){pending.delete(token);reject(Error('导出文件未能完成'));}});
+  }catch(error){if(token){pending.delete(token);GuzheFiles.abort(token);}throw error;}
+  finally{busy=false;announce(false);}
+ }
+ window.StudioNative={save,get busy(){return busy;}};
+})();
+</script><script>(() => {
+ 'use strict';let database;
+ function open(){if(database)return database;database=new Promise((resolve,reject)=>{const r=indexedDB.open('guzhe-studio-device-v2',1);r.onupgradeneeded=()=>{const d=r.result;if(!d.objectStoreNames.contains('fonts'))d.createObjectStore('fonts',{keyPath:'id'});if(!d.objectStoreNames.contains('settings'))d.createObjectStore('settings');if(!d.objectStoreNames.contains('materials'))d.createObjectStore('materials');};r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);r.onblocked=()=>reject(Error('字体库正在更新，请稍后重试'));});return database;}
+ async function run(mode,fn){const d=await open();return new Promise((resolve,reject)=>{const tx=d.transaction('fonts',mode),r=fn(tx.objectStore('fonts'));tx.oncomplete=()=>resolve(r?.result);tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error||Error('字体保存中断'));});}
+ async function id(buffer){if(crypto.subtle){const h=await crypto.subtle.digest('SHA-256',buffer);return [...new Uint8Array(h)].map(v=>v.toString(16).padStart(2,'0')).join('').slice(0,24);}let h=2166136261;for(const b of new Uint8Array(buffer))h=Math.imul(h^b,16777619);return 'local'+(h>>>0).toString(16)+buffer.byteLength;}
+ let catalog=null,catalogLoading=null;
+ function invalidate(){catalog=null;catalogLoading=null;}
+ async function list(){if(catalog)return catalog;if(catalogLoading)return catalogLoading;const pending=(async()=>{const d=await open();return new Promise((resolve,reject)=>{const rows=[],tx=d.transaction('fonts','readonly'),r=tx.objectStore('fonts').openCursor();r.onsuccess=()=>{const cur=r.result;if(cur){const v=cur.value;rows.push({id:v.id,name:v.name,bytes:v.buffer?.byteLength||v.blob?.size||0});cur.continue();}};tx.oncomplete=()=>resolve(rows);tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error);});})();catalogLoading=pending;try{const rows=await pending;if(catalogLoading===pending)catalog=rows;return rows;}finally{if(catalogLoading===pending)catalogLoading=null;}}
+ window.addEventListener('message',e=>{if(e.source===parent&&e.origin===studioOrigin&&e.data?.type==='font-library-changed')invalidate();});
+ function announce(){invalidate();if(parent!==window)parent.postMessage({type:'font-library-changed'},studioOrigin==='null'?'*':studioOrigin);}
+ async function put(name,buffer){const record={id:await id(buffer),name,buffer};await run('readwrite',s=>s.put(record));announce();return record.id;}
+ async function remove(key){await run('readwrite',s=>s.delete(key));announce();}
+ window.StudioFontLibrary={all:()=>run('readonly',s=>s.getAll()),list,get:key=>run('readonly',s=>s.get(key)),invalidate,put,remove,id,announce};
+})();
+</script><script>
+const $=id=>document.getElementById(id),canvas=$('canvas');let ctx=canvas.getContext('2d');let imgs=[],fabricImage=null,bookImageEpoch=0,clearedBookImages=null;$('fabricfile').onchange=e=>{let f=e.target.files[0];if(!f)return;let im=new Image,u=URL.createObjectURL(f);im.onload=()=>{fabricImage=im;coverMaterialCache.clear();$('fabric').value='uploaded';$('fabricstatus').textContent='已载入：'+f.name+'。可切换原色或融合。';URL.revokeObjectURL(u);syncMaterialUI();draw()};im.onerror=()=>{URL.revokeObjectURL(u);alert('布料圖片讀取失敗')};im.src=u};const controls=['tintstrength','papermaterial','paperstrength','title','author','count','fit','fold','ratio','theme','covercolor','fabric','font','light','scrap','boardthickness','fabricblend','papercount','paperage','topleft','topright','bottomright','topleftsize','toprightsize','bottomleftsize','bottomrightsize','topleftfont','toprightfont','bottomleftfont','bottomrightfont','titlesize','pagewidth','pageheight','bookoffset'];controls.forEach(i=>$(i).addEventListener('input',()=>{$('thicknessvalue').textContent=+$('boardthickness').value<=3?'薄':'稍厚';syncMaterialUI();draw()}));$('clear').onclick=()=>{imgs=[];$('upload').value='';$('files').textContent='尚未上傳圖片，預覽顯示示意頁。';draw()};$('upload').onchange=async e=>{const epoch=bookImageEpoch;let files=[...e.target.files].slice(0,8);try{const loaded=[];for(const file of files)loaded.push(await imageFromBlob(file));if(epoch!==bookImageEpoch)return;imgs=loaded;$('files').textContent=files.map(f=>f.name).join(' · ');if(imgs.length>=3)$('count').value=String(Math.min(imgs.length,8));draw()}catch(err){$('files').textContent='圖片讀取失敗，請重新選擇圖片。'}};
+$('fontfile').onchange=loadUserFonts;function rect(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(x,y,w,h)}function line(x,y,w,h,c,l=1){ctx.strokeStyle=c;ctx.lineWidth=l;ctx.strokeRect(x,y,w,h)}function vertical(t,x,y,size,step,color){ctx.fillStyle=color;ctx.font=`${size}px serif`;ctx.textAlign='center';[...t].forEach((s,i)=>ctx.fillText(s,x,y+i*step))}function imageFit(im,x,y,w,h,mode){let s=mode==='cover'?Math.max(w/im.width,h/im.height):Math.min(w/im.width,h/im.height),iw=im.width*s,ih=im.height*s;ctx.save();ctx.beginPath();ctx.rect(x,y,w,h);ctx.clip();ctx.drawImage(im,x+(w-iw)/2,y+(h-ih)/2,iw,ih);ctx.restore()}// Reusable photo-derived materials, kept inside this offline HTML.
+const coverReferences={}, coverMaterialCache=new Map();let activeCoverEdgeColor="#293f33";
+const builtInFabrics={"sample1": {"name": "黛青旧织", "rect": [24, 20, 1400, 780]}, "sample2": {"name": "米黄旧织", "rect": [30, 15, 1420, 760]}, "sample3": {"name": "赭褐旧织", "rect": [25, 20, 1430, 700]}, "sample4": {"name": "朱红团花锦", "rect": [36, 16, 637, 1360]}, "sample5": {"name": "赭金团花锦", "rect": [18, 12, 670, 1360]}, "sample6": {"name": "金黄织锦", "rect": [18, 12, 670, 1360]}, "sample7": {"name": "黛褐蓝花锦", "rect": [95, 470, 540, 405]}, "sample8": {"name": "灰绿粗麻", "rect": [18, 255, 620, 1000]}};
+const builtInFabricBytes={"sample1": "assets/7ce331ee09951fa6840f.jpg", "sample2": "assets/9ca527baf4705bc1d04d.jpg", "sample3": "assets/a5dc69ffb6773bc61223.jpg", "sample4": "assets/f844d501a8b4fb616bcf.jpg", "sample5": "assets/73dfb1af2ea2f45376a5.jpg", "sample6": "assets/895ee4ebc445e2dc063e.jpg", "sample7": "assets/1fcbcb11e83f13dfe7ab.jpg", "sample8": "assets/593c7db0ffec257e1a00.jpg"};
+
+function materialRandom(k){let t=Math.sin(k*93.13+19.4)*43758.5453;return t-Math.floor(t)}
+function colorParts(hex){return [1,3,5].map(i=>parseInt(hex.slice(i,i+2),16))}
+function tinted(hex,k){return 'rgb('+colorParts(hex).map(c=>Math.max(0,Math.min(255,Math.round(c*k)))).join(',')+')'}
+const materialRequests=new Map();
+function ensureMaterial(key,paper=false){
+ const target=paper?paperImages:coverReferences,url=paper?paperAssets[key]:({...coverReferenceAssets,...builtInFabricBytes})[key];
+ if(!url||target[key])return Promise.resolve();const id=(paper?'paper:':'cover:')+key;
+ if(materialRequests.has(id))return materialRequests.get(id);
+ const task=new Promise(resolve=>{const im=new Image();im.decoding='async';im.onload=()=>{target[key]=im;coverMaterialCache.clear();if(!paper){const thumb=document.querySelector('[data-fabric="'+key+'"] canvas');if(thumb)drawSourceToFit(thumb.getContext('2d'),im,builtInFabrics[key].rect,116,90);}draw();resolve();};im.onerror=()=>{materialRequests.delete(id);resolve();};im.src=url;});materialRequests.set(id,task);return task;
+}
+function watchMaterials(){if(!('IntersectionObserver' in window))return;const observer=new IntersectionObserver(rows=>{for(const row of rows)if(row.isIntersecting){const b=row.target;if(b.dataset.fabric)ensureMaterial(b.dataset.fabric);observer.unobserve(b);}});for(const b of $('materials').querySelectorAll('button'))observer.observe(b);}
+async function loadCoverReferences(){makeMaterialButtons();watchMaterials();syncMaterialUI();draw();}
+
+function drawSourceToFit(g,img,rect,w,h){
+ let [sx,sy,sw,sh]=rect,scale=Math.max(w/sw,h/sh),cw=w/scale,ch=h/scale;
+ g.drawImage(img,sx+(sw-cw)/2,sy+(sh-ch)/2,cw,ch,0,0,w,h);
+}
+function syncMaterialUI(){ensureMaterial($('fabric').value);ensureMaterial($('papermaterial').value,true);$('cover-custom').value=$('covercolor').value;
+ $('covercolor').disabled=$('fabricblend').value==='original';$('cover-custom').disabled=$('covercolor').disabled;
+ $('tintstrength').disabled=$('fabricblend').value==='original';
+ $('tintvalue').textContent=($('fabricblend').value==='original'?0:$('tintstrength').value)+'%';
+ $('paperstrengthvalue').textContent=$('paperstrength').value+'%';
+ for(const b of $('papermaterials').querySelectorAll('button'))b.setAttribute('aria-pressed',String(b.dataset.paper===$('papermaterial').value));
+ if($('materials').querySelectorAll)for(let button of $('materials').querySelectorAll('button'))button.setAttribute('aria-pressed',String(button.dataset.fabric===$('fabric').value));
+ $('papercount').disabled=$('scrap').value==='none';$('paperage').disabled=$('scrap').value==='none';
+window.StudioColors?.refresh();}
+function makeMaterialButtons(){
+ const grid=$('materials');if(!grid.replaceChildren)return;grid.replaceChildren();
+ for(let [key,spec]of Object.entries(builtInFabrics)){
+  let button=document.createElement('button');button.type='button';button.className='material-choice';button.dataset.fabric=key;button.setAttribute('aria-label',spec.name);button.setAttribute('aria-pressed',String($('fabric').value===key));
+  let thumb=document.createElement('canvas');thumb.width=116;thumb.height=90;let g=thumb.getContext('2d');if(coverReferences[key])drawSourceToFit(g,coverReferences[key],spec.rect,116,90);
+  let label=document.createElement('span');label.textContent=spec.name;button.append(thumb,label);button.onclick=()=>{$('fabric').value=key;syncMaterialUI();draw();scheduleSettingsSave()};grid.append(button);
+ }
+}
+function coverSurface(w,h){
+ const kind=$('fabric').value,mode=$('fabricblend').value,color=$('covercolor').value,amount=+$('tintstrength').value/100;
+ let source=kind==='uploaded'?fabricImage:coverReferences[kind],spec=builtInFabrics[kind];
+ const key=[kind,mode,color,amount,Math.round(w),Math.round(h),source?.src||'fallback'].join('|');
+ if(coverMaterialCache.has(key)){let cached=coverMaterialCache.get(key);activeCoverEdgeColor=cached.edgeColor;return cached}
+ let c=document.createElement('canvas');c.width=Math.ceil(w*2);c.height=Math.ceil(h*2);let q=c.getContext('2d',{willReadFrequently:true});
+ if(source){
+  drawSourceToFit(q,source,spec?spec.rect:[0,0,source.width,source.height],c.width,c.height);
+  if(mode==='tint'){
+   let pixels=q.getImageData(0,0,c.width,c.height),d=pixels.data,base=colorParts(color),mean=0;for(let j=0;j<d.length;j+=4)mean+=.2126*d[j]+.7152*d[j+1]+.0722*d[j+2];mean/=d.length/4;
+   for(let j=0;j<d.length;j+=4){let lum=.2126*d[j]+.7152*d[j+1]+.0722*d[j+2],v=Math.max(.36,Math.min(1.9,(lum+15)/(mean+15)));for(let channel=0;channel<3;channel++)d[j+channel]=d[j+channel]*(1-amount)+Math.min(255,base[channel]*v)*amount}q.putImageData(pixels,0,0);
+  }
+ }else{
+  let weave=coverWeave(mode==='tint'?'#'+colorParts(color).map((v,i)=>Math.round(v*amount+colorParts('#607568')[i]*(1-amount)).toString(16).padStart(2,'0')).join(''):'#607568',kind);q.scale(2,2);q.save();q.scale(.48,.48);q.fillStyle=q.createPattern(weave,'repeat');q.fillRect(0,0,w/.48,h/.48);q.restore();
+  if(kind==='brocade'){q.lineWidth=.65;q.strokeStyle='rgba(230,218,174,.16)';for(let x=20;x<w;x+=42)for(let y=20;y<h;y+=60){q.beginPath();q.ellipse(x,y,10,17,.3,0,Math.PI*2);q.stroke()}}
+ }
+ // The thin wrapped edge follows the actual fabric's colour, including original-colour mode.
+ let edge=q.getImageData(Math.max(0,c.width-12),Math.max(0,c.height-20),8,8).data,rgb=[0,0,0];for(let j=0;j<edge.length;j+=4)for(let ch=0;ch<3;ch++)rgb[ch]+=edge[j+ch];c.edgeColor='#'+rgb.map(v=>Math.round(v/(edge.length/4)).toString(16).padStart(2,'0')).join('');activeCoverEdgeColor=c.edgeColor;
+ // Bound cache growth while changing materials, colours or canvas dimensions.
+ if(coverMaterialCache.size>24)coverMaterialCache.clear();coverMaterialCache.set(key,c);return c;
+}
+function drawBambooDesk(W,H,open){
+ const spacing=open?19:13,reed=spacing*(open?.64:.87);ctx.save();
+ for(let row=0,y=0;y<H;y+=spacing,row++){
+  let tone=.90+materialRandom(row+9)*.14;rect(0,y,W,spacing,'rgba(24,17,9,.40)');let strip=ctx.createLinearGradient(0,y,0,y+reed);strip.addColorStop(0,`rgba(221,179,104,${.62*tone})`);strip.addColorStop(.35,`rgba(193,146,73,${.80*tone})`);strip.addColorStop(.8,'rgba(124,88,40,.64)');strip.addColorStop(1,'rgba(71,48,22,.65)');rect(0,y,W,reed,strip);
+  ctx.strokeStyle='rgba(246,214,153,.065)';ctx.lineWidth=.6;ctx.beginPath();ctx.moveTo(0,y+reed*.4);ctx.lineTo(W,y+reed*.4+Math.sin(row)*.8);ctx.stroke();
+ }
+ for(let x=W*.16;x<W;x+=W*.30){
+  ctx.fillStyle='rgba(32,23,12,.24)';ctx.fillRect(x-3,0,12,H);
+  for(let offset of [-2,2]){let cord=ctx.createLinearGradient(x+offset-2,0,x+offset+2,0);cord.addColorStop(0,'#76562b');cord.addColorStop(.4,'#b28b4b');cord.addColorStop(1,'#634820');rect(x+offset-1,0,2.5,H,cord)}
+  for(let y=4;y<H;y+=spacing){ctx.strokeStyle='rgba(215,178,110,.54)';ctx.lineWidth=.9;ctx.beginPath();ctx.moveTo(x-3,y);ctx.lineTo(x+3,y+2);ctx.stroke()}
+ }
+ ctx.restore();
+}
+
+function coverWeave(color,kind){
+ let source=fabricImage||coverReferences.cloth,key=color+kind+(fabricImage?fabricImage.src:(source?'reference-photo':'fallback'));
+ if(coverMaterialCache.has(key))return coverMaterialCache.get(key);
+ const tile=document.createElement('canvas');tile.width=tile.height=256;let g=tile.getContext('2d',{willReadFrequently:true});
+ if(source){
+   // A clean region of the supplied book photograph, with no gilt lettering.
+   if(fabricImage)g.drawImage(source,0,0,source.width,source.height,0,0,256,256);
+   else g.drawImage(source,280,1055,170,155,0,0,256,256);
+   let data=g.getImageData(0,0,256,256),lums=new Float32Array(256*256),avg=0;
+   for(let k=0;k<lums.length;k++){let o=k*4,l=.2126*data.data[o]+.7152*data.data[o+1]+.0722*data.data[o+2];lums[k]=l;avg+=l}avg/=lums.length;
+   const integral=new Float32Array(257*257);for(let yy=0;yy<256;yy++){let row=0;for(let xx=0;xx<256;xx++){row+=lums[yy*256+xx];integral[(yy+1)*257+xx+1]=integral[yy*257+xx+1]+row}}
+   let base=colorParts(color),contrast=kind==='silk'?.45:kind==='coarse'?1.1:.86;
+   for(let k=0;k<lums.length;k++){let o=k*4,xx=k%256,yy=Math.floor(k/256),x0=Math.max(0,xx-12),x1=Math.min(256,xx+13),y0=Math.max(0,yy-12),y1=Math.min(256,yy+13),local=(integral[y1*257+x1]-integral[y0*257+x1]-integral[y1*257+x0]+integral[y0*257+x0])/((x1-x0)*(y1-y0)),variation=Math.max(.55,Math.min(1.42,1+(lums[k]-local)/Math.max(55,avg)*contrast));
+    for(let ch=0;ch<3;ch++)data.data[o+ch]=Math.max(0,Math.min(255,base[ch]*variation));data.data[o+3]=255;
+   }g.putImageData(data,0,0);
+ }else{g.fillStyle=color;g.fillRect(0,0,256,256)}
+ // Mirrored repeats prevent hard rectangular seams in the photographic weave.
+ let repeat=document.createElement('canvas');repeat.width=repeat.height=512;let q=repeat.getContext('2d');
+ for(let i=0;i<2;i++)for(let j=0;j<2;j++){q.save();q.translate(i===0?0:512,j===0?0:512);q.scale(i===0?1:-1,j===0?1:-1);q.drawImage(tile,0,0);q.restore()}
+ coverMaterialCache.set(key,repeat);return repeat;
+}
+function foilTitle(g,w,h){
+ if(!$('title').value)return;
+ const chars=[...$('title').value],font=fontForValue($('font').value);
+ const requested=Math.max(16,Math.min(96,+$('titlesize').value||56))*w/342,size=requested,step=size*1.32,cx=w*.5,cy=h*.5;
+ const mask=document.createElement('canvas');mask.width=Math.ceil(w*2);mask.height=Math.ceil(h*2);const m=mask.getContext('2d');m.scale(2,2);m.fillStyle='white';m.font=`${size}px ${font}`;m.textAlign='center';m.textBaseline='middle';chars.forEach((ch,j)=>m.fillText(ch,cx,cy+(j-(chars.length-1)/2)*step));
+ const foil=document.createElement('canvas');foil.width=mask.width;foil.height=mask.height;let f=foil.getContext('2d');f.drawImage(mask,0,0);f.globalCompositeOperation='source-in';let gold=f.createLinearGradient(0,h*.1,0,h*1.4);gold.addColorStop(0,window.GuBookInk?.('title')?tinted(window.GuBookInk('title'),.90):'#ae9153');gold.addColorStop(.27,window.GuBookInk?.('title')?tinted(window.GuBookInk('title'),1.22):'#dbc38b');gold.addColorStop(.46,window.GuBookInk?.('title')?tinted(window.GuBookInk('title'),1):'#b39757');gold.addColorStop(.7,window.GuBookInk?.('title')?tinted(window.GuBookInk('title'),1.3):'#e4cf9b');gold.addColorStop(1,window.GuBookInk?.('title')?tinted(window.GuBookInk('title'),.76):'#927238');f.fillStyle=gold;f.fillRect(0,0,foil.width,foil.height);
+ f.globalCompositeOperation='source-atop';for(let k=0;k<1500;k++){let xx=materialRandom(k)*foil.width,yy=materialRandom(k+711)*foil.height;f.fillStyle=k%3?'rgba(70,47,14,.09)':'rgba(255,242,201,.14)';f.fillRect(xx,yy,.8+materialRandom(k+1),.8)}
+ g.drawImage(foil,0,0,w,h);
+ // The two very fine inner rims put the gold below the cloth surface.
+ for(let side of [-1,1]){let edge=document.createElement('canvas');edge.width=mask.width;edge.height=mask.height;let e=edge.getContext('2d');e.drawImage(mask,0,0);e.globalCompositeOperation='destination-out';e.drawImage(mask,side*1.2,side*.95);e.globalCompositeOperation='source-in';e.fillStyle=side===1?'rgba(40,29,12,.68)':'rgba(255,238,183,.60)';e.fillRect(0,0,edge.width,edge.height);g.drawImage(edge,0,0,w,h)}
+}
+function scrapPath(g,w,h){
+ g.beginPath();const pts=[[.04,.04],[.17,.025],[.20,.055],[.31,.025],[.44,.04],[.56,.02],[.61,.045],[.77,.025],[.84,.05],[.96,.04],[.95,.17],[.975,.23],[.945,.31],[.97,.44],[.93,.54],[.96,.66],[.935,.76],[.965,.86],[.93,.96],[.80,.95],[.73,.98],[.64,.95],[.55,.965],[.43,.94],[.31,.96],[.25,.93],[.11,.955],[.045,.92],[.06,.82],[.025,.74],[.05,.62],[.035,.53],[.07,.43],[.04,.34],[.065,.25],[.03,.15]];pts.forEach(([x,y],i)=>i?g.lineTo(x*w,y*h):g.moveTo(x*w,y*h));g.closePath();
+}
+function makeAgedScrap(sw,sh,variant,type,age){
+ const st=document.createElement('canvas');st.width=Math.ceil(sw*3);st.height=Math.ceil(sh*3);let q=st.getContext('2d');q.scale(3,3);
+ function tornPath(){
+  let pts=[],seed=variant*197;for(let edge=0;edge<4;edge++){let n=edge%2?18:13;for(let j=0;j<n;j++){let t=j/n,rough=(materialRandom(seed+edge*67+j*3)-.5)*.042;let x,y;if(edge===0){x=t;y=.02+rough}else if(edge===1){x=.98+rough;y=t}else if(edge===2){x=1-t;y=.98+rough}else{x=.02+rough;y=1-t}pts.push([x*sw,y*sh])}}
+  q.beginPath();pts.forEach(([x,y],j)=>j?q.lineTo(x,y):q.moveTo(x,y));q.closePath();
+ }
+ q.save();tornPath();q.clip();q.fillStyle='#d6bd93';q.fillRect(0,0,sw,sh);
+ let regions=type==='ruled'?[[865,475,154,275],[838,455,138,230],[904,540,135,245]]:[[641,170,157,289],[688,30,150,290],[604,300,177,290],[680,860,140,220]];
+ if(coverReferences.paper)q.drawImage(coverReferences.paper,...regions[variant%regions.length],0,0,sw,sh);
+ q.fillStyle=`rgba(168,119,51,${.05+.12*age})`;q.fillRect(0,0,sw,sh);
+ // Long irregular paper fibres, tiny pits and uneven oxidation remain visible over the ink.
+ for(let j=0;j<Math.round(sw*sh/15);j++){
+  let x=materialRandom(j*7+variant*29)*sw,y=materialRandom(j*11+81)*sh,len=2+materialRandom(j+33)*7;
+  q.strokeStyle=j%3===0?`rgba(255,245,207,${.18*age})`:`rgba(99,65,31,${.09*age})`;q.lineWidth=.22+materialRandom(j*13)*.3;q.beginPath();q.moveTo(x,y);q.quadraticCurveTo(x+.8,y+len*.5,x+(materialRandom(j+4)-.5)*1.8,Math.min(sh,y+len));q.stroke();
+ }
+ for(let j=0;j<55;j++){q.fillStyle=`rgba(93,58,24,${(.035+materialRandom(j+variant)*.09)*age})`;q.beginPath();q.ellipse(materialRandom(j+4)*sw,materialRandom(j+40)*sh,.3+materialRandom(j+8)*.9,.2+materialRandom(j+3)*1.6,.4,0,Math.PI*2);q.fill()}
+ let vignette=q.createRadialGradient(sw*.49,sh*.45,sw*.15,sw*.49,sh*.45,Math.max(sw,sh)*.72);vignette.addColorStop(0,'rgba(111,62,21,0)');vignette.addColorStop(1,`rgba(116,65,25,${.12+.30*age})`);q.fillStyle=vignette;q.fillRect(0,0,sw,sh);
+ tornPath();q.strokeStyle=`rgba(107,67,30,${.16+.24*age})`;q.lineWidth=1.6;q.stroke();tornPath();q.strokeStyle='rgba(250,228,184,.35)';q.lineWidth=.35;q.stroke();
+ if(variant%2){q.strokeStyle='rgba(248,233,199,.25)';q.lineWidth=.65;q.beginPath();q.moveTo(sw*.1,sh*.54);q.quadraticCurveTo(sw*.55,sh*.50,sw*.91,sh*.55);q.stroke()}
+ q.restore();return st;
+}
+function oldPaperSticker(g,w,h){
+ const style=$('scrap').value;if(style==='none')return;let count=+$('papercount').value,age=+$('paperage').value/100;
+ const layers=[
+  {x:-.035,y:.755,w:.245,h:.285,r:.07,type:'manuscript'},
+  {x:-.025,y:.916,w:.435,h:.155,r:-.055,type:'ruled'},
+  {x:.10,y:.827,w:.215,h:.177,r:-.19,type:'manuscript'},
+  {x:.015,y:.890,w:.20,h:.15,r:.16,type:'ruled'},
+  {x:.245,y:.926,w:.13,h:.10,r:-.11,type:'manuscript'}
+ ];
+ for(let i=0;i<count;i++){
+  let p=layers[i],sw=w*p.w,sh=h*p.h,type=style==='mix'?p.type:style,scrap=makeAgedScrap(sw,sh,i,type,age);
+  g.save();g.translate(w*p.x,h*p.y);g.rotate(p.r);g.shadowColor='rgba(21,16,10,.24)';g.shadowBlur=1.1;g.shadowOffsetX=.4;g.shadowOffsetY=.8;g.drawImage(scrap,0,0,sw,sh);g.restore();
+ }
+}
+function renderClothCover(w,h){
+ const c=document.createElement('canvas');c.width=Math.ceil(w*2);c.height=Math.ceil(h*2);const g=c.getContext('2d');g.scale(2,2);const color=$('covercolor').value,kind=$('fabric').value,r=Math.min(3,w*.01);
+ g.beginPath();g.roundRect(0,0,w,h,r);g.clip();g.fillStyle=color;g.fillRect(0,0,w,h);
+ const surface=coverSurface(w,h);g.drawImage(surface,0,0,w,h);
+ let light=g.createLinearGradient(0,0,w,h);light.addColorStop(0,'rgba(255,243,216,.075)');light.addColorStop(.5,'rgba(255,255,255,0)');light.addColorStop(1,'rgba(5,10,8,.07)');g.fillStyle=light;g.fillRect(0,0,w,h);
+ // Rounded cloth turn-ins: narrow transitions, no bright metallic bevel.
+ let left=g.createLinearGradient(0,0,4,0);left.addColorStop(0,'rgba(10,16,12,.24)');left.addColorStop(.4,'rgba(225,226,199,.12)');left.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=left;g.fillRect(0,0,4,h);
+ let bottom=g.createLinearGradient(0,h-4,0,h);bottom.addColorStop(0,'rgba(0,0,0,0)');bottom.addColorStop(.72,'rgba(5,12,7,.12)');bottom.addColorStop(1,'rgba(5,10,7,.24)');g.fillStyle=bottom;g.fillRect(0,h-4,w,4);
+ let top=g.createLinearGradient(0,0,0,3);top.addColorStop(0,'rgba(228,230,207,.17)');top.addColorStop(1,'rgba(228,230,207,0)');g.fillStyle=top;g.fillRect(0,0,w,3);
+ foilTitle(g,w,h);oldPaperSticker(g,w,h);return c;
+}
+function drawBoardEdge(x,y,w,h){
+ const t=+$('boardthickness').value,color=activeCoverEdgeColor,r=Math.min(3,w*.01);
+ // A shallow curved side, wrapped in the very same cloth colour.
+ ctx.save();ctx.beginPath();ctx.moveTo(x+r,y+h-.8);ctx.lineTo(x+w-r,y+h-.8);ctx.quadraticCurveTo(x+w,y+h-.8,x+w-.5,y+h+t*.45);ctx.quadraticCurveTo(x+w-1,y+h+t,x+w-r-1,y+h+t);ctx.lineTo(x+r+1,y+h+t);ctx.quadraticCurveTo(x,y+h+t,x+.2,y+h+t*.35);ctx.quadraticCurveTo(x,y+h-1,x+r,y+h-.8);ctx.closePath();
+ let shade=ctx.createLinearGradient(0,y+h-.8,0,y+h+t);shade.addColorStop(0,tinted(color,.97));shade.addColorStop(.35,tinted(color,.88));shade.addColorStop(1,tinted(color,.65));ctx.fillStyle=shade;ctx.shadowColor='rgba(15,12,9,.24)';ctx.shadowBlur=4;ctx.shadowOffsetY=2;ctx.fill();ctx.shadowColor='transparent';if($('scrap').value!=='none'){ctx.clip();let paperedge=ctx.createLinearGradient(0,y+h,0,y+h+t);paperedge.addColorStop(0,'#bca17b');paperedge.addColorStop(1,'#897357');ctx.fillStyle=paperedge;ctx.fillRect(x,y+h-.5,w*.39,t+1)}ctx.restore();
+}
+
+const coverReferenceAssets={"cloth": "assets/01000fb62284cb368763.jpg", "paper": "assets/2ef9b61267e4c4b8495c.jpg"};
+
+// Device-local font library and settings. Stable IDs preserve each text's font choice.
+const fontSelectIDs=['font','topleftfont','toprightfont','bottomleftfont','bottomrightfont'];
+const userFonts=new Map();let settingsReady=false,saveSettingsTimer,dbPromise;
+function openBookDB(){
+ if(dbPromise)return dbPromise;
+ dbPromise=new Promise((resolve,reject)=>{let r=indexedDB.open('guzhe-studio-device-v2',1);r.onupgradeneeded=()=>{const db=r.result;db.createObjectStore('fonts',{keyPath:'id'});db.createObjectStore('settings');db.createObjectStore('materials');};r.onsuccess=()=>{r.result.onversionchange=()=>r.result.close();resolve(r.result)};r.onerror=()=>reject(r.error);r.onblocked=()=>reject(Error('字体库被其他窗口占用，请关闭其他窗口后重试'));});return dbPromise;
+}
+async function dbCall(store,mode,action){const db=await openBookDB();return new Promise((resolve,reject)=>{const tx=db.transaction(store,mode);let request;try{request=action(tx.objectStore(store))}catch(e){reject(e);return}tx.oncomplete=()=>resolve(request?.result);tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error||Error('本机保存被中断'));});}
+async function fontID(buffer){if(crypto.subtle){const hash=await crypto.subtle.digest('SHA-256',buffer);return [...new Uint8Array(hash)].map(v=>v.toString(16).padStart(2,'0')).join('').slice(0,24)}let hash=2166136261;for(const b of new Uint8Array(buffer))hash=Math.imul(hash^b,16777619);return 'local'+(hash>>>0).toString(16)+buffer.byteLength;}
+async function addDeviceFont(record,saved=true){
+ const value='userfont'+record.id;if(userFonts.has(record.id))return value;
+ userFonts.set(record.id,{...record,face:null,saved});for(const id of fontSelectIDs){let option=document.createElement('option');option.value=value;option.textContent=record.name+(saved?' · 已保存':' · 本次使用');$(id).append(option)}return value;
+}
+function usedBookFontIDs(){return new Set(fontSelectIDs.map(id=>$(id).value).filter(v=>v.startsWith('userfont')).map(v=>v.slice(8)));}
+function releaseBookFonts(all=false){const used=all?new Set():usedBookFontIDs();for(const [id,f]of userFonts)if(f.face&&!used.has(id)){document.fonts.delete(f.face);f.face=null;}}
+async function ensureBookFont(id){const f=userFonts.get(id);if(!f)return;if(f.face)return f.face;if(f.loading)return f.loading;
+ f.loading=(async()=>{const record=f.buffer||f.blob?f:await StudioFontLibrary.get(id);if(!record)throw Error('字体缓存不存在');const blob=record.blob||new Blob([record.buffer]),url=URL.createObjectURL(blob);try{const face=new FontFace('BookUserFont'+id,'url("'+url+'")');await face.load();document.fonts.add(face);f.face=face;bookBackgroundCache=null;coverMaterialCache.clear();if(!bookActive||document.hidden){document.fonts.delete(face);f.face=null;}return face;}finally{URL.revokeObjectURL(url);}})().finally(()=>{f.loading=null;});return f.loading;
+}
+async function ensureBookFonts(){await Promise.all([...usedBookFontIDs()].map(ensureBookFont));}
+function bookFontsReady(){releaseBookFonts();let ready=true;for(const id of usedBookFontIDs()){const f=userFonts.get(id);if(f&&!f.face){ready=false;if(!f.loading)ensureBookFont(id).then(()=>bookDraw.request()).catch(()=>{for(const sid of fontSelectIDs)if($(sid).value==='userfont'+id)$(sid).value='serif';$('fontstatus').textContent='这款字体未能解析，请重新选择或导入。';bookDraw.request();});}}return ready;}
+function renderFontList(){
+ $('fontlist').replaceChildren();for(const [id,record]of userFonts){const row=document.createElement('div');row.className='font-item';const name=document.createElement('span');name.textContent=record.name+(record.saved?' · 本机已保存':' · 未保存');const remove=document.createElement('button');remove.type='button';remove.textContent='移除';remove.setAttribute('aria-label','移除字体 '+record.name);remove.onclick=async()=>{if(exporting)return;remove.disabled=true;try{if(record.saved){await dbCall('fonts','readwrite',s=>s.delete(id));StudioFontLibrary.announce();}if(record.face)document.fonts.delete(record.face);userFonts.delete(id);for(const select of fontSelectIDs){const el=$(select);if(el.value==='userfont'+id)el.value='serif';for(const o of [...el.options])if(o.value==='userfont'+id)o.remove()}renderFontList();bookBackgroundCache=null;draw();scheduleSettingsSave();$('fontstatus').textContent='已移除该字体，可随时重新上传。'}catch(e){remove.disabled=false;$('fontstatus').textContent='移除未完成：'+e.message}};row.append(name,remove);$('fontlist').append(row)}
+}
+async function loadUserFonts(e){
+ const files=[...e.target.files];e.target.value='';if(!files.length)return;const input=$('fontfile');input.disabled=true;let loaded=0,saved=0,failed=0,firstValue;
+ try{await deviceReady;for(const file of files){try{const buffer=await file.arrayBuffer(),id=await fontID(buffer),record={id,name:file.name.replace(/\.(ttf|otf|woff2?)$/i,''),buffer};const existed=userFonts.get(id);const value=await addDeviceFont(record,false);if(!firstValue)firstValue=value;loaded++;try{await dbCall('fonts','readwrite',s=>s.put(record));userFonts.get(id).saved=true;delete userFonts.get(id).buffer;for(const sid of fontSelectIDs){const o=[...$(sid).options].find(o=>o.value===value);if(o)o.textContent=record.name+' · 已保存'}saved++;}catch(error){if(existed?.saved){userFonts.get(id).saved=true;saved++}}}catch(error){failed++}}if(firstValue){$('font').value=firstValue;$('font').dispatchEvent(new Event('change',{bubbles:true}));try{await ensureBookFonts();}catch(error){$('font').value='serif';failed++;}}renderFontList();bookBackgroundCache=null;draw();scheduleSettingsSave();$('fontstatus').textContent=`已载入 ${loaded} 款，已保存 ${saved} 款。`+(failed?`${failed} 款未能读取，请检查字体文件。`:'')+(saved<loaded?' 部分字体仅本次可用；本机存储可能已满或不可用。':'下次打开自动载入。');if(saved)StudioFontLibrary.announce();if(saved&&navigator.storage?.persist)navigator.storage.persist().catch(()=>{});
+ }finally{input.disabled=false}
+}
+function collectSettings(){const values={};for(const id of [...controls,'animduration','gifwidth','giffps','gifloop'])values[id]=$(id).value;values.floating=floatingSettings();return values;}
+function scheduleSettingsSave(){if(!settingsReady)return;clearTimeout(saveSettingsTimer);saveSettingsTimer=setTimeout(()=>dbCall('settings','readwrite',s=>s.put(collectSettings(),'editor')).catch(()=>{}),220);}
+async function restoreDevice(){
+ let failures=0;try{const records=await StudioFontLibrary.list();for(const r of records){try{await addDeviceFont(r,true)}catch(e){failures++}}const settings=await dbCall('settings','readonly',s=>s.get('editor'));if(settings){for(const id of [...controls,'animduration','gifwidth','giffps','gifloop']){if(settings[id]===undefined)continue;let el=$(id);if(id==='covercolor'&&/^#[0-9a-f]{6}$/i.test(settings[id])&&![...el.options].some(o=>o.value===settings[id])){const o=document.createElement('option');o.value=settings[id];o.textContent='自定义 '+settings[id];el.append(o);}if(el.tagName==='SELECT'&&![...el.options].some(o=>o.value===settings[id]))continue;el.value=settings[id]}restoreFloating(settings.floating)}
+ for(const kind of ['paper','fabric']){const blob=await dbCall('materials','readonly',s=>s.get(kind));if(blob)try{const im=await imageFromBlob(blob);if(kind==='paper')paperImage=im;else fabricImage=im;}catch(e){}}
+ if($('papermaterial').value==='uploaded'&&!paperImage)$('papermaterial').value='leaf1';if($('fabric').value==='uploaded'&&!fabricImage)$('fabric').value='sample1';
+ $('fontstatus').textContent=userFonts.size?`本机保存 ${userFonts.size} 款字体，使用时才加载。`:'上传字体后自动保存，下次无需重复上传。';if(failures)$('fontstatus').textContent+=' 有字体未能载入，可重新上传。';
+ }catch(error){$('fontstatus').textContent='本机字体库暂时不可用；上传后仍可本次使用，请检查设备可用空间后重新打开应用。'}
+ settingsReady=true;renderFontList();syncMaterialUI();draw();
+}
+function imageFromBlob(blob){return new Promise((resolve,reject)=>{const url=URL.createObjectURL(blob),im=new Image;im.onload=()=>{URL.revokeObjectURL(url);const scale=Math.min(1,2560/Math.max(im.width,im.height));if(scale===1){resolve(im);return;}const reduced=document.createElement('canvas');reduced.width=Math.max(1,Math.round(im.width*scale));reduced.height=Math.max(1,Math.round(im.height*scale));reduced.getContext('2d').drawImage(im,0,0,reduced.width,reduced.height);resolve(reduced)};im.onerror=()=>{URL.revokeObjectURL(url);reject(Error('图片无法读取'))};im.src=url})}
+function drawSceneBackground(W,H){let theme=$('theme').value,green=['wood','bamboo','bambooscreen'].includes(theme),lighting=+$('light').value/100;let bg={wood:'#594333',lightwood:'#b49570',bamboo:'#8f744d',bambooscreen:'#544331',gauze:'#ded4bf',paper:'#e9e1cf'}[theme];rect(0,0,W,H,bg);ctx.save();if(theme==='wood'||theme==='lightwood'){for(let i=0;i<420;i++){let yy=i*H/420;ctx.beginPath();for(let xx=0;xx<=W;xx+=30){let py=yy+Math.sin(xx*.003+i*1.7)*3+Math.sin(xx*.013+i)*1.2;xx?ctx.lineTo(xx,py):ctx.moveTo(xx,py)}ctx.strokeStyle=i%7===0?'rgba(33,20,12,.17)':'rgba(255,231,193,.035)';ctx.lineWidth=i%9===0?2:1;ctx.stroke()}}else if(theme==='bamboo'||theme==='bambooscreen'){drawBambooDesk(W,H,theme==='bambooscreen');}else if(theme==='gauze'){ctx.strokeStyle='rgba(101,88,68,.09)';for(let x=0;x<W;x+=9){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}for(let y=0;y<H;y+=9){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}}let ambience=ctx.createRadialGradient(W*.35,H*.23,10,W*.35,H*.23,W*.9);ambience.addColorStop(0,'rgba(255,239,203,.15)');ambience.addColorStop(1,'rgba(22,17,12,.18)');rect(0,0,W,H,ambience);ctx.restore();}
+function paperRandom(k){let z=Math.sin(k*127.13+7.7)*43758.5453;return z-Math.floor(z)}
+const paperImages={},paperSpecs=[['leaf1','米白细纤维'],['leaf2','花瓣手工纸'],['leaf3','茶染旧宣'],['leaf4','浅黄长纤维'],['leaf5','本白皱纹纸'],['leaf6','淡粉草纤维'],['leaf7','斑驳旧笺'],['leaf8','青灰刷纹'],['leaf9','朱砂洒金']];
+const paperAssets=Object.fromEntries(paperSpecs.map(([key],i)=>[key,{"leaf1":"assets/7a4fc72b21a1ff5c2c59.jpg","leaf2":"assets/e8dac9f7b3bccf15f8ab.jpg","leaf3":"assets/80fde617dd966471876c.jpg","leaf4":"assets/f6ddac55c321feb638d3.jpg","leaf5":"assets/31441f7609794bc51c39.jpg","leaf6":"assets/2d5c107259e5676208d0.jpg","leaf7":"assets/3f2315be5e2bcd175f8a.jpg","leaf8":"assets/33384db7524cafcb4de6.jpg","leaf9":"assets/3b7bb29ae52eda70ce7b.jpg"}[key]]));let paperImage=null;
+async function loadPaperReferences(){const grid=$('papermaterials');grid.replaceChildren();for(const [key,name]of paperSpecs){const b=document.createElement('button');b.type='button';b.className='material-choice';b.dataset.paper=key;b.setAttribute('aria-label',name);const im=document.createElement('img');im.loading='lazy';im.decoding='async';im.src=paperAssets[key];im.alt='';const label=document.createElement('span');label.textContent=name;b.append(im,label);b.onclick=()=>{$('papermaterial').value=key;syncMaterialUI();draw();scheduleSettingsSave()};grid.append(b)}syncMaterialUI();draw();}
+function drawPaperTexture(q,source,w,h){drawSourceToFit(q,source,[0,0,source.width,source.height],w,h)}
+function makePaperLeafRaw(i,w,h){
+ const c=document.createElement('canvas');c.width=Math.ceil(w*2);c.height=Math.ceil(h*2);const q=c.getContext('2d');q.scale(2,2);
+ const kind=$('papermaterial').value,source=kind==='uploaded'?paperImage:paperImages[kind],strength=+$('paperstrength').value/100;
+ q.fillStyle='#ede4cf';q.fillRect(0,0,w,h);if(source)drawPaperTexture(q,source,w,h);
+ const m=w*.065,ix=m+13,iy=m+13,iw=w-2*m-26,ih=h-2*m-26;
+ q.save();q.beginPath();q.rect(ix,iy,iw,ih);q.clip();
+ if(imgs[i]){const im=imgs[i],scale=$('fit').value==='cover'?Math.max(iw/im.width,ih/im.height):Math.min(iw/im.width,ih/im.height);q.drawImage(im,ix+(iw-im.width*scale)/2,iy+(ih-im.height*scale)/2,im.width*scale,im.height*scale)}else{q.fillStyle='rgba(255,250,234,.5)';q.fillRect(ix,iy,iw,ih);q.strokeStyle='#c69a83';q.lineWidth=1;for(let k=1;k<4;k++){q.beginPath();q.moveTo(ix+iw*k/4,iy+20);q.lineTo(ix+iw*k/4,iy+ih-20);q.stroke()}const texts=['天地有大美而不言','浮生若夢為歡幾何','且將新火試新茶','人間有味是清歡'];q.fillStyle='#5d594b';q.textAlign='center';q.font=`${Math.min(28,w*.095)}px serif`;for(let j=0;j<3;j++)[...texts[(i+j)%4]].forEach((ch,k)=>q.fillText(ch,ix+iw*(.78-j*.25),iy+ih*.1+k*Math.min(44,ih*.075)))}
+ if(source){q.globalCompositeOperation='multiply';q.globalAlpha=strength;drawPaperTexture(q,source,w,h)}else if(strength){q.fillStyle=`rgba(210,184,133,${strength*.34})`;q.fillRect(ix,iy,iw,ih);q.strokeStyle=`rgba(103,82,48,${strength*.29})`;q.lineWidth=.7;for(let k=0;k<105;k++){const xx=ix+paperRandom(k+i*200)*iw,yy=iy+paperRandom(k*3+i*27)*ih,len=3+paperRandom(k*7+i)*24;q.beginPath();q.moveTo(xx,yy);q.lineTo(xx+(paperRandom(k*9)-.5)*3,Math.min(iy+ih,yy+len));q.stroke()}}
+ q.restore();q.strokeStyle='#a44738';q.lineWidth=3;q.strokeRect(m,m,w-2*m,h-2*m);q.strokeStyle='#c0806b';q.lineWidth=1;q.strokeRect(m+7,m+7,w-2*m-14,h-2*m-14);return c;
+}
+
+const paperLeafCache=new Map();
+function makePaperLeaf(i,w,h){const kind=$('papermaterial').value,paper=kind==='uploaded'?paperImage:paperImages[kind],key=JSON.stringify([w,h,kind,$('fit').value,$('paperstrength').value]),cached=paperLeafCache.get(i);if(cached?.key===key&&cached.image===imgs[i]&&cached.paper===paper)return cached.canvas;const result=makePaperLeafRaw(i,w,h);paperLeafCache.set(i,{key,image:imgs[i],paper,canvas:result});return result;}
+let bookActive=true,bookBackgroundCache=null;
+const bookDraw=StudioPreview.scheduler(()=>renderPreview(previewProgress),()=>bookActive&&!document.hidden);
+let sceneCache=null,previewProgress=1,playbackToken=0,playing=false,exporting=false,exportCancel=null;
+function fontForValue(value){
+ if(value==='kai')return 'KaiTi, STKaiti, "Noto Serif CJK TC", serif';
+ if(value==='hei')return '"Noto Sans CJK SC", "Microsoft YaHei", sans-serif';
+ if(value==='fangsong')return 'FangSong, STFangsong, "Noto Serif CJK TC", serif';
+ if(value==='custom')return 'UploadedBookFont, serif';
+ if(value.startsWith('userfont'))return 'BookUserFont'+value.slice(8)+', serif';
+ return '"Noto Serif CJK TC", "Songti TC", "Noto Serif TC", SimSun, serif';
+}
+function drawCornerTexts(g,W,H){
+ const dark=['wood','bamboo','bambooscreen'].includes($('theme').value),color=dark?'#e8e2ce':'#405145';
+ const settings=[['topleft','topleftsize','topleftfont',.065,.09,'left',false],['topright','toprightsize','toprightfont',.935,.09,'right',false],['author','bottomleftsize','bottomleftfont',.065,.91,'left',true],['bottomright','bottomrightsize','bottomrightfont',.935,.91,'right',true]];
+ for(const [textId,sizeId,fontId,x,y,align,bottom]of settings){
+  let text=$(textId).value;if(!text.trim())continue;let size=Math.max(10,Math.min(48,+$(sizeId).value||24));g.save();g.font=`${size}px ${fontForValue($(fontId).value)}`;g.textAlign=align;g.textBaseline='middle';g.fillStyle=window.GuBookInk?.(textId)||color;
+  let lines=[],line='';for(let ch of text){if(ch==='\n'||(line&&g.measureText(line+ch).width>W*.40)){lines.push(line);line=ch==='\n'?'':ch}else line+=ch}if(line)lines.push(line);lines=lines.slice(0,3);let yy=H*y-(bottom?(lines.length-1)*size*1.3:0);lines.forEach((l,i)=>g.fillText(l,W*x,yy+i*size*1.3));g.restore();
+ }
+}
+function prepareScene(preview=false){
+ const W=1800,H=$('ratio').value==='land'?1200:$('ratio').value==='square'?1800:2250,n=+$('count').value,fold=+$('fold').value/100,lighting=+$('light').value/100;
+ const bgKey=JSON.stringify([preview,W,H,...['theme','light','topleft','topleftsize','topleftfont','topright','toprightsize','toprightfont','author','bottomleftsize','bottomleftfont','bottomright','bottomrightsize','bottomrightfont'].map(id=>$(id).value)]);let bg;
+ if(bookBackgroundCache?.key===bgKey)bg=bookBackgroundCache.canvas;else{bg=document.createElement('canvas');const scale=1;bg.width=Math.round(W*scale);bg.height=Math.round(H*scale);let old=ctx;ctx=bg.getContext('2d');ctx.scale(bg.width/W,bg.height/H);try{drawSceneBackground(W,H);drawCornerTexts(ctx,W,H)}finally{ctx=old}bookBackgroundCache={key:bgKey,canvas:bg};}
+ let baseW=310*+$('pagewidth').value/100,baseH=636*+$('pageheight').value/100,baseCover=335,total=baseCover+n*baseW,scale=Math.min(1,W*.88/total,H*.65/(baseH*1.08)),cover=baseCover*scale,pw=baseW*scale,bh=baseH*scale;
+ let x=(W-(cover+n*pw))/2,y=Math.max(H*.16,Math.min(H*.84-bh,(H-bh)/2+H*+$('bookoffset').value/100));
+ const scene={preview,W,H,n,fold,lighting,bg,x,y,bh,widths:[cover,...Array(n).fill(pw)]};scene.leaves=[renderClothCover(cover,bh)];scene.edgeColor=activeCoverEdgeColor;
+ for(let i=0;i<n;i++)scene.leaves.push(makePaperLeaf(i,pw,bh));return scene;
+}
+function drawTriangle(g,image,s,d){
+ let sx1=s[1][0]-s[0][0],sy1=s[1][1]-s[0][1],sx2=s[2][0]-s[0][0],sy2=s[2][1]-s[0][1],dx1=d[1][0]-d[0][0],dy1=d[1][1]-d[0][1],dx2=d[2][0]-d[0][0],dy2=d[2][1]-d[0][1],det=sx1*sy2-sx2*sy1;if(Math.abs(det)<.001)return;
+ let a=(dx1*sy2-dx2*sy1)/det,b=(dy1*sy2-dy2*sy1)/det,c=(dx2*sx1-dx1*sx2)/det,e=(dy2*sx1-dy1*sx2)/det,tx=d[0][0]-a*s[0][0]-c*s[0][1],ty=d[0][1]-b*s[0][0]-e*s[0][1];
+ const side0=Math.hypot(d[1][0]-d[2][0],d[1][1]-d[2][1]),side1=Math.hypot(d[0][0]-d[2][0],d[0][1]-d[2][1]),side2=Math.hypot(d[0][0]-d[1][0],d[0][1]-d[1][1]),perimeter=side0+side1+side2,cx=(d[0][0]*side0+d[1][0]*side1+d[2][0]*side2)/perimeter,cy=(d[0][1]*side0+d[1][1]*side1+d[2][1]*side2)/perimeter,radius=Math.abs(dx1*dy2-dx2*dy1)/perimeter,matrix=g.getTransform(),expand=1.15/Math.max(.2,Math.hypot(matrix.a,matrix.b)),factor=1+expand/Math.max(.05,radius);
+ g.save();g.beginPath();d.forEach(([x,y],i)=>{let xx=cx+(x-cx)*factor,yy=cy+(y-cy)*factor;i?g.lineTo(xx,yy):g.moveTo(xx,yy)});g.closePath();g.clip();g.transform(a,b,c,e,tx,ty);g.drawImage(image,0,0);g.restore();
+}
+function projectPaper(g,image,a,b){
+ const columns=1;for(let j=0;j<columns;j++){let t=j/columns,u=(j+1)/columns,lerp=(x,y,k)=>x+(y-x)*k,x0=a.x+(b.x-a.x)*t,x1=a.x+(b.x-a.x)*u,top0=lerp(a.top,b.top,t),top1=lerp(a.top,b.top,u),bottom0=lerp(a.bottom,b.bottom,t),bottom1=lerp(a.bottom,b.bottom,u),sx0=image.width*t,sx1=image.width*u;
+ drawTriangle(g,image,[[sx0,0],[sx1,0],[sx1,image.height]],[[x0,top0],[x1,top1],[x1,bottom1]]);drawTriangle(g,image,[[sx0,0],[sx1,image.height],[sx0,image.height]],[[x0,top0],[x1,bottom1],[x0,bottom0]]);
+ }
+}
+// Export reuses the full-resolution prepared scene. renderSceneTo scales it to GIF dimensions.
+function prepareExportScene(scene,width,height){
+ if(!scene||!scene.bg||!scene.leaves||!width||!height)throw Error('GIF 场景准备失败');
+ return scene;
+}
+function renderSceneTo(g,outW,outH,progress,scene){
+ const previousContext=ctx;ctx=g;try{
+  g.save();g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,outW,outH);g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';g.drawImage(scene.bg,0,0,outW,outH);g.scale(outW/scene.W,outH/scene.H);
+  const {n,x,y,bh,fold,lighting}=scene,opens=[1],widths=[scene.widths[0]],variation=[.72,1.08,.86,1.2,.68,1.04,.81,1.13,.75,1],verts=[];
+  for(let i=1;i<=n;i++){let t=Math.max(0,Math.min(1,(progress*(n+.45)-(i-1))/1.45));let ease=t*t*(3-2*t);opens.push(ease);widths.push(scene.widths[i]*(.008+.992*Math.sin(ease*Math.PI/2)))}
+  let pos=x;for(let j=0;j<=n+1;j++){let warmth=j<2?0:Math.max(opens[Math.min(j,n)],opens[Math.max(0,j-1)]),sign=j%2===0?-1:1,depth=bh*.038*fold*variation[j%variation.length]*warmth;verts.push({x:pos,top:y+sign*depth,bottom:y+bh+sign*depth*.72});if(j<=n)pos+=widths[j]}
+  activeCoverEdgeColor=scene.edgeColor;
+  for(let i=0;i<=n;i++){
+   const a=verts[i],b=verts[i+1],w=b.x-a.x,p=opens[i],image=scene.leaves[i];if(i===0)drawBoardEdge(a.x,a.top,w,bh);
+   g.save();g.shadowColor=`rgba(25,20,15,${i===0?.27:.15+.38*lighting})`;g.shadowBlur=i===0?7:8+(17+20*lighting)*p;g.shadowOffsetX=i===0?1:4+4*p;g.shadowOffsetY=i===0?3:5+(11+18*lighting)*p;g.fillStyle='rgba(45,39,29,.20)';g.beginPath();if(i===0)g.roundRect(a.x,a.top,w,bh,Math.min(3,w*.01));else{g.moveTo(a.x,a.top);g.lineTo(b.x,b.top);g.lineTo(b.x,b.bottom);g.lineTo(a.x,a.bottom);g.closePath()}g.fill();g.restore();
+   g.save();g.beginPath();g.moveTo(a.x,a.top);g.lineTo(b.x,b.top);g.lineTo(b.x,b.bottom);g.lineTo(a.x,a.bottom);g.closePath();g.clip();if(i===0)g.drawImage(image,a.x,a.top,w,bh);else{
+    if(w>1)projectPaper(g,image,a,b);let shade=g.createLinearGradient(a.x,0,b.x,0);if(i%2){shade.addColorStop(0,`rgba(50,37,23,${.48*fold*lighting+.25*(1-p)})`);shade.addColorStop(.48,`rgba(91,69,44,${.05*fold+.15*(1-p)})`);shade.addColorStop(1,`rgba(255,248,223,${.24*fold*lighting*p})`)}else{shade.addColorStop(0,`rgba(255,250,228,${.28*fold*lighting*p})`);shade.addColorStop(.55,`rgba(90,65,38,${.035*fold+.12*(1-p)})`);shade.addColorStop(1,`rgba(54,39,24,${.45*fold*lighting+.2*(1-p)})`)}g.fillStyle=shade;g.fillRect(a.x,y-bh*.1,w,bh*1.2);
+   }g.restore();if(i>0){g.beginPath();g.moveTo(a.x,a.top);g.lineTo(a.x,a.bottom);g.strokeStyle=i%2?'rgba(83,65,44,.26)':'rgba(255,251,232,.50)';g.lineWidth=.8;g.stroke()}
+  }
+  g.restore();
+ }finally{ctx=previousContext}
+}
+function renderPreview(progress){
+ if(!bookActive||document.hidden||!bookFontsReady())return false;if(!sceneCache||!sceneCache.preview)sceneCache=prepareScene(true);const scale=1,w=Math.round(sceneCache.W*scale),h=Math.round(sceneCache.H*scale);if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h}renderSceneTo(ctx,w,h,progress,sceneCache);$('openprogress').value=Math.round(progress*100);syncFloatingPreview();
+}
+function stopPlayback(){playing=false;playbackToken++;$('pauseanimation').textContent='暂停';}
+function draw(){if(exporting)return;stopPlayback();sceneCache=null;bookDraw.request();}
+function playOpening(resume=false){
+ if(exporting)return;const token=++playbackToken,startProgress=resume?previewProgress:0,duration=Math.max(2,Math.min(12,+$('animduration').value||4.5))*1000,start=performance.now();playing=true;$('pauseanimation').textContent='暂停';let last=0;
+ function tick(now){if(token!==playbackToken||!playing||!bookActive||document.hidden)return;previewProgress=Math.min(1,startProgress+(now-start)/duration);if(now-last>65||previewProgress===1){renderPreview(previewProgress);last=now}if(previewProgress<1)requestAnimationFrame(tick);else playing=false}requestAnimationFrame(tick);
+}
+$('playanimation').onclick=()=>playOpening(false);$('pauseanimation').onclick=()=>{if(playing){stopPlayback();$('pauseanimation').textContent='继续'}else playOpening(true)};
+$('openprogress').oninput=()=>{if(exporting)return;stopPlayback();previewProgress=+$('openprogress').value/100;bookDraw.request()};
+// Android uses a chunked bridge and the system document picker for PNG/GIF saves.
+async function downloadBlobURL(url,name,revoke=true){try{const blob=await(await fetch(url)).blob();await StudioNative.save(blob,name);$('appstatus').textContent='已保存：'+name;}finally{if(revoke)URL.revokeObjectURL(url)}}
+$('download').onclick=async()=>{
+ if(exporting)return;stopPlayback();exporting=true;freezeEditing(true);$('appstatus').textContent='正在准备高清静图…';
+ try{await ensureBookFonts();await document.fonts.ready;const scene=prepareScene(false),off=document.createElement('canvas');const edge=$('pngwidth').value==='original'?Math.max(scene.W,scene.H):+$('pngwidth').value,scale=edge/Math.max(scene.W,scene.H);off.width=Math.max(1,Math.round(scene.W*scale));off.height=Math.max(1,Math.round(scene.H*scale));renderSceneTo(off.getContext('2d'),off.width,off.height,1,scene);const blob=await new Promise(resolve=>off.toBlob(resolve,'image/png'));off.width=off.height=1;if(!blob)throw Error('图片生成失败');await downloadBlobURL(URL.createObjectURL(blob),'古折页-高清静图.png');}
+ catch(error){$('appstatus').textContent=error.message==='cancelled'?'已取消保存，可重新导出。':'保存未完成：'+error.message;}
+ finally{exporting=false;freezeEditing(false);renderPreview(previewProgress)}
+};
+
+// Offline GIF89a encoder: one adaptive global palette and transparent differential rectangles.
+const makeGIFCodec=window.StudioGIFCodec;
+
+function makeGIFEngine(){
+ let worker=null,pending=null,cancelled=false,local=null;
+ try{const source='const codec=('+makeGIFCodec.toString()+')();self.onmessage=e=>{try{const m=e.data;if(m.type==="init"){codec.init(m.width,m.height,new Uint8ClampedArray(m.rgba),m.loop);self.postMessage({ok:true})}else if(m.type==="frame"){codec.frame(new Uint8ClampedArray(m.rgba),m.delay);self.postMessage({ok:true})}else if(m.type==="finish"){let bytes=codec.finish();self.postMessage({buffer:bytes.buffer},[bytes.buffer])}}catch(error){self.postMessage({error:error.message})}}';let url=URL.createObjectURL(new Blob([source],{type:'text/javascript'}));worker=new Worker(url);URL.revokeObjectURL(url);worker.onmessage=e=>{if(pending){let p=pending;pending=null;e.data.error?p.reject(Error(e.data.error)):p.resolve(e.data)}};worker.onerror=e=>{if(pending){pending.reject(Error(e.message||'GIF编码器启动失败'));pending=null}}}catch(e){local=makeGIFCodec()}
+ return{
+  async call(message){if(cancelled)throw Error('cancelled');if(worker)return new Promise((resolve,reject)=>{pending={resolve,reject};worker.postMessage(message,message.rgba?[message.rgba]:[])});await new Promise(resolve=>setTimeout(resolve,0));if(message.type==='init')local.init(message.width,message.height,new Uint8ClampedArray(message.rgba),message.loop);else if(message.type==='frame')local.frame(new Uint8ClampedArray(message.rgba),message.delay);else return{buffer:local.finish().buffer};return{ok:true}},
+  cancel(){cancelled=true;if(pending){pending.reject(Error('cancelled'));pending=null}if(worker)worker.terminate()},close(){if(worker)worker.terminate()}
+ };
+}
+function freezeEditing(disabled){for(let el of document.querySelectorAll('.panel input,.panel select,.panel button,#playanimation,#pauseanimation,#openprogress')){if(el.id==='exportgif')continue;if(disabled){el.dataset.wasDisabled=String(el.disabled);el.disabled=true}else{el.disabled=el.dataset.wasDisabled==='true';delete el.dataset.wasDisabled}}if(!disabled)syncMaterialUI()}
+$('exportgif').onclick=async()=>{
+ if(exporting){if(exportCancel)exportCancel();return}
+ stopPlayback();exporting=true;freezeEditing(true);$('exportgif').textContent='取消 GIF 导出';$('gifprogress').hidden=false;$('gifprogress').value=0;let engine=makeGIFEngine(),cancelled=false;exportCancel=()=>{cancelled=true;engine.cancel()};
+ try{
+  await ensureBookFonts();await document.fonts.ready;if(!sceneCache||sceneCache.preview)sceneCache=prepareScene(false);let width=+$('gifwidth').value,height=Math.round(width*sceneCache.H/sceneCache.W),scene=prepareExportScene(sceneCache,width,height),fps=+$('giffps').value,steps=Math.round(Math.max(2,Math.min(12,+$('animduration').value||4.5))*fps),off=document.createElement('canvas');off.width=width;off.height=height;let g=off.getContext('2d',{willReadFrequently:true});
+  $('gifstatus').textContent='正在准备清晰色板…';renderSceneTo(g,width,height,1,scene);let reference=g.getImageData(0,0,width,height);await engine.call({type:'init',width,height,rgba:reference.data.buffer,loop:$('gifloop').value==='loop'});
+  for(let i=0;i<=steps;i++){
+   if(cancelled)throw Error('cancelled');renderSceneTo(g,width,height,i/steps,scene);let frame=g.getImageData(0,0,width,height),delay=i===0?450:(Math.round(i*100/fps)-Math.round((i-1)*100/fps))*10+(i===steps?1500:0);await engine.call({type:'frame',rgba:frame.data.buffer,delay});$('gifprogress').value=Math.round((i+1)/(steps+1)*100);$('gifstatus').textContent=`正在导出 ${i+1}/${steps+1} 帧 · ${width} × ${height}`;await new Promise(resolve=>setTimeout(resolve,0));
+  }
+  let result=await engine.call({type:'finish'}),blob=new Blob([result.buffer],{type:'image/gif'}),mb=(blob.size/1048576).toFixed(2);if(cancelled)throw Error('cancelled');await downloadBlobURL(URL.createObjectURL(blob),'古折页-缓缓展开-'+width+'.gif');$('gifstatus').textContent=`导出完成：${width} × ${height}，${mb} MB。`;
+ }catch(error){$('gifstatus').textContent=cancelled||error.message==='cancelled'?'已取消导出。':'导出未完成：'+error.message+'。可降低尺寸后重试。'}finally{engine.close();exporting=false;exportCancel=null;freezeEditing(false);$('exportgif').textContent='导出展开 GIF';renderPreview(previewProgress)}
+};
+
+// Mirror the same rendered frame rather than maintaining a second scene.
+let floatWidth=344,floatPosition=null,floatVisible=true,floatCollapsed=false;
+function floatingSettings(){return {width:floatWidth,position:floatPosition,visible:floatVisible,collapsed:floatCollapsed}}
+function restoreFloating(value){if(!value)return;floatWidth=Number(value.width)||344;if(floatWidth===320)floatWidth=344;floatPosition=value.position&&Number.isFinite(value.position.x)&&Number.isFinite(value.position.y)?value.position:null;floatVisible=value.visible!==false;floatCollapsed=!!value.collapsed;applyFloatingLayout();}
+function applyFloatingLayout(){
+ const box=$('floatingpreview');box.hidden=!floatVisible;$('floatreopen').hidden=floatVisible;box.classList.toggle('collapsed',floatCollapsed);$('floatmin').setAttribute('aria-expanded',String(!floatCollapsed));$('floatmin').setAttribute('aria-label',floatCollapsed?'展开预览':'收起预览');$('floatmin').textContent=floatCollapsed?'⌃':'⌄';$('floatmin').title=floatCollapsed?'展开':'收起';
+ const viewport=window.visualViewport,viewW=viewport?.width||innerWidth,viewH=viewport?.height||innerHeight;floatWidth=Math.max(200,Math.min(floatWidth,viewW-24));box.style.width=floatWidth+'px';if(floatPosition){floatPosition.x=Math.max(8,Math.min(floatPosition.x,viewW-floatWidth-8));floatPosition.y=Math.max(8,Math.min(floatPosition.y,viewH-Math.min(box.offsetHeight||200,viewH-16)-8));box.style.left=floatPosition.x+'px';box.style.top=floatPosition.y+'px';box.style.right='auto';}syncFloatingPreview();
+}
+function syncFloatingPreview(){
+ const box=$('floatingpreview'),target=$('floatcanvas');if(!target||box.hidden||box.classList.contains('collapsed'))return;const width=Math.max(200,Math.round((box.clientWidth||floatWidth)*Math.min(2,devicePixelRatio||1))),height=Math.round(width*canvas.height/canvas.width);if(target.width!==width||target.height!==height){target.width=width;target.height=height}const g=target.getContext('2d');g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';g.drawImage(canvas,0,0,width,height);
+}
+function initFloatingPreview(){
+ if(innerWidth<800)floatWidth=260;applyFloatingLayout();let drag=null;const box=$('floatingpreview'),handle=$('floatdrag');
+ handle.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;const r=box.getBoundingClientRect();drag={id:e.pointerId,x:e.clientX,y:e.clientY,left:r.left,top:r.top};handle.setPointerCapture(e.pointerId);e.preventDefault()});
+ handle.addEventListener('pointermove',e=>{if(!drag||e.pointerId!==drag.id)return;floatPosition={x:drag.left+e.clientX-drag.x,y:drag.top+e.clientY-drag.y};applyFloatingLayout()});
+ const end=e=>{if(!drag||e.pointerId!==drag.id)return;drag=null;scheduleSettingsSave()};handle.addEventListener('pointerup',end);handle.addEventListener('pointercancel',end);
+ handle.addEventListener('keydown',e=>{if(e.target!==handle)return;const delta={ArrowLeft:[-15,0],ArrowRight:[15,0],ArrowUp:[0,-15],ArrowDown:[0,15]}[e.key];if(!delta)return;e.preventDefault();const r=box.getBoundingClientRect();floatPosition={x:r.left+delta[0],y:r.top+delta[1]};applyFloatingLayout();scheduleSettingsSave()});
+ $('floatsmaller').onclick=()=>{floatWidth-=50;applyFloatingLayout();scheduleSettingsSave()};$('floatlarger').onclick=()=>{floatWidth=Math.min(600,floatWidth+50);applyFloatingLayout();scheduleSettingsSave()};
+ $('floatmin').onclick=()=>{floatCollapsed=!floatCollapsed;applyFloatingLayout();scheduleSettingsSave()};$('floatclose').onclick=()=>{floatVisible=false;applyFloatingLayout();scheduleSettingsSave()};
+ const show=()=>{floatVisible=true;floatCollapsed=false;applyFloatingLayout();scheduleSettingsSave()};$('showfloat').onclick=show;$('floatreopen').onclick=show;
+ $('floatplay').onclick=()=>playOpening(false);window.addEventListener('resize',applyFloatingLayout);window.visualViewport?.addEventListener('resize',applyFloatingLayout);
+}
+function initInstallableApp(){
+ $('installapp').hidden=true;$('saveoffline').hidden=true;
+ $('appstatus').textContent=window.GuzheFiles?'安卓离线版 · 字体保存在当前浏览器 · 成品可导出到手机':'在线网页版 · 图片在本机处理 · 字体与草稿保存在当前浏览器';
+ document.addEventListener('input',()=>{if(window.GuzheFiles)GuzheFiles.markEdited()});
+ document.addEventListener('change',()=>{if(window.GuzheFiles)GuzheFiles.markEdited()});
+}
+
+
+let refreshingSharedFonts;
+function refreshSharedFonts(){if(refreshingSharedFonts)return refreshingSharedFonts;refreshingSharedFonts=(async()=>{await deviceReady;const records=await StudioFontLibrary.list(),ids=new Set(records.map(r=>r.id));for(const [id,r]of userFonts){if(r.saved&&!ids.has(id)){if(r.face)document.fonts.delete(r.face);userFonts.delete(id);for(const sid of fontSelectIDs){const el=$(sid);if(el.value==='userfont'+id)el.value='serif';for(const o of [...el.options])if(o.value==='userfont'+id)o.remove();}}}for(const r of records)if(!userFonts.has(r.id))await addDeviceFont(r,true);renderFontList();bookBackgroundCache=null;draw();scheduleSettingsSave();})().catch(()=>{}).finally(()=>{refreshingSharedFonts=null;});return refreshingSharedFonts;}
+window.addEventListener('message',event=>{if(event.origin!==studioOrigin||event.source!==parent)return;if(event.data?.type==='studio-active'){bookActive=!!event.data.active;if(bookActive){applyFloatingLayout();renderPreview(previewProgress);refreshSharedFonts();}else{bookDraw.cancel();releaseBookFonts(true);stopPlayback();scheduleSettingsSave();}}if(event.data?.type==='font-library-changed'&&bookActive)refreshSharedFonts();});
+
+document.addEventListener('visibilitychange',()=>{if(document.hidden){bookDraw.cancel();releaseBookFonts(true);stopPlayback();}else if(bookActive)bookDraw.request();});
+$('cover-custom').addEventListener('input',()=>{const value=$('cover-custom').value,select=$('covercolor');if(![...select.options].some(o=>o.value===value)){const option=document.createElement('option');option.value=value;option.textContent='自定义 '+value;select.append(option);}select.value=value;select.dispatchEvent(new Event('input',{bubbles:true}));});
+initFloatingPreview();
+const deviceReady=restoreDevice();
+const materialsReady=Promise.all([loadCoverReferences(),loadPaperReferences()]);
+for(const id of [...controls,'animduration','gifwidth','giffps','gifloop']){const el=$(id);el.addEventListener('input',scheduleSettingsSave);el.addEventListener('change',()=>{if(settingsReady){clearTimeout(saveSettingsTimer);dbCall('settings','readwrite',s=>s.put(collectSettings(),'editor')).catch(()=>{})}});}
+$('paperfile').onchange=async e=>{const epoch=bookImageEpoch,file=e.target.files[0];if(!file)return;try{await deviceReady;const loaded=await imageFromBlob(file);if(epoch!==bookImageEpoch)return;paperImage=loaded;$('papermaterial').value='uploaded';$('paperstatus').textContent='已载入：'+file.name;try{await dbCall('materials','readwrite',s=>s.put(file,'paper'));$('paperstatus').textContent+=' · 已保存到本机'}catch(e){$('paperstatus').textContent+=' · 本次使用，未能保存'}syncMaterialUI();draw();scheduleSettingsSave()}catch(e){$('paperstatus').textContent='纸质图片无法读取，请重新选择。'}};
+$('fabricfile').onchange=async e=>{const epoch=bookImageEpoch,file=e.target.files[0];if(!file)return;try{await deviceReady;const loaded=await imageFromBlob(file);if(epoch!==bookImageEpoch)return;fabricImage=loaded;coverMaterialCache.clear();$('fabric').value='uploaded';$('fabricstatus').textContent='已载入：'+file.name;try{await dbCall('materials','readwrite',s=>s.put(file,'fabric'));$('fabricstatus').textContent+=' · 已保存到本机'}catch(e){$('fabricstatus').textContent+=' · 本次使用，未能保存'}syncMaterialUI();draw();scheduleSettingsSave()}catch(e){$('fabricstatus').textContent='布料图片无法读取，请重新选择。'}};
+for(const b of $('materials').querySelectorAll('button'))b.addEventListener('click',scheduleSettingsSave);
+initInstallableApp();draw();syncMaterialUI();
+</script><script>(() => {
+ 'use strict';
+ const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
+ function hsvToHex(h,s,v){h=((Number(h)||0)%360+360)%360;s=clamp(Number(s)||0,0,100)/100;v=clamp(Number(v)||0,0,100)/100;const c=v*s,x=c*(1-Math.abs(h/60%2-1)),m=v-c;const rgb=h<60?[c,x,0]:h<120?[x,c,0]:h<180?[0,c,x]:h<240?[0,x,c]:h<300?[x,0,c]:[c,0,x];return '#'+rgb.map(n=>Math.round((n+m)*255).toString(16).padStart(2,'0')).join('');}
+ function hexToHSV(hex){if(!/^#[0-9a-f]{6}$/i.test(hex))hex='#ffffff';const [r,g,b]=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255),max=Math.max(r,g,b),min=Math.min(r,g,b),d=max-min;let h=0;if(d)h=max===r?60*((g-b)/d%6):max===g?60*((b-r)/d+2):60*((r-g)/d+4);return{h:(h+360)%360,s:max?d/max*100:0,v:max*100};}
+ const buttons=new Map();let overlay,source,selected,lastFocus,previousOverflow;
+ function refresh(){for(const [input,button]of buttons){if(button.disabled!==input.disabled)button.disabled=input.disabled;const value=input.value;if(button.dataset.color===value)continue;button.dataset.color=value;button.querySelector('i').style.background=value;button.querySelector('small').textContent=value.toUpperCase();button.setAttribute('aria-label',(input.dataset.colorTitle||'自定义颜色')+' '+value);}}
+ function close(){overlay.hidden=true;document.body.style.overflow=previousOverflow;source=null;lastFocus?.focus();}
+ function paint(){const color=hsvToHex(selected.h,selected.s,selected.v);for(const k of ['h','s','v']){overlay.querySelector('#studio-color-'+k).value=selected[k];overlay.querySelector('#studio-color-'+k+'-value').value=Math.round(selected[k]);}overlay.querySelector('#studio-color-s').style.background=`linear-gradient(to right,${hsvToHex(selected.h,0,selected.v)},${hsvToHex(selected.h,100,selected.v)})`;overlay.querySelector('#studio-color-v').style.background=`linear-gradient(to right,#000000,${hsvToHex(selected.h,selected.s,100)})`;overlay.querySelector('#studio-color-sample').style.background=color;overlay.querySelector('#studio-color-hex').value=color.toUpperCase();overlay.querySelector('#studio-color-apply').disabled=false;}
+ function open(input){source=input;selected=hexToHSV(input.value);lastFocus=document.activeElement;previousOverflow=document.body.style.overflow;const label=input.dataset.colorTitle||'自定义颜色';overlay.querySelector('#studio-color-title').textContent=label.startsWith('自定义')?label:'自定义'+label;paint();overlay.hidden=false;document.body.style.overflow='hidden';overlay.querySelector('#studio-color-h').focus();}
+ function init(){if(overlay)return;const style=document.createElement('style');style.textContent=`
+ .studio-color-button{display:inline-flex;align-items:center;gap:9px;width:auto!important;min-width:122px;min-height:44px;margin:0!important;padding:7px 10px!important;border:1px solid #d5cdbf!important;border-radius:10px;background:#faf8f3!important;color:#4a493f!important;cursor:pointer}.studio-color-button i{display:block;width:29px;height:29px;border-radius:7px;border:1px solid #0002}.studio-color-button small{font:12px ui-monospace,monospace}.studio-color-overlay[hidden]{display:none!important}.studio-color-overlay{position:fixed;inset:0;z-index:250;display:flex;align-items:center;justify-content:center;background:#1d241f88;backdrop-filter:blur(4px);padding:18px}.studio-color-dialog{box-sizing:border-box;width:440px;max-width:100%;max-height:calc(100dvh - 36px);overflow:auto;padding:28px;border-radius:26px;background:#f5f2e9;color:#4a493f;box-shadow:0 20px 60px #141c2533;text-align:left}.studio-color-dialog h2{font-size:19px!important;letter-spacing:0!important;margin:0 0 22px!important;color:#343c31}.studio-color-sliders{background:#ebe8e0;padding:20px;border-radius:17px}.studio-color-dialog label{display:flex;justify-content:space-between;gap:10px;margin:0 0 8px;font-size:13px;color:#7e7d73}.studio-color-dialog output{float:none;font:inherit;color:inherit}.studio-color-field+.studio-color-field{margin-top:20px}.studio-color-dialog .studio-color-range{appearance:none;-webkit-appearance:none;box-sizing:border-box;width:100%;height:32px;border:0;border-radius:5px;padding:0;margin:0;background:transparent;cursor:crosshair;touch-action:pan-y}.studio-color-range::-webkit-slider-thumb{appearance:none;-webkit-appearance:none;width:25px;height:25px;border:3px solid white;border-radius:50%;background:transparent;box-shadow:0 1px 5px #0007}.studio-color-range::-moz-range-thumb{width:21px;height:21px;border:3px solid white;border-radius:50%;background:transparent;box-shadow:0 1px 5px #0007}.studio-color-selected{display:flex;align-items:center;justify-content:space-between;gap:18px;margin:24px 0}.studio-color-selected label{display:block;margin-bottom:6px}.studio-color-dialog #studio-color-hex{box-sizing:border-box;width:120px;max-width:100%;font:14px ui-monospace,monospace;padding:8px;border:1px solid #d6d1c5;border-radius:8px;background:#faf8f2;color:#565748;min-height:38px}.studio-color-sample{width:61px;height:61px;flex:none;border-radius:12px;border:1px solid #0002}.studio-color-actions{display:flex;gap:14px}.studio-color-actions button{flex:1;width:auto;margin:0;padding:13px 12px;border:0;border-radius:13px;font-size:16px;font-weight:600;min-height:48px;background:#e6e3da;color:#4f5146;cursor:pointer}.studio-color-actions button:last-child{background:#a99583;color:white}.studio-color-actions button:disabled{opacity:.45}.studio-color-overlay :focus-visible{outline:3px solid #9d7655;outline-offset:3px}@media(max-width:400px){.studio-color-dialog{padding:22px}.studio-color-sliders{padding:17px}}
+ `;document.head.append(style);
+ overlay=document.createElement('div');overlay.className='studio-color-overlay';overlay.hidden=true;overlay.innerHTML=`<section class="studio-color-dialog" role="dialog" aria-modal="true" aria-labelledby="studio-color-title"><h2 id="studio-color-title">自定义颜色</h2><div class="studio-color-sliders"><div class="studio-color-field"><label for="studio-color-h">色调 (Hue)<output id="studio-color-h-value"></output></label><input class="studio-color-range" type="range" id="studio-color-h" min="0" max="360" step="1" style="background:linear-gradient(to right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)"></div><div class="studio-color-field"><label for="studio-color-s">饱和度 (Saturation)<output id="studio-color-s-value"></output></label><input class="studio-color-range" type="range" id="studio-color-s" min="0" max="100" step="1"></div><div class="studio-color-field"><label for="studio-color-v">明度 (Value)<output id="studio-color-v-value"></output></label><input class="studio-color-range" type="range" id="studio-color-v" min="0" max="100" step="1"></div></div><div class="studio-color-selected"><div><label for="studio-color-hex">已选择的颜色</label><input id="studio-color-hex" type="text" maxlength="7" spellcheck="false" aria-label="十六进制颜色" placeholder="#A5302E"></div><div class="studio-color-sample" id="studio-color-sample" role="img" aria-label="所选颜色预览"></div></div><div class="studio-color-actions"><button type="button" id="studio-color-cancel">取消</button><button type="button" id="studio-color-apply">应用</button></div></section>`;document.body.append(overlay);
+ for(const input of document.querySelectorAll('input[type=color]')){const label=input.dataset.colorTitle||document.querySelector('label[for="'+input.id+'"]')?.textContent.trim()||'自定义颜色';input.dataset.colorTitle=label;const button=document.createElement('button');button.type='button';button.className='studio-color-button';button.innerHTML='<i aria-hidden="true"></i><small></small>';input.after(button);input.style.display='none';input.tabIndex=-1;buttons.set(input,button);button.onclick=()=>open(input);input.addEventListener('click',e=>{e.preventDefault();open(input);});}
+ for(const key of ['h','s','v'])overlay.querySelector('#studio-color-'+key).oninput=e=>{selected[key]=+e.target.value;paint();};
+ overlay.querySelector('#studio-color-hex').oninput=e=>{const valid=/^#[0-9a-f]{6}$/i.test(e.target.value);overlay.querySelector('#studio-color-apply').disabled=!valid;if(valid){selected=hexToHSV(e.target.value);paint();}};
+ overlay.querySelector('#studio-color-cancel').onclick=close;
+ overlay.querySelector('#studio-color-apply').onclick=()=>{if(!source)return;const input=source,color=hsvToHex(selected.h,selected.s,selected.v),changed=input.value.toLowerCase()!==color;close();if(changed){input.value=color;input.dispatchEvent(new Event('input',{bubbles:true}));input.dispatchEvent(new Event('change',{bubbles:true}));}refresh();};
+ overlay.onclick=e=>{if(e.target===overlay)close();};
+ document.addEventListener('keydown',e=>{if(overlay.hidden)return;if(e.key==='Escape'){e.preventDefault();e.stopImmediatePropagation();close();}else if(e.key==='Tab'){const focusable=[...overlay.querySelectorAll('input,button')].filter(n=>!n.disabled),first=focusable[0],last=focusable.at(-1);if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}}},true);
+ document.addEventListener('input',refresh);document.addEventListener('change',refresh);refresh();
+ }
+ window.StudioColors={hsvToHex,hexToHSV,refresh,init};
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+})();
+</script><script>
+$('clear').onclick=async()=>{
+ if(exporting)return;bookImageEpoch++;$('clear').disabled=true;
+ const snapshot={imgs:[...imgs],fabricImage,paperImage,fabric:$('fabric').value,paper:$('papermaterial').value,files:$('files').textContent,fabricStatus:$('fabricstatus').textContent,paperStatus:$('paperstatus').textContent};
+ imgs=[];fabricImage=null;paperImage=null;coverMaterialCache.clear();paperLeafCache.clear();if($('fabric').value==='uploaded')$('fabric').value='sample1';if($('papermaterial').value==='uploaded')$('papermaterial').value='leaf1';for(const id of ['upload','fabricfile','paperfile'])$(id).value='';$('files').textContent='已清空本款上传图片，文字与字体保留。';$('fabricstatus').textContent='已清空上传布料，仍可使用内置素材。';$('paperstatus').textContent='已清空上传纸质，仍可使用内置素材。';draw();syncMaterialUI();scheduleSettingsSave();
+ try{await deviceReady;for(const key of ['fabric','paper']){snapshot[key+'Blob']=await dbCall('materials','readonly',s=>s.get(key));await dbCall('materials','readwrite',s=>s.delete(key));}}catch{}finally{clearedBookImages=snapshot;$('undo-clear').hidden=false;$('clear').disabled=false;}
+};
+$('undo-clear').onclick=async()=>{if(exporting||!clearedBookImages)return;const snapshot=clearedBookImages;clearedBookImages=null;bookImageEpoch++;imgs=snapshot.imgs;fabricImage=snapshot.fabricImage;paperImage=snapshot.paperImage;$('fabric').value=snapshot.fabric;$('papermaterial').value=snapshot.paper;$('files').textContent=snapshot.files;$('fabricstatus').textContent=snapshot.fabricStatus;$('paperstatus').textContent=snapshot.paperStatus;coverMaterialCache.clear();paperLeafCache.clear();$('undo-clear').hidden=true;syncMaterialUI();draw();scheduleSettingsSave();try{for(const key of ['fabric','paper'])if(snapshot[key+'Blob'])await dbCall('materials','readwrite',s=>s.put(snapshot[key+'Blob'],key));}catch{}};
+</script><script>
+let clearedBookText=null;
+const bookTextFields=['title','topleft','topright','author','bottomright'];
+$('cleartext').onclick=()=>{if(!bookTextFields.some(id=>$(id).value))return;clearedBookText=Object.fromEntries(bookTextFields.map(id=>[id,$(id).value]));for(const id of bookTextFields)$(id).value='';$('undotext').hidden=false;$('cleartextstatus').textContent='已清除本款文字，可撤销。';draw();scheduleSettingsSave();};
+$('undotext').onclick=()=>{if(!clearedBookText)return;for(const id of bookTextFields)$(id).value=clearedBookText[id];clearedBookText=null;$('undotext').hidden=true;$('cleartextstatus').textContent='已恢复清除前的文字。';draw();scheduleSettingsSave();};
+</script><script>(()=>{'use strict';
+const get=id=>document.getElementById(id),isBook=!!document.documentElement.dataset.guzheApp,isTheme=!!get('image-editor'),mainCanvas=isTheme?get('canvas'):isBook?get('canvas'):get('preview');
+function alertText(message){if(typeof toast==='function')toast(message);else{const el=document.createElement('div');el.textContent=message;el.style.cssText='position:fixed;bottom:20px;left:20px;z-index:9999;background:#263f37;color:white;padding:12px;border-radius:10px';document.body.append(el);setTimeout(()=>el.remove(),3000);}}
+function firstImage(){if(isBook)return typeof imgs!=='undefined'?imgs[0]:null;if(isTheme){if(typeof state==='undefined')return null;const m=state.modules.find(m=>m.asset&&assets.has(m.asset));return m?assets.get(m.asset)?.img:null;}if(typeof state==='undefined')return null;const photo=state.photos.find(p=>p.asset);return photo&&getImg(photo.asset);}
+if(isTheme)document.body.classList.add('gu-theme-workspace');
+const css=document.createElement('style');css.textContent=`
+.gu-pick{font:12px/1.5 sans-serif;min-height:34px!important;width:auto!important;flex:none!important;padding:6px 10px!important;border:1px solid #b9c8bc!important;border-radius:9px!important;background:#edf2e9!important;color:#355c4b!important;margin:4px}.gu-follow{padding:12px 14px;border:1px solid #d2dccf;border-radius:12px;background:#edf2e8;font:12px/1.7 sans-serif;color:#526e5d;margin:14px 0}.gu-follow button{font-size:12px;min-height:32px;padding:5px 9px;margin-top:7px;background:white;color:#355b4a;border:1px solid #bdcbbb;border-radius:8px}.gu-float{position:fixed;right:12px;top:82px;width:250px;z-index:85;border:1px solid #859c89;border-radius:13px;background:#faf9f4;box-shadow:0 12px 40px #18382a44;overflow:hidden}.gu-float[hidden]{display:none}.gu-float-head{display:flex;gap:5px;align-items:center;background:#2d4c3e;color:#f8f4e7;padding:7px 8px;cursor:move;touch-action:none;user-select:none;font:12px sans-serif}.gu-float-head span{flex:1}.gu-float-head button{width:auto!important;min-height:26px!important;padding:1px 6px!important;margin:0!important;background:#ffffff20!important;color:#fff!important;border:1px solid #ffffff44!important;border-radius:6px!important;font:13px sans-serif!important}.gu-float-body{background:repeating-conic-gradient(#e4e9e3 0% 25%,#f5f6f0 0% 50%) 0 /16px 16px;display:flex;justify-content:center;padding:5px}.gu-float canvas{display:block;max-width:100%;max-height:330px;width:auto;height:auto;cursor:zoom-in}.gu-float.mini .gu-float-body{display:none}.gu-float-tip{font:10px sans-serif;padding:4px 8px;color:#728675}.gu-float.mini .gu-float-tip{display:none}
+@media(max-width:700px){
+body.mobile-workspace .workbench{display:block!important;overflow-y:auto!important;overscroll-behavior-y:contain}
+body.mobile-workspace .preview-column{height:auto!important;padding:12px!important;min-height:0!important}
+body.mobile-workspace .stage-wrap{height:clamp(300px,57dvh,580px)!important;flex:none!important;min-height:0!important}
+body.mobile-workspace .editor{height:auto!important;overflow:visible!important;max-height:none!important;padding-bottom:35px!important}
+body.mobile-workspace.compact .stage-wrap{display:none!important}
+body.mobile-workspace .preview-footer{flex-wrap:wrap}
+body.mobile-workspace .preview-tools .button{font-size:12px!important}
+body.gu-theme-workspace .layout{display:block;height:calc(100dvh - 79px);overflow-y:auto;overscroll-behavior-y:contain}
+body.gu-theme-workspace .preview{height:auto;min-height:0;padding:14px 16px}
+body.gu-theme-workspace .stage{display:flex;height:auto;min-height:0;padding:12px}
+body.gu-theme-workspace #canvas{width:100%;height:auto;max-height:none}
+body.gu-theme-workspace .editor{overflow:visible;max-height:none;padding-bottom:65px}
+body.gu-theme-workspace .preview.compact{height:auto;min-height:0}
+body.gu-theme-workspace .preview.compact .stage{display:none}
+body.gu-theme-workspace .preview.compact .preview-heading{display:flex}
+body.gu-theme-workspace .preview-foot{flex-wrap:wrap;gap:7px}body.gu-theme-workspace .preview-foot .page{flex:1 0 130px;white-space:nowrap}body.gu-theme-workspace .preview-foot #prev,body.gu-theme-workspace .preview-foot #next{flex:0 0 40px}body.gu-theme-workspace .preview-foot:after{content:'';flex-basis:100%;order:0}body.gu-theme-workspace .preview-foot #full-preview,body.gu-theme-workspace .preview-foot #motion,body.gu-theme-workspace .preview-foot>button:last-child{order:1;flex:1;padding:6px 8px}
+.gu-float{width:210px;top:85px}.gu-float canvas{max-height:290px}
+}`;document.head.append(css);
+// Apply a sampled color through the same input events as the color picker.
+for(const input of document.querySelectorAll('input[type=color]')){if(input.dataset.guPicked)continue;input.dataset.guPicked='yes';const button=document.createElement('button');button.type='button';button.className='gu-pick';button.textContent='首图主色';button.setAttribute('aria-label','吸取首图主色用于'+(input.getAttribute('aria-label')||input.labels?.[0]?.textContent?.trim()||'该颜色'));button.onclick=()=>{const image=firstImage();if(!image){alertText('请先上传第一张主题图片');return;}try{input.value=GuDesign.dominant(image);input.dispatchEvent(new Event('input',{bubbles:true}));input.dispatchEvent(new Event('change',{bubbles:true}));window.StudioColors?.refresh();alertText('已应用首图主色 '+input.value);}catch(e){alertText(e.message||'这张图片暂时无法取色');}};input.insertAdjacentElement('afterend',button);}
+if(!isBook&&!isTheme&&get('panel-text')){const hint=document.createElement('div');hint.className='gu-follow';const text=document.createElement('div'),reset=document.createElement('button');reset.textContent='重新启用样式统一跟随';hint.append(text,reset);get('panel-text').append(hint);window.GuStyleHint=()=>{const rules=state.styleFollow||{};text.textContent=['font','color','size'].map((p,i)=>['字体','颜色','字号'][i]+'：'+(rules[p]?.on===false?'独立调整':'统一跟随')).join(' · ')+'。首次修改同步，修改另一处后该属性独立调整。';};reset.onclick=()=>commit(()=>{state.styleFollow={};window.GuStyleHint();});window.GuStyleHint();
+ if(typeof state!=='undefined'&&state.mag){const series=document.createElement('div');series.className='gu-follow';series.textContent='系列信息：首次输入主题名 / 作者名会同步到其他区块；在另一组单独修改后，该项独立保存。';const button=document.createElement('button');button.textContent='用当前主题名和作者名同步全部区块';button.onclick=()=>commit(()=>{for(const key of ['title','subtitle']){const value=state.text[key].content;for(const b of state.mag.spreads)b.text[key].content=value;(state.mag.seriesFollow||(state.mag.seriesFollow={}))[key]={owner:state.mag.page,on:true};}});series.append(button);get('panel-text').prepend(series);}
+ const oldSync=syncText;syncText=function(){oldSync();window.GuStyleHint();};
+}
+if(isBook){let rules;try{rules=JSON.parse(localStorage.getItem('gu-book-follow-v2')||'{}');}catch{rules={};}window.GuBookResetFollow=()=>{rules={font:{owner:'font',on:true},size:{owner:'titlesize',on:true}};try{localStorage.setItem('gu-book-follow-v2','{}');}catch{}};let syncing=false;const fontIDs=['font','topleftfont','toprightfont','bottomleftfont','bottomrightfont'],sizes=['titlesize','topleftsize','toprightsize','bottomleftsize','bottomrightsize'];for(const [property,ids]of [['font',fontIDs],['size',sizes]])for(const id of ids){get(id)?.addEventListener(property==='font'?'change':'input',()=>{if(syncing)return;const value=get(id).value;if(property==='font'&&value==='inherit')return;const rule=rules[property]||(rules[property]={owner:id,on:false});if(rule.owner!==id)rule.on=false;if(rule.on){syncing=true;for(const target of ids){const el=get(target);if(el&&(property!=='font'||[...el.options].some(o=>o.value===value)))el.value=value;}syncing=false;}try{localStorage.setItem('gu-book-follow-v2',JSON.stringify(rules));}catch{}bookBackgroundCache=null;draw();scheduleSettingsSave();});}}
+if(isBook){let inks={};try{inks=JSON.parse(localStorage.getItem('gu-book-inks-v1')||'{}');}catch{}window.GuBookInk=key=>/^#[\da-f]{6}$/i.test(inks[key])?inks[key]:null;const box=document.createElement('details');box.className='text-settings';box.innerHTML='<summary>文字颜色 · 首图主色与独立调整</summary><p class="hint">默认分别调整文字颜色。需要统一字体、字号和颜色时，可点击下方统一调整按钮。封面保留烫色光泽。</p>';const keys=[['title','封面书名'],['topleft','左上角'],['topright','右上角'],['author','作者 / 左下角'],['bottomright','右下角']];let rule={owner:null,on:false};try{rule=JSON.parse(localStorage.getItem('gu-book-ink-follow-v2')||'null')||rule;}catch{}
+ function apply(key,value){inks[key]=value;if(rule.on){if(rule.owner===null)rule.owner=key;if(rule.owner===key)for(const [id]of keys)inks[id]=value;else rule.on=false;}for(const [id]of keys)get('gu-ink-'+id).value=inks[id]||(id==='title'?'#b39757':'#405145');try{localStorage.setItem('gu-book-inks-v1',JSON.stringify(inks));localStorage.setItem('gu-book-ink-follow-v2',JSON.stringify(rule));}catch{}bookBackgroundCache=null;draw();}
+ for(const [id,label]of keys){const row=document.createElement('div');row.style.cssText='display:flex;align-items:center;gap:8px;margin:8px 0';const name=document.createElement('label');name.textContent=label;name.htmlFor='gu-ink-'+id;name.style.flex='1';const input=document.createElement('input');input.type='color';input.id='gu-ink-'+id;input.style.cssText='width:50px;height:36px;margin:0;padding:3px';input.value=inks[id]||(id==='title'?'#b39757':'#405145');input.oninput=()=>apply(id,input.value);const button=document.createElement('button');button.type='button';button.className='gu-pick';button.textContent='首图主色';button.onclick=()=>{const image=firstImage();if(!image){alertText('请先上传第一张主题图片');return;}try{apply(id,GuDesign.dominant(image));}catch(e){alertText(e.message);}};row.append(name,input,button);box.append(row);}get('titlesize').insertAdjacentElement('afterend',box);const reset=document.createElement('button');reset.textContent='重新启用文字统一跟随';reset.onclick=()=>{rule={owner:null,on:true};try{localStorage.removeItem('gu-book-follow-v2');localStorage.setItem('gu-book-ink-follow-v2',JSON.stringify(rule));}catch{}window.GuBookResetFollow?.();alertText('字体、颜色、字号已重新启用统一跟随');};box.append(reset);}
+
+})();
+</script><script>
+
+(function(){
+'use strict';
+const cfg={"id":"guzhe","source":"guzhe.html","name":"古风折页","count":6,"upload":"upload","canvas":"canvas","filename":"06-古风折页-原绘制版.html","ctrl":["count","fit","pagewidth","pageheight","bookoffset","fold","ratio","theme","cover-custom","fabric","tintstrength","papermaterial","paperstrength","paperage","light"],"labels":{"fold":"折页开合","fabric":"布封材质","papermaterial":"纸张肌理","paperstrength":"纸纹强度","paperage":"纸张旧化","light":"光影"},"screens":[{"id":"s1","label":"首页","page":"home"},{"id":"s2","label":"阅读页","page":"reader"},{"id":"s3","label":"书架","page":"bookshelf"},{"id":"s4","label":"统计","page":"statistics"},{"id":"s5","label":"我的","page":"profile"},{"id":"s6","label":"启动","page":"splash"}]},root=document.getElementById('gu-reeden-output'),img=document.getElementById('gu-reeden-img');
+const qs=x=>x.startsWith('#')?document.querySelector(x):document.getElementById(x);
+let generation=0;
+const delay=ms=>new Promise(r=>setTimeout(r,ms));
+const put=(id,value)=>{const e=document.getElementById(id);if(!e||!('value'in e)||value==null)return;if(e.type==='checkbox')e.checked=!!value;else e.value=String(value);e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));};
+function redraw(){
+ let e=document.getElementById(cfg.canvas||'__no_canvas__');
+ try{
+  if(cfg.svg){e=document.getElementById(cfg.svg);if(e){const clone=e.cloneNode(true);clone.removeAttribute('id');clone.setAttribute('xmlns','http://www.w3.org/2000/svg');img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(new XMLSerializer().serializeToString(clone));return}}
+  if(e&&e.width&&e.height){const pic=e.toDataURL('image/png');if(img.src!==pic)img.src=pic}
+ }catch(err){root.dataset.captureError=String(err)}
+}
+async function fileFrom(src,index){
+ if(typeof src!=='string'||!src)return null;let b=null;
+ try{const r=await fetch(src);if(r.ok)b=await r.blob()}catch(_){}
+ if(!b){
+  b=await new Promise(resolve=>{const im=new Image();im.onload=()=>{try{
+   const c=document.createElement('canvas'),f=Math.min(1,1600/Math.max(im.width,im.height));
+   c.width=Math.max(1,Math.round(im.width*f));c.height=Math.max(1,Math.round(im.height*f));
+   c.getContext('2d').drawImage(im,0,0,c.width,c.height);
+   c.toBlob(resolve,'image/png');c.width=c.height=1;
+  }catch(_){resolve(null)}};im.onerror=()=>resolve(null);im.src=src});
+ }
+ return b?new File([b],'reeden-'+(index+1)+'.png',{type:b.type||'image/png'}):null;
+}
+function send(selector,list){
+ const target=qs(selector);if(!target||!list.length)return false;
+ try{const d=new DataTransfer();list.forEach(file=>d.items.add(file));target.files=d.files;target.dispatchEvent(new Event('change',{bubbles:true}));return true}
+ catch(err){root.dataset.uploadError=selector+':'+String(err);return false}
+}
+function applyParams(payload){
+ const p=payload.params||{},th=payload.theme||{};
+ const title=p.themeTitle||th.name||'',author=p.themeAuthor||th.author||'',description=p.themeDescription||th.description||'';
+ const map={title,themeName:title,maker:author,author,'cover-title':title,'cover-author':author,titleText:title,'bag-name':title,message:description};
+ for(const [id,value] of Object.entries(map))if(value)put(id,value);
+ for(const id of cfg.ctrl||[]){const key=id.replace(/[-_]+([a-z])/g,(_,c)=>c.toUpperCase());if(Object.hasOwn(p,key))put(id,p[key])}
+}
+window.ReedenShareTemplate={render(payload){
+ payload=payload||window.ReedenShareTemplateMock||{};
+ const version=++generation;
+ redraw();
+ (async()=>{
+  await delay(120);if(version!==generation)return;
+  applyParams(payload);
+  const s=Array.isArray(payload.screens)?payload.screens.slice(0,cfg.count):[];
+  const files=(await Promise.all(s.map((a,i)=>fileFrom(a&&a.image,i)))).filter(Boolean);
+  if(version!==generation)return;
+  if(cfg.id==='huajian'){send('#groups input[type=file]',files.slice(0,2))}
+  else if(cfg.id==='yan'){send('setA',files.slice(0,3));if(files.length>3){await delay(450);send('setB',files.slice(3,6))}}
+  else if(cfg.id==='relics'){send('imageInput',files.slice(0,1))}
+  else send(cfg.upload,files);
+  let tries=16;
+  const tick=()=>{if(version!==generation)return;redraw();if(--tries>0)setTimeout(tick,250)};
+  setTimeout(tick,400);
+ })().catch(err=>{root.dataset.renderError=String(err)});
+}};
+const mock={type:'themePreview',theme:{name:cfg.name,author:'gu',description:'原版 gu 艺术模板'},screens:cfg.screens.map(s=>({...s,image:null,width:720,height:1600}))};
+window.ReedenShareTemplateMock=mock;
+window.ReedenShareTemplate.render(window.__REEDEN_SHARE_PAYLOAD__||mock);
+})();
+
+</script>
+</body></html>
+
