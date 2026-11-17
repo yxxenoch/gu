@@ -14,6 +14,7 @@
 <meta name="reeden-template-type" content="themePreview">
 <meta name="reeden-template-width" content="640">
 <meta name="reeden-template-screens" content="[{&quot;id&quot;:&quot;s1&quot;,&quot;label&quot;:&quot;首页&quot;,&quot;page&quot;:&quot;home&quot;},{&quot;id&quot;:&quot;s2&quot;,&quot;label&quot;:&quot;阅读页&quot;,&quot;page&quot;:&quot;reader&quot;},{&quot;id&quot;:&quot;s3&quot;,&quot;label&quot;:&quot;书架&quot;,&quot;page&quot;:&quot;bookshelf&quot;},{&quot;id&quot;:&quot;s4&quot;,&quot;label&quot;:&quot;统计&quot;,&quot;page&quot;:&quot;statistics&quot;}]">
+<meta data-red-param="param.pageGroup" data-red-type="select" data-red-label="展示纸页" data-red-options="last:第二组,first:第一组" data-red-default="last">
 <meta data-red-param="param.themeTitle" data-red-type="text" data-red-label="主题名覆盖">
 <meta data-red-param="param.themeAuthor" data-red-type="text" data-red-label="制作者覆盖">
 <meta data-red-param="param.themeDescription" data-red-type="text" data-red-label="副标题覆盖">
@@ -230,7 +231,25 @@ window.ReedenShareTemplate={render(payload){
   const s=Array.isArray(payload.screens)?payload.screens.slice(0,cfg.count):[];
   const files=(await Promise.all(s.map((a,i)=>fileFrom(a&&a.image,i)))).filter(Boolean);
   if(version!==generation)return;
-  if(cfg.id==='huajian'){send('#groups input[type=file]',files.slice(0,2))}
+  if(cfg.id==='huajian'){
+  const first=files.slice(0,2),second=files.slice(2,4);
+  send('#groups input[type=file]',first);
+  if(second.length){
+    await delay(380);
+    const add=document.getElementById('add');
+    if(add)add.click();
+    await delay(80);
+    const groupInputs=[...document.querySelectorAll('#groups input[type=file]')];
+    const nextInput=groupInputs[groupInputs.length-1];
+    if(nextInput){try{const dt=new DataTransfer();second.forEach(f=>dt.items.add(f));nextInput.files=dt.files;nextInput.dispatchEvent(new Event('change',{bubbles:true}))}catch(_){}}
+    await delay(380);
+    if(payload.params?.pageGroup==='first'){
+      const group=document.querySelector('#groups .group');
+      const buttons=group?.querySelectorAll('button');
+      buttons?.[1]?.click();
+    }
+  }
+}
   else if(cfg.id==='yan'){send('setA',files.slice(0,3));if(files.length>3){await delay(450);send('setB',files.slice(3,6))}}
   else if(cfg.id==='relics'){send('imageInput',files.slice(0,1))}
   else send(cfg.upload,files);
