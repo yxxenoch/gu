@@ -241,7 +241,8 @@
   var currentImg = null;
   var upscalerCache = {};         // scale -> Upscaler instance
   var busy = false;
-  var cancelled = false;
+  var runSeq = 0;                 // 每次新任务/取消都自增，过期异步回调凭它退出
+  var srcHasAlpha = false;
 
   // 每种模式的放大倍数和输入尺寸上限（输出 = 输入 × scale）
   var MODES = {
@@ -308,6 +309,14 @@
     return upscalerCache[scale];
   }
 
+  function stopRun() {
+    runSeq++;
+    Object.keys(upscalerCache).forEach(function (k) {
+      try { upscalerCache[k].abort(); } catch (e) {}
+    });
+    busy = false;
+  }
+
   /* ---------- 读图 ---------- */
   function loadFile(file) {
     if (!file || !file.type || file.type.indexOf('image/') !== 0) {
@@ -340,6 +349,18 @@
     }
     var cw = Math.max(1, Math.round(w * scale)), ch = Math.max(1, Math.round(h * scale));
 
+    // 探测是否含透明通道：32px 缩略读回，避免全图扫描
+    var probe = document.createElement('canvas');
+    probe.width = probe.height = 32;
+    var pctx = probe.getContext('2d');
+    pctx.drawImage(img, 0, 0, 32, 32);
+    var pa = pctx.getImageData(0, 0, 32, 32).data;
+    srcHasAlpha = false;
+    for (var ai = 3; ai < pa.length; ai += 4) {
+      if (pa[ai] < 250) { srcHasAlpha = true; break; }
+    }
+
+    if (busy) stopRun();   // 上一次推理还没跑完：作废，防止旧结果写进新图
     srcCanvas = document.createElement('canvas');
     srcCanvas.width = cw; srcCanvas.height = ch;
     srcCanvas.getContext('2d').drawImage(img, 0, 0, cw, ch);
@@ -379,7 +400,15 @@
 
   function runAI() {
     if (busy || !srcCanvas) return;
-    busy = true; cancelled = false;
+    busy = true;
+    var myRun = ++runSeq;
+    function isStale() { return myRun !== runSeq; }
+    function fail(e) {
+      progressWrap.style.display = 'none'; busy = false;
+      if (!isStale()) {
+        showToast('AI 修复失败：' + (e && e.message ? e.message : '内存不足'));
+      }
+    }
     progressWrap.style.display = 'flex';
     setProgress(0, '加载模型中…');
 
@@ -392,7 +421,7 @@
     }
 
     (enginePromise || Promise.resolve()).then(function () {
-      if (cancelled) return;
+      if (isStale()) return;
       return upscaler.upscale(srcCanvas, {
       output: 'tensor',
       patchSize: PATCH,
@@ -404,7 +433,7 @@
         }
       }
     }).then(function (tensor) {
-      if (cancelled) { if (tensor && tensor.dispose) tensor.dispose(); return; }
+      if (isStale()) { if (tensor && tensor.dispose) tensor.dispose(); return; }
       setProgress(0.97, '渲染结果…');
       // 张量直接渲到画布，省掉 base64 编解码（iOS 内存峰值崩溃的主要原因）
       var t = tensor;
@@ -415,7 +444,15 @@
       aiCanvas = document.createElement('canvas');
       aiCanvas.width = w; aiCanvas.height = h;
       var done = function () {
-        t.dispose();
+        if (t !== tensor) t.dispose();
+        tensor.dispose();
+        // 模型是 3 通道输出：原图含透明通道时把 alpha 按输出尺寸复合回去
+        if (srcHasAlpha) {
+          var actx = aiCanvas.getContext('2d');
+          actx.globalCompositeOperation = 'destination-in';
+          actx.drawImage(srcCanvas, 0, 0, w, h);
+          actx.globalCompositeOperation = 'source-over';
+        }
         workCanvas = document.createElement('canvas');
         workCanvas.width = w; workCanvas.height = h;
         blurCanvas = document.createElement('canvas');
@@ -432,13 +469,8 @@
         srcCanvas.width = 1; srcCanvas.height = 1;
       };
       var p = tf.browser.toPixels(t, aiCanvas);
-      if (p && p.then) p.then(done); else done();
-    }).catch(function (e) {
-      progressWrap.style.display = 'none'; busy = false;
-      if (!cancelled) {
-        showToast('AI 修复失败：' + (e && e.message ? e.message : '内存不足'));
-      }
-    });
+      if (p && p.then) p.then(done).catch(fail); else done();
+    }).catch(fail);
     });
   }
 
@@ -551,7 +583,7 @@
     $(id).addEventListener('click', function () {
       var mode = $(id).dataset.mode;
       if (mode === currentMode || !currentImg) return;
-      if (busy) { cancelled = true; Object.keys(upscalerCache).forEach(function (k) { try { upscalerCache[k].abort(); } catch (e) {} }); busy = false; }
+      if (busy) stopRun();
       setMode(mode);
       setupImage(currentImg);   // 重新按新模式限尺寸并重跑
     });
@@ -598,12 +630,8 @@
   });
 
   cancelBtn.addEventListener('click', function () {
-    cancelled = true;
-    Object.keys(upscalerCache).forEach(function (k) {
-      try { upscalerCache[k].abort(); } catch (e) {}
-    });
+    stopRun();
     progressWrap.style.display = 'none';
-    busy = false;
   });
 
   $('newBtn').addEventListener('click', function () { fileInput.click(); });
