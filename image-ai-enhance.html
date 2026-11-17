@@ -156,7 +156,7 @@
       <p id="loadStatus">正在加载 AI 引擎…</p>
       <button class="btn" id="pickBtn" disabled>选择图片</button>
     </div>
-    <p class="hint">AI 超分模型在你的手机浏览器里运行，图片不会上传。<br>首次使用按档位联网下载模型（1~3MB），建议 WiFi。</p>
+    <p class="hint">AI 超分模型在你的手机浏览器里运行，图片不会上传。<br>首次使用按档位联网下载模型（1~3MB），建议 WiFi。<br>「云端 4×」档效果最好，但会把图片上传到 Hugging Face 公共模型。</p>
   </div>
 
   <div id="editorView">
@@ -181,6 +181,7 @@
         <div class="modeBtn" data-mode="fast" id="modeFast">极速 2×<br><span style="font-weight:400;font-size:11px">最快 · 大图先用它</span></div>
         <div class="modeBtn active" data-mode="hd2" id="modeHd2">超清 2×<br><span style="font-weight:400;font-size:11px">大模型 · 较慢</span></div>
         <div class="modeBtn" data-mode="hd4" id="modeHd4">超分 4×<br><span style="font-weight:400;font-size:11px">大模型 · 最慢</span></div>
+        <div class="modeBtn" data-mode="cloud" id="modeCloud">云端 4×<br><span style="font-weight:400;font-size:11px">最强 · 图片会上传</span></div>
       </div>
       <div class="sliderRow">
         <label>清晰度</label>
@@ -247,11 +248,13 @@
 
   // 每种模式的放大倍数和输入尺寸上限（输出 = 输入 × scale）
   var MODES = {
-    fast: { scale: 2, maxIn: 768  },   // 输出 ≤1536px，最快
-    hd2:  { scale: 2, maxIn: 1500 },   // 输出 ≤3000px
-    hd4:  { scale: 4, maxIn: 750  }    // 输出 ≤3000px，适合小图
+    fast:  { scale: 2, maxIn: 768  },  // 输出 ≤1536px，最快
+    hd2:   { scale: 2, maxIn: 1500 },  // 输出 ≤3000px
+    hd4:   { scale: 4, maxIn: 750  },  // 输出 ≤3000px，适合小图
+    cloud: { scale: 4, maxIn: 900  }   // 云端 Real-ESRGAN，输出 ≤3600px，图片会上传
   };
   var PATCH = 128, PADDING = 10;
+  var cloudCtrl = null;              // 云端请求的 AbortController
 
   function showToast(msg) {
     toast.textContent = msg;
@@ -277,7 +280,9 @@
           pickBtn.disabled = false;
         });
       } else if (++tries > 60) {
-        loadStatus.textContent = 'AI 引擎加载失败，请检查网络后刷新';
+        // 本地引擎挂了还能用云端档
+        loadStatus.textContent = '本地引擎加载失败（仍可用云端 4×）';
+        pickBtn.disabled = false;
       } else {
         setTimeout(poll, 500);
       }
@@ -315,6 +320,7 @@
 
   function stopRun() {
     runSeq++;
+    if (cloudCtrl) { try { cloudCtrl.abort(); } catch (e) {} cloudCtrl = null; }
     Object.keys(upscalerCache).forEach(function (k) {
       try { upscalerCache[k].abort(); } catch (e) {}
     });
@@ -402,7 +408,173 @@
     if (text) progressText.textContent = text;
   }
 
+  // AI 输出已画进 aiCanvas 之后的统一收尾（本地/云端共用）
+  function finishAI(w, h) {
+    // 模型/云端都是 3 通道输出：原图含透明通道时把 alpha 按输出尺寸复合回去
+    if (srcHasAlpha) {
+      var actx = aiCanvas.getContext('2d');
+      actx.globalCompositeOperation = 'destination-in';
+      actx.drawImage(srcCanvas, 0, 0, w, h);
+      actx.globalCompositeOperation = 'source-over';
+    }
+    workCanvas = document.createElement('canvas');
+    workCanvas.width = w; workCanvas.height = h;
+    blurCanvas = document.createElement('canvas');
+    blurCanvas.width = w; blurCanvas.height = h;
+
+    afterCanvas.width = w; afterCanvas.height = h;
+    resInfo.textContent = srcCanvas.width + '×' + srcCanvas.height + ' → ' + w + '×' + h;
+    fitCompare();
+    applyPost();
+    saveBtn.disabled = false;
+    progressWrap.style.display = 'none';
+    busy = false;
+    // 释放输入画布内存，降低 iOS 内存压力（切模式会重新解码）
+    srcCanvas.width = 1; srcCanvas.height = 1;
+  }
+
+  /* ---------- 云端 Real-ESRGAN（Hugging Face 公共 Space，免费，会排队） ---------- */
+  var CLOUD_BASE = 'https://nick088-real-esrgan-pytorch.hf.space';
+
+  function readSSE(res, onMsg, isStale) {
+    var reader = res.body.getReader();
+    var dec = typeof TextDecoder !== 'undefined' ? new TextDecoder() : null;
+    var buf = '', finished = false;
+    function pump() {
+      return reader.read().then(function (chunk) {
+        if (finished || chunk.done || isStale()) return;
+        buf += dec ? dec.decode(chunk.value, { stream: true })
+                   : String.fromCharCode.apply(null, chunk.value);
+        var idx;
+        while ((idx = buf.indexOf('\n\n')) >= 0) {
+          var block = buf.slice(0, idx); buf = buf.slice(idx + 2);
+          block.split('\n').forEach(function (line) {
+            if (line.indexOf('data:') === 0) {
+              try { if (onMsg(JSON.parse(line.slice(5)))) finished = true; } catch (e) {}
+            }
+          });
+        }
+        return pump();
+      });
+    }
+    return pump();
+  }
+
+  function runCloud() {
+    if (busy || !srcCanvas) return;
+    busy = true;
+    var myRun = ++runSeq;
+    var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    cloudCtrl = ctrl;
+    function isStale() { return myRun !== runSeq; }
+    function fail(e) {
+      progressWrap.style.display = 'none'; busy = false; cloudCtrl = null;
+      if (!isStale() && e !== 'abort') {
+        var msg = '云端修复失败，请稍后重试';
+        if (e && e.message === 'space-down') msg = '云端的免费模型暂时不可用，请稍后再试或换本地档';
+        showToast(msg);
+      }
+    }
+    // 云端整体超时 240s
+    var killer = setTimeout(function () { if (!isStale() && ctrl) ctrl.abort(); }, 240000);
+
+    progressWrap.style.display = 'flex';
+    setProgress(0.03, '上传图片中…');
+
+    var signal = ctrl ? ctrl.signal : undefined;
+    var session = 's' + Math.random().toString(36).slice(2, 12);
+
+    new Promise(function (res, rej) {
+      srcCanvas.toBlob(function (b) { b ? res(b) : rej(new Error('encode')); }, 'image/png');
+    }).then(function (blob) {
+      var fd = new FormData();
+      fd.append('files', blob, 'image.png');
+      return fetch(CLOUD_BASE + '/upload?upload_id=' + session,
+                   { method: 'POST', body: fd, signal: signal })
+        .then(function (r) { if (!r.ok) throw new Error('space-down'); return r.json(); });
+    }).then(function (paths) {
+      if (isStale()) throw 'abort';
+      setProgress(0.12, '排队等待中…');
+      return fetch(CLOUD_BASE + '/queue/join', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fn_index: 0,
+          data: [{ path: paths[0], meta: { _type: 'gradio.FileData' } }, 4],
+          session_hash: session, event_data: null, trigger_id: 8
+        }),
+        signal: signal
+      }).then(function (r) { if (!r.ok) throw new Error('space-down'); });
+    }).then(function () {
+      if (isStale()) throw 'abort';
+      return fetch(CLOUD_BASE + '/queue/data?session_hash=' + session,
+                   { headers: { 'Accept': 'text/event-stream' }, signal: signal });
+    }).then(function (res) {
+      if (!res.ok) throw new Error('space-down');
+      return new Promise(function (res2, rej2) {
+        var done = false;
+        readSSE(res, function (msg) {
+          if (done) return true;
+          if (msg.msg === 'estimation') {
+            var eta = Math.round(msg.rank_eta || 0);
+            setProgress(0.15, eta > 5 ? '云端排队中… 预计 ' + eta + 's' : '云端排队中…');
+          } else if (msg.msg === 'process_starts') {
+            setProgress(0.3, '云端修复中…');
+          } else if (msg.msg === 'process_completed') {
+            done = true;
+            var out = msg.output && msg.output.data && msg.output.data[0];
+            if (out && out.url) res2(out.url);
+            else rej2(new Error('no-output'));
+          } else if (msg.msg === 'unexpected_error' || msg.msg === 'server_stopped' || msg.msg === 'queue_full') {
+            done = true; rej2(new Error('space-down'));
+          }
+          return done;
+        }, isStale).then(function () { if (!done) rej2(new Error('closed')); });
+      });
+    }).then(function (url) {
+      if (isStale()) throw 'abort';
+      setProgress(0.8, '下载结果…');
+      return fetch(url, { signal: signal })
+        .then(function (r) { if (!r.ok) throw new Error('download'); return r.blob(); });
+    }).then(function (blob) {
+      if (isStale()) throw 'abort';
+      setProgress(0.95, '渲染结果…');
+      return new Promise(function (res, rej) {
+        var draw = function (src, w, h) {
+          aiCanvas = document.createElement('canvas');
+          aiCanvas.width = w; aiCanvas.height = h;
+          aiCanvas.getContext('2d').drawImage(src, 0, 0);
+          res({ w: w, h: h });
+        };
+        if (window.createImageBitmap) {
+          createImageBitmap(blob).then(function (bmp) {
+            draw(bmp, bmp.width, bmp.height);
+            try { bmp.close(); } catch (e) {}
+          }).catch(function () {
+            var img = new Image();
+            img.onload = function () { draw(img, img.naturalWidth, img.naturalHeight); };
+            img.onerror = function () { rej(new Error('decode')); };
+            img.src = URL.createObjectURL(blob);
+          });
+        } else {
+          var img = new Image();
+          img.onload = function () { draw(img, img.naturalWidth, img.naturalHeight); };
+          img.onerror = function () { rej(new Error('decode')); };
+          img.src = URL.createObjectURL(blob);
+        }
+      });
+    }).then(function (dim) {
+      if (isStale()) return;
+      clearTimeout(killer); cloudCtrl = null;
+      finishAI(dim.w, dim.h);
+    }).catch(function (e) {
+      clearTimeout(killer);
+      fail(e && e.name === 'AbortError' ? 'abort' : e);
+    });
+  }
+
   function runAI() {
+    if (currentMode === 'cloud') { runCloud(); return; }
     if (busy || !srcCanvas) return;
     busy = true;
     var myRun = ++runSeq;
@@ -450,27 +622,7 @@
       var done = function () {
         if (t !== tensor) t.dispose();
         tensor.dispose();
-        // 模型是 3 通道输出：原图含透明通道时把 alpha 按输出尺寸复合回去
-        if (srcHasAlpha) {
-          var actx = aiCanvas.getContext('2d');
-          actx.globalCompositeOperation = 'destination-in';
-          actx.drawImage(srcCanvas, 0, 0, w, h);
-          actx.globalCompositeOperation = 'source-over';
-        }
-        workCanvas = document.createElement('canvas');
-        workCanvas.width = w; workCanvas.height = h;
-        blurCanvas = document.createElement('canvas');
-        blurCanvas.width = w; blurCanvas.height = h;
-
-        afterCanvas.width = w; afterCanvas.height = h;
-        resInfo.textContent = srcCanvas.width + '×' + srcCanvas.height + ' → ' + w + '×' + h;
-        fitCompare();
-        applyPost();
-        saveBtn.disabled = false;
-        progressWrap.style.display = 'none';
-        busy = false;
-        // 释放输入画布内存，降低 iOS 内存压力（切模式会重新解码）
-        srcCanvas.width = 1; srcCanvas.height = 1;
+        finishAI(w, h);
       };
       var p = tf.browser.toPixels(t, aiCanvas);
       if (p && p.then) p.then(done).catch(fail); else done();
@@ -579,16 +731,19 @@
   });
 
   /* ---------- 模式切换 ---------- */
+  var badge = document.querySelector('header .badge');
   function setMode(mode, silent) {
     currentMode = mode;
-    ['fast', 'hd2', 'hd4'].forEach(function (m) {
+    ['fast', 'hd2', 'hd4', 'cloud'].forEach(function (m) {
       $('mode' + m.charAt(0).toUpperCase() + m.slice(1)).classList.toggle('active', m === mode);
     });
+    badge.textContent = mode === 'cloud' ? '云端处理 · 图片会上传' : '本地推理 · 图片不上传';
   }
-  ['modeFast', 'modeHd2', 'modeHd4'].forEach(function (id) {
+  ['modeFast', 'modeHd2', 'modeHd4', 'modeCloud'].forEach(function (id) {
     $(id).addEventListener('click', function () {
       var mode = $(id).dataset.mode;
       if (mode === currentMode || !currentImg) return;
+      if (mode === 'cloud') showToast('云端模式：图片会上传到 Hugging Face 公共模型处理');
       if (busy) stopRun();
       setMode(mode);
       setupImage(currentImg);   // 重新按新模式限尺寸并重跑
