@@ -469,11 +469,11 @@
     function isStale() { return myRun !== runSeq; }
     function fail(e) {
       progressWrap.style.display = 'none'; busy = false; cloudCtrl = null;
-      if (!isStale() && e !== 'abort') {
-        var msg = '云端修复失败，请稍后重试';
-        if (e && e.message === 'space-down') msg = '云端的免费模型暂时不可用，请稍后再试或换本地档';
-        showToast(msg);
-      }
+      if (isStale()) return;
+      var msg = '云端修复失败，请稍后重试';
+      if (e === 'abort' || (e && e.name === 'AbortError')) msg = '云端处理超时，请重试';
+      else if (e && e.message === 'space-down') msg = '云端的免费模型暂时不可用，请稍后再试或换本地档';
+      showToast(msg);
     }
     // 云端整体超时 240s
     var killer = setTimeout(function () { if (!isStale() && ctrl) ctrl.abort(); }, 240000);
@@ -529,7 +529,7 @@
             done = true; rej2(new Error('space-down'));
           }
           return done;
-        }, isStale).then(function () { if (!done) rej2(new Error('closed')); });
+        }, isStale).then(function () { if (!done) rej2(new Error('closed')); }).catch(rej2);
       });
     }).then(function (url) {
       if (isStale()) throw 'abort';
@@ -546,21 +546,20 @@
           aiCanvas.getContext('2d').drawImage(src, 0, 0);
           res({ w: w, h: h });
         };
+        var decodeViaImg = function () {
+          var img = new Image();
+          var objUrl = URL.createObjectURL(blob);
+          img.onload = function () { URL.revokeObjectURL(objUrl); draw(img, img.naturalWidth, img.naturalHeight); };
+          img.onerror = function () { URL.revokeObjectURL(objUrl); rej(new Error('decode')); };
+          img.src = objUrl;
+        };
         if (window.createImageBitmap) {
           createImageBitmap(blob).then(function (bmp) {
             draw(bmp, bmp.width, bmp.height);
             try { bmp.close(); } catch (e) {}
-          }).catch(function () {
-            var img = new Image();
-            img.onload = function () { draw(img, img.naturalWidth, img.naturalHeight); };
-            img.onerror = function () { rej(new Error('decode')); };
-            img.src = URL.createObjectURL(blob);
-          });
+          }).catch(decodeViaImg);
         } else {
-          var img = new Image();
-          img.onload = function () { draw(img, img.naturalWidth, img.naturalHeight); };
-          img.onerror = function () { rej(new Error('decode')); };
-          img.src = URL.createObjectURL(blob);
+          decodeViaImg();
         }
       });
     }).then(function (dim) {
