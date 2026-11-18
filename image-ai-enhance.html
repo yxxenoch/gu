@@ -15,19 +15,20 @@
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { height: 100%; }
+  :root { --acc: #6e9ee8; --bg: #12151a; --panel: #171b22; --line: #262c38; --txt: #dce1ea; --sub: #8e97a8; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Segoe UI", sans-serif;
-    background: #0f1115; color: #e8eaf0;
+    background: var(--bg); color: var(--txt);
     display: flex; flex-direction: column;
     min-height: 100vh; min-height: 100dvh;
   }
   header {
     padding: 14px 18px; display: flex; align-items: center; gap: 10px;
-    border-bottom: 1px solid #23262e;
+    border-bottom: 1px solid var(--line);
   }
   header h1 { font-size: 17px; font-weight: 600; }
   header .badge {
-    font-size: 11px; color: #8f96a8; border: 1px solid #2c303b;
+    font-size: 11px; color: var(--sub); border: 1px solid #2c303b;
     border-radius: 999px; padding: 2px 8px;
   }
   main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
@@ -38,31 +39,34 @@
   }
   #dropZone {
     width: 100%; max-width: 420px; padding: 44px 20px;
-    border: 2px dashed #3a4050; border-radius: 20px;
+    border: 2px dashed #39414f; border-radius: 20px;
     display: flex; flex-direction: column; align-items: center; gap: 14px;
     text-align: center; transition: border-color .2s, background .2s;
-    background: #16181f;
+    background: var(--panel);
   }
-  #dropZone.over { border-color: #4f8cff; background: #1a2233; }
+  #dropZone.over { border-color: var(--acc); background: #1a2436; }
   #dropZone .icon { font-size: 44px; }
   #dropZone p { color: #9aa1b5; font-size: 14px; line-height: 1.6; }
   .btn {
-    border: none; border-radius: 999px; padding: 13px 28px;
+    border: none; border-radius: 999px; padding: 14px 28px;
     font-size: 15px; font-weight: 600; cursor: pointer;
-    background: #4f8cff; color: #fff; transition: transform .1s, opacity .2s;
+    background: var(--acc); color: #fff; transition: transform .1s, opacity .2s;
   }
   .btn:active { transform: scale(.96); }
-  .btn.secondary { background: #262b38; color: #cfd4e2; }
+  .btn.secondary { background: #262c38; color: #cfd4e2; }
   .btn:disabled { opacity: .4; }
-  .hint { font-size: 12px; color: #6b7286; text-align: center; line-height: 1.6; }
+  .hint { font-size: 12px; color: #67707f; text-align: center; line-height: 1.6; }
 
   #editorView { flex: 1; display: none; flex-direction: column; overflow: hidden; }
   #compareWrap {
     position: relative; flex: 1; min-height: 0;
     display: flex; align-items: center; justify-content: center;
-    background: #0a0c10; overflow: hidden; touch-action: none;
+    background: #0c0f13; overflow: hidden; touch-action: none;
   }
-  #compareInner { position: relative; max-width: 100%; max-height: 100%; }
+  #compareInner {
+    position: relative; max-width: 100%; max-height: 100%;
+    transform-origin: 0 0; will-change: transform;
+  }
   #compareInner canvas { display: block; }
   #afterWrap { position: absolute; inset: 0; overflow: hidden; width: 50%; }
   #divider {
@@ -88,6 +92,19 @@
     padding: 3px 9px; border-radius: 999px; background: rgba(0,0,0,.55);
     color: #cfd4e2; z-index: 2;
   }
+  #zoomBar {
+    position: absolute; right: 10px; bottom: 10px; z-index: 6;
+    display: flex; flex-direction: column; gap: 8px; align-items: center;
+  }
+  .zbtn {
+    width: 46px; height: 46px; border-radius: 14px;
+    background: rgba(23,27,34,.82); border: 1px solid #333c4c;
+    color: var(--txt); font-size: 22px; line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  }
+  .zbtn:active { transform: scale(.93); background: #232b38; }
+  .zbtn.pct { font-size: 12px; font-weight: 600; height: 34px; border-radius: 999px; padding: 0 4px; }
 
   #progressWrap {
     position: absolute; inset: 0; display: none;
@@ -98,22 +115,22 @@
     width: 100%; max-width: 300px; height: 6px; border-radius: 3px;
     background: #2c3140; overflow: hidden;
   }
-  #progressFill { height: 100%; width: 0%; background: #4f8cff; transition: width .2s; }
+  #progressFill { height: 100%; width: 0%; background: var(--acc); transition: width .2s; }
   #progressText { font-size: 13px; color: #cfd4e2; }
   #cancelBtn { font-size: 13px; color: #9aa1b5; background: none; border: 1px solid #3a4050; border-radius: 999px; padding: 8px 20px; }
 
   #panel {
     padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
-    background: #14161d; border-top: 1px solid #23262e;
+    background: var(--panel); border-top: 1px solid var(--line);
     display: flex; flex-direction: column; gap: 10px;
   }
   .modeRow { display: flex; gap: 8px; }
   .modeBtn {
-    flex: 1; padding: 10px 0; border-radius: 12px; border: 1px solid #2c3140;
-    background: #1a1d26; color: #9aa1b5; font-size: 13px; font-weight: 600;
-    text-align: center; cursor: pointer;
+    flex: 1; padding: 11px 0; border-radius: 12px; border: 1px solid #2c3140;
+    background: #1a1e27; color: #98a1b4; font-size: 13px; font-weight: 600;
+    text-align: center; cursor: pointer; line-height: 1.5;
   }
-  .modeBtn.active { border-color: #4f8cff; color: #4f8cff; background: #1a2233; }
+  .modeBtn.active { border-color: var(--acc); color: var(--acc); background: #1c2740; }
   .sliderRow { display: flex; align-items: center; gap: 12px; }
   .sliderRow label { font-size: 13px; color: #aab0c2; width: 52px; flex-shrink: 0; }
   .sliderRow output { font-size: 12px; color: #e8eaf0; width: 38px; text-align: right; flex-shrink: 0; }
@@ -123,13 +140,13 @@
   }
   input[type=range]::-webkit-slider-thumb {
     -webkit-appearance: none; appearance: none;
-    width: 22px; height: 22px; border-radius: 50%;
-    background: #4f8cff; border: 3px solid #fff;
+    width: 26px; height: 26px; border-radius: 50%;
+    background: var(--acc); border: 3px solid #eef2f8;
     box-shadow: 0 1px 4px rgba(0,0,0,.5); cursor: pointer;
   }
   input[type=range]::-moz-range-thumb {
-    width: 20px; height: 20px; border-radius: 50%;
-    background: #4f8cff; border: 3px solid #fff; cursor: pointer;
+    width: 24px; height: 24px; border-radius: 50%;
+    background: var(--acc); border: 3px solid #eef2f8; cursor: pointer;
   }
   #actions { display: flex; gap: 10px; }
   #actions .btn { flex: 1; padding: 13px 0; }
@@ -168,6 +185,11 @@
         <span class="tag right">原图</span>
         <span id="resInfo"></span>
         <div id="divider"><div class="knob">⇄</div></div>
+      </div>
+      <div id="zoomBar">
+        <button class="zbtn" id="zoomIn" aria-label="放大">＋</button>
+        <button class="zbtn pct" id="zoomFit" aria-label="复位">100%</button>
+        <button class="zbtn" id="zoomOut" aria-label="缩小">－</button>
       </div>
       <div id="progressWrap">
         <div id="progressBar"><div id="progressFill"></div></div>
@@ -384,6 +406,7 @@
 
     uploadView.style.display = 'none';
     editorView.style.display = 'flex';
+    zoomReset();
     requestAnimationFrame(fitCompare);
     runAI();
   }
@@ -749,8 +772,56 @@
     });
   });
 
-  /* ---------- 对比拖动 ---------- */
-  var dragging = false;
+  /* ---------- 缩放 + 平移 + 对比拖动 ---------- */
+  var zoom = 1, panX = 0, panY = 0;
+  var MAXZ = 6;
+  var zoomFit = $('zoomFit');
+  function applyTransform() {
+    compareInner.style.transform = 'translate(' + panX + 'px,' + panY + 'px) scale(' + zoom + ')';
+    zoomFit.textContent = zoom === 1 ? '100%' : Math.round(zoom * 100) + '%';
+  }
+  function clampPan() {
+    var r = compareWrap.getBoundingClientRect();
+    // compareInner 在 wrap 里 flex 居中：图像实际左/上缘 = 居中偏移 + pan
+    var ox = (r.width - compareInner.offsetWidth) / 2;
+    var oy = (r.height - compareInner.offsetHeight) / 2;
+    var iw = compareInner.offsetWidth * zoom, ih = compareInner.offsetHeight * zoom;
+    var m = Math.min(r.width, r.height) * 0.25;
+    panX = Math.min(r.width - m - ox, Math.max(panX, m - iw - ox));
+    panY = Math.min(r.height - m - oy, Math.max(panY, m - ih - oy));
+  }
+  function zoomTo(nz, cx, cy) {
+    nz = Math.min(MAXZ, Math.max(1, nz));
+    if (nz === zoom) return;
+    var r = compareWrap.getBoundingClientRect();
+    if (cx === undefined) { cx = r.width / 2; cy = r.height / 2; }
+    panX = cx - (cx - panX) * nz / zoom;
+    panY = cy - (cy - panY) * nz / zoom;
+    zoom = nz;
+    if (zoom === 1) { panX = 0; panY = 0; } else clampPan();
+    applyTransform();
+  }
+  function zoomReset() { zoom = 1; panX = 0; panY = 0; applyTransform(); }
+  $('zoomIn').addEventListener('click', function () { zoomTo(zoom * 1.5); });
+  $('zoomOut').addEventListener('click', function () { zoomTo(zoom / 1.5); });
+  zoomFit.addEventListener('click', zoomReset);
+  // 双击缩放（点哪放大哪）
+  compareWrap.addEventListener('dblclick', function (e) {
+    var r = compareWrap.getBoundingClientRect();
+    if (zoom > 1) zoomReset();
+    else zoomTo(2.5, e.clientX - r.left, e.clientY - r.top);
+  });
+  // 电脑滚轮缩放
+  compareWrap.addEventListener('wheel', function (e) {
+    e.preventDefault();
+    var r = compareWrap.getBoundingClientRect();
+    zoomTo(zoom * (e.deltaY < 0 ? 1.15 : 1 / 1.15), e.clientX - r.left, e.clientY - r.top);
+  }, { passive: false });
+
+  // 手势：单指未放大=拖分割线，已放大=平移；双指=捏合缩放；knob 上始终=拖分割线
+  var pointers = new Map();
+  var dragDiv = false, panning = false, pinch = null;
+  function onKnob(e) { return e.target.closest && e.target.closest('#divider'); }
   function setSplit(clientX) {
     var rect = compareInner.getBoundingClientRect();
     var x = Math.min(Math.max(clientX - rect.left, 0), rect.width);
@@ -758,14 +829,58 @@
     afterWrap.style.width = pct + '%';
     divider.style.left = pct + '%';
   }
+  function midOf(pts, r) {
+    return { x: (pts[0].x + pts[1].x) / 2 - r.left, y: (pts[0].y + pts[1].y) / 2 - r.top };
+  }
   compareWrap.addEventListener('pointerdown', function (e) {
-    dragging = true;
-    compareWrap.setPointerCapture(e.pointerId);
-    setSplit(e.clientX);
+    if (e.target.closest('#zoomBar')) return;
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    try { compareWrap.setPointerCapture(e.pointerId); } catch (err) {}
+    if (pointers.size === 2) {
+      dragDiv = false; panning = false;
+      var pts = Array.from(pointers.values());
+      var r = compareWrap.getBoundingClientRect();
+      pinch = { d: Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y),
+                z: zoom, mid: midOf(pts, r) };
+    } else if (pointers.size === 1) {
+      if (onKnob(e)) { dragDiv = true; setSplit(e.clientX); }
+      else if (zoom > 1.01) { panning = { sx: e.clientX, sy: e.clientY, px: panX, py: panY }; }
+      else { dragDiv = true; setSplit(e.clientX); }
+    }
   });
-  compareWrap.addEventListener('pointermove', function (e) { if (dragging) setSplit(e.clientX); });
-  compareWrap.addEventListener('pointerup', function () { dragging = false; });
-  compareWrap.addEventListener('pointercancel', function () { dragging = false; });
+  compareWrap.addEventListener('pointermove', function (e) {
+    if (!pointers.has(e.pointerId)) return;
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointers.size === 2 && pinch) {
+      var pts = Array.from(pointers.values());
+      var r = compareWrap.getBoundingClientRect();
+      var d = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+      var mid = midOf(pts, r);
+      panX += mid.x - pinch.mid.x; panY += mid.y - pinch.mid.y;
+      zoomTo(pinch.z * d / pinch.d, mid.x, mid.y);
+      pinch.mid = mid;
+    } else if (dragDiv) {
+      setSplit(e.clientX);
+    } else if (panning) {
+      panX = panning.px + e.clientX - panning.sx;
+      panY = panning.py + e.clientY - panning.sy;
+      clampPan();
+      applyTransform();
+    }
+  });
+  function endPointer(e) {
+    pointers.delete(e.pointerId);
+    if (pointers.size < 2) pinch = null;
+    if (pointers.size === 0) { dragDiv = false; panning = false; }
+    else if (pointers.size === 1 && zoom > 1.01) {
+      // 捏合后剩一指：转平移
+      var p = Array.from(pointers.values())[0];
+      panning = { sx: p.x, sy: p.y, px: panX, py: panY };
+      dragDiv = false;
+    }
+  }
+  compareWrap.addEventListener('pointerup', endPointer);
+  compareWrap.addEventListener('pointercancel', endPointer);
 
   /* ---------- 事件 ---------- */
   pickBtn.addEventListener('click', function () { fileInput.click(); });
