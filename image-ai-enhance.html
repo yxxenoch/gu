@@ -271,10 +271,12 @@
   // 每种模式的放大倍数和输入尺寸上限（输出 = 输入 × scale）
   var MODES = {
     fast:  { scale: 2, maxIn: 768  },  // 输出 ≤1536px，最快
-    hd2:   { scale: 2, maxIn: 1500 },  // 输出 ≤3000px
-    hd4:   { scale: 4, maxIn: 750  },  // 输出 ≤3000px，适合小图
-    cloud: { scale: 4, maxIn: 900  }   // 云端 Real-ESRGAN，输出 ≤3600px，图片会上传
+    hd2:   { scale: 2, maxIn: 1200 },  // 输出 ≤2400px
+    hd4:   { scale: 4, maxIn: 620  },  // 输出 ≤2480px，适合小图
+    cloud: { scale: 4, maxIn: 900  }   // 云端 Real-ESRGAN，图片会上传；结果按 MAXOUT 收
   };
+  // 输出最长边上限：再大 iOS 会在渲染/后处理时内存超限杀页面
+  var MAXOUT = 2480;
   var PATCH = 128, PADDING = 10;
   var cloudCtrl = null;              // 云端请求的 AbortController
 
@@ -564,10 +566,13 @@
       setProgress(0.95, '渲染结果…');
       return new Promise(function (res, rej) {
         var draw = function (src, w, h) {
+          // 云端 4× 输出可能到 3600px+：先缩到 MAXOUT 再上屏，防止 iOS 内存崩溃
+          var k = Math.min(1, MAXOUT / Math.max(w, h));
+          var dw = Math.max(1, Math.round(w * k)), dh = Math.max(1, Math.round(h * k));
           aiCanvas = document.createElement('canvas');
-          aiCanvas.width = w; aiCanvas.height = h;
-          aiCanvas.getContext('2d').drawImage(src, 0, 0);
-          res({ w: w, h: h });
+          aiCanvas.width = dw; aiCanvas.height = dh;
+          aiCanvas.getContext('2d').drawImage(src, 0, 0, dw, dh);
+          res({ w: dw, h: dh });
         };
         var decodeViaImg = function () {
           var img = new Image();
@@ -638,6 +643,15 @@
       if (t.rank === 4) t = t.squeeze([0]);
       if (t.dtype === 'float32') t = t.div(255);
       var h = t.shape[0], w = t.shape[1];
+      // 输出超 MAXOUT 时先在张量层下采样，避免巨大画布/后续处理把 iOS 内存撑爆
+      if (Math.max(w, h) > MAXOUT) {
+        var k = MAXOUT / Math.max(w, h);
+        var rw = Math.max(1, Math.round(w * k)), rh = Math.max(1, Math.round(h * k));
+        var rt = tf.image.resizeBilinear(t, [rh, rw], true);
+        if (t !== tensor) t.dispose();
+        t = rt;
+        w = rw; h = rh;
+      }
 
       aiCanvas = document.createElement('canvas');
       aiCanvas.width = w; aiCanvas.height = h;
