@@ -158,7 +158,7 @@ const ITEMS=[
  {id:'petal-post-return',name:'折花寄影',sub:'花瓣 · 纸张 · 折叠',tags:['纸感','趣味'],symbol:'❀',colors:['#b89aab','#efe2d7','#fff9f0','#8b6477']},
  {id:'yan',name:'焰',sub:'暖色 · 炽光 · 层叠',tags:['拼贴'],symbol:'✧',colors:['#a55a43','#edc49e','#ffe7bd','#fff5db']},
  {id:'theme',name:'主题预览专供',sub:'主题截图 · 动态展示',tags:['展示'],symbol:'▣',colors:['#506b6a','#adbfc1','#ecf2ea','#f6ede3']},
- {id:'pink-paint',name:'粉色画图',sub:'千禧桌面 · 复古画图 · 三图拼接',tags:['展示','趣味'],symbol:'▣',colors:['#e4aec9','#dbb6c8','#c0c0c0','#17149a']},
+ {id:'pink-paint',name:'千禧桌面',sub:'复古画图 · CRT 闪烁 · 动态三图',tags:['展示','趣味'],symbol:'▣',colors:['#e4aec9','#dbb6c8','#c0c0c0','#17149a']},
  {id:'dark',name:'信号丢失',sub:'故障美学 · 雾面玻璃',tags:['拼贴','展示'],symbol:'⌁',colors:['#242933','#85829b','#d8e0e6','#d0c6e1']},
  {id:'ukiyo',name:'浮世三景',sub:'和风 · 屏风 · 花瓣',tags:['纸感','展示'],symbol:'三',colors:['#355e75','#c6a18a','#f1dbc1','#f2eee0']},
  {id:'relics',name:'绣样帖',sub:'布绣 · 拼布 · 古董样帖',tags:['拼贴','纸感'],symbol:'帖',colors:['#29464a','#e9dfd0','#f1e2d9','#a96b43']}
@@ -170,7 +170,7 @@ const safeHash=()=>{try{return decodeURIComponent(location.hash.slice(1))}catch{
 let filter='全部',query='',busy=false,toastTimer=0,loadTimer=0,firstVisit=storage.get('gu-has-visited',false)===false;
 const frames=new Map(),loaded=new Set(),itemsById=Object.fromEntries(ITEMS.map(x=>[x.id,x]));
 function isRemotePreview(){return location.protocol==='file:'}
-function studioURL(id){const base=isRemotePreview()?'https://yxxenoch.github.io/gu/':'./';const versions={'pink-paint':'paint-v9-web-1',zipbag:'zipbag-picker-1',origami:'origami-media-1','petal-post-return':'petal-picker-1',yan:'yan-11',huajian:'huajian-picker-1',fuguang:'film-light-v3',collage:'film-light-v3'};return base+encodeURIComponent(id)+'.html?v='+(versions[id]||'editor-controls-2')+(id==='dark'?'&flash=soft-1':'')}
+function studioURL(id){const base=isRemotePreview()?'https://yxxenoch.github.io/gu/':'./';const versions={'pink-paint':'paint-v10-motion-1',zipbag:'zipbag-picker-1',origami:'origami-media-1','petal-post-return':'petal-picker-1',yan:'yan-11',huajian:'huajian-picker-1',fuguang:'film-light-v3',collage:'film-light-v3'};return base+encodeURIComponent(id)+'.html?v='+(versions[id]||'editor-controls-2')+(id==='dark'?'&flash=soft-1':'')}
 function notify(msg){const el=$('#toast');el.textContent=msg;el.classList.add('is-visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('is-visible'),3100)}
 /* On phones move the drawer outside the iframe workspace so Android
    cannot mix its painted layers with live editor canvases. */
