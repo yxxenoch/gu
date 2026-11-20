@@ -261,6 +261,7 @@
   var workCanvas = null;          // AI + 后处理最终结果
   var blurCanvas = null;
   var postTimer = null;
+  var postSeq = 0, postFinish = null;
   var currentMode = 'hd2';
   var currentImg = null;
   var upscalerCache = {};         // scale -> Upscaler instance
@@ -268,16 +269,20 @@
   var runSeq = 0;                 // 每次新任务/取消都自增，过期异步回调凭它退出
   var srcHasAlpha = false;
 
-  // 每种模式的放大倍数和输入尺寸上限（输出 = 输入 × scale）
+  // Safari / iOS WebKit 对画布和 WebGL 内存限制较严格，尤其切档或完成 4× 后。
+  // 按设备限制同时存在的像素数量，而不是先分配巨大的画布再尝试缩小。
+  var IS_IOS = /iPad|iPhone|iPod/i.test(navigator.userAgent) ||
+               (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  var IS_MOBILE = IS_IOS || /Android|Mobile/i.test(navigator.userAgent);
+  var MAXOUT = IS_IOS ? 1800 : IS_MOBILE ? 2048 : 2480;
   var MODES = {
-    fast:  { scale: 2, maxIn: 768  },  // 输出 ≤1536px，最快
-    hd2:   { scale: 2, maxIn: 1200 },  // 输出 ≤2400px
-    hd4:   { scale: 4, maxIn: 620  },  // 输出 ≤2480px，适合小图
-    cloud: { scale: 4, maxIn: 900  }   // 云端 Real-ESRGAN，图片会上传；结果按 MAXOUT 收
+    fast:  { scale: 2, maxIn: Math.min(768, Math.floor(MAXOUT / 2)) },
+    hd2:   { scale: 2, maxIn: Math.min(1200, Math.floor(MAXOUT / 2)) },
+    hd4:   { scale: 4, maxIn: Math.min(620, Math.floor(MAXOUT / 4)) },
+    cloud: { scale: 4, maxIn: Math.min(900, Math.floor(MAXOUT / 4)) }
   };
-  // 输出最长边上限：再大 iOS 会在渲染/后处理时内存超限杀页面
-  var MAXOUT = 2480;
-  var PATCH = 128, PADDING = 10;
+  // 更小的推理 tile 可减少高倍率 ESRGAN 模型的峰值 WebGL 内存。
+  var PATCH = IS_MOBILE ? 64 : 128, PADDING = IS_MOBILE ? 8 : 10;
   var cloudCtrl = null;              // 云端请求的 AbortController
 
   function showToast(msg) {
@@ -344,6 +349,9 @@
 
   function stopRun() {
     runSeq++;
+    postSeq++;
+    clearTimeout(postTimer);
+    postFinish = null;
     if (cloudCtrl) { try { cloudCtrl.abort(); } catch (e) {} cloudCtrl = null; }
     Object.keys(upscalerCache).forEach(function (k) {
       try { upscalerCache[k].abort(); } catch (e) {}
@@ -395,6 +403,15 @@
     }
 
     if (busy) stopRun();   // 上一次推理还没跑完：作废，防止旧结果写进新图
+    // 释放前一个模式的画布 backing store，避免切档时新旧结果同时驻留内存。
+    clearTimeout(postTimer);
+    postSeq++;
+    postFinish = null;
+    if (srcCanvas) { srcCanvas.width = 1; srcCanvas.height = 1; }
+    if (aiCanvas) { aiCanvas.width = 1; aiCanvas.height = 1; }
+    if (blurCanvas) { blurCanvas.width = 1; blurCanvas.height = 1; }
+    afterCanvas.width = 1; afterCanvas.height = 1;
+    blurBuf = null;
     srcCanvas = document.createElement('canvas');
     srcCanvas.width = cw; srcCanvas.height = ch;
     srcCanvas.getContext('2d').drawImage(img, 0, 0, cw, ch);
@@ -433,29 +450,29 @@
     if (text) progressText.textContent = text;
   }
 
-  // AI 输出已画进 aiCanvas 之后的统一收尾（本地/云端共用）
+  // AI 输出渲染收尾。只保留原图 + AI 底图 + 一张最终输出画布；
+  // 耗时的锐化分块处理完后才展示“完成”，防止到 100% 时 Safari 被杀掉。
   function finishAI(w, h) {
-    // 模型/云端都是 3 通道输出：原图含透明通道时把 alpha 按输出尺寸复合回去
     if (srcHasAlpha) {
       var actx = aiCanvas.getContext('2d');
       actx.globalCompositeOperation = 'destination-in';
       actx.drawImage(srcCanvas, 0, 0, w, h);
       actx.globalCompositeOperation = 'source-over';
     }
-    workCanvas = document.createElement('canvas');
-    workCanvas.width = w; workCanvas.height = h;
-    blurCanvas = document.createElement('canvas');
-    blurCanvas.width = w; blurCanvas.height = h;
-
+    // 复用可见的 afterCanvas 作导出画布，避免再保留两张同尺寸离屏画布。
     afterCanvas.width = w; afterCanvas.height = h;
+    workCanvas = afterCanvas;
     resInfo.textContent = srcCanvas.width + '×' + srcCanvas.height + ' → ' + w + '×' + h;
     fitCompare();
-    applyPost();
-    saveBtn.disabled = false;
-    progressWrap.style.display = 'none';
-    busy = false;
-    // 释放输入画布内存，降低 iOS 内存压力（切模式会重新解码）
     srcCanvas.width = 1; srcCanvas.height = 1;
+    setProgress(0.98, '正在分块渲染修复结果…');
+    saveBtn.disabled = true;
+    postFinish = function () {
+      progressWrap.style.display = 'none';
+      busy = false;
+      saveBtn.disabled = false;
+    };
+    applyPost();
   }
 
   /* ---------- 云端 Real-ESRGAN（Hugging Face 公共 Space，免费，会排队） ---------- */
@@ -493,8 +510,8 @@
     cloudCtrl = ctrl;
     function isStale() { return myRun !== runSeq; }
     function fail(e) {
-      progressWrap.style.display = 'none'; busy = false; cloudCtrl = null;
       if (isStale()) return;
+      progressWrap.style.display = 'none'; busy = false; cloudCtrl = null;
       var msg = '云端修复失败，请稍后重试';
       if (e === 'abort' || (e && e.name === 'AbortError')) msg = '云端处理超时，请重试';
       else if (e && e.message === 'space-down') msg = '云端的免费模型暂时不可用，请稍后再试或换本地档';
@@ -566,7 +583,8 @@
       setProgress(0.95, '渲染结果…');
       return new Promise(function (res, rej) {
         var draw = function (src, w, h) {
-          // 云端 4× 输出可能到 3600px+：先缩到 MAXOUT 再上屏，防止 iOS 内存崩溃
+          if (isStale()) { rej(new Error('abort')); return; }
+          // 云端输入已按设备预算缩小，输出最多 MAXOUT，避免解码大图时峰值内存暴涨
           var k = Math.min(1, MAXOUT / Math.max(w, h));
           var dw = Math.max(1, Math.round(w * k)), dh = Math.max(1, Math.round(h * k));
           aiCanvas = document.createElement('canvas');
@@ -607,10 +625,9 @@
     var myRun = ++runSeq;
     function isStale() { return myRun !== runSeq; }
     function fail(e) {
+      if (isStale()) return;
       progressWrap.style.display = 'none'; busy = false;
-      if (!isStale()) {
-        showToast('AI 修复失败：' + (e && e.message ? e.message : '内存不足'));
-      }
+      showToast('AI 修复失败：' + (e && e.message ? e.message : '内存不足'));
     }
     progressWrap.style.display = 'flex';
     setProgress(0, '加载模型中…');
@@ -653,30 +670,41 @@
         w = rw; h = rh;
       }
 
-      aiCanvas = document.createElement('canvas');
-      aiCanvas.width = w; aiCanvas.height = h;
+      var outputCanvas = document.createElement('canvas');
+      outputCanvas.width = w; outputCanvas.height = h;
+      aiCanvas = outputCanvas;
       var done = function () {
         if (t !== tensor) t.dispose();
         tensor.dispose();
+        if (isStale()) {
+          outputCanvas.width = 1; outputCanvas.height = 1;
+          if (aiCanvas === outputCanvas) aiCanvas = null;
+          return;
+        }
         finishAI(w, h);
       };
-      var p = tf.browser.toPixels(t, aiCanvas);
-      if (p && p.then) p.then(done).catch(fail); else done();
+      var p = tf.browser.toPixels(t, outputCanvas);
+      if (p && p.then) p.then(done).catch(function (e) {
+        try { if (t !== tensor) t.dispose(); tensor.dispose(); } catch (err) {}
+        fail(e);
+      }); else done();
     }).catch(fail);
     });
   }
 
-  /* ---------- 后处理：USM 锐化 + 对比度 + 饱和度 ---------- */
+  /* ---------- 分块后处理：低内存 USM 锐化 + 对比度 + 饱和度 ---------- */
   function applyPost() {
-    if (!aiCanvas) return;
+    if (!aiCanvas || !workCanvas) return;
     clearTimeout(postTimer);
-    postTimer = setTimeout(runPost, 60);
+    var job = ++postSeq;
+    saveBtn.disabled = true;
+    postTimer = setTimeout(function () { runPost(job); }, 80);
   }
 
-  // iOS <18 不支持 ctx.filter：用 JS 盒式模糊代替
+  // Safari 部分版本不支持 CanvasRenderingContext2D.filter，用盒式模糊兜底。
   var CANVAS_FILTER_OK = (function () {
     var c = document.createElement('canvas').getContext('2d');
-    return typeof c.filter !== 'undefined';
+    return !!c && typeof c.filter !== 'undefined';
   })();
 
   function boxBlurPass(src, dst, w, h, horizontal, r) {
@@ -702,7 +730,7 @@
   }
 
   var blurBuf = null;
-  function getBlurData(srcImgData, w, h) {
+  function getBlurData(srcImgData, w, h, top) {
     var s = srcImgData.data;
     if (!CANVAS_FILTER_OK) {
       if (!blurBuf || blurBuf.length !== s.length) blurBuf = new Uint8ClampedArray(s.length);
@@ -713,49 +741,87 @@
       boxBlurPass(blurBuf, out, w, h, false, 2);
       return out;
     }
+    if (!blurCanvas) blurCanvas = document.createElement('canvas');
+    if (blurCanvas.width !== w) blurCanvas.width = w;
+    if (blurCanvas.height !== h) blurCanvas.height = h;
     var bctx = blurCanvas.getContext('2d');
     bctx.clearRect(0, 0, w, h);
     try {
       bctx.filter = 'blur(3px)';
-      bctx.drawImage(aiCanvas, 0, 0);
+      bctx.drawImage(aiCanvas, 0, top, w, h, 0, 0, w, h);
       bctx.filter = 'none';
-    } catch (e) { bctx.drawImage(aiCanvas, 0, 0); }
+    } catch (e) {
+      bctx.filter = 'none';
+      bctx.drawImage(aiCanvas, 0, top, w, h, 0, 0, w, h);
+    }
     return bctx.getImageData(0, 0, w, h).data;
   }
 
-  function runPost() {
+  function runPost(job) {
+    if (job !== postSeq || !aiCanvas || !workCanvas) return;
     var w = aiCanvas.width, h = aiCanvas.height;
-    var amount = sliders.sharp.el.value / 100;
-    var contrast = sliders.contrast.el.value / 100;
-    var sat = sliders.saturate.el.value / 100;
-
-    var srcImg = aiCanvas.getContext('2d').getImageData(0, 0, w, h);
-    var s = srcImg.data;
-    var b = amount > 0 ? getBlurData(srcImg, w, h) : s;
-    var out = workCanvas.getContext('2d').createImageData(w, h);
-    var o = out.data;
+    var amount = +sliders.sharp.el.value / 100;
+    var contrast = +sliders.contrast.el.value / 100;
+    var sat = +sliders.saturate.el.value / 100;
     var cOffset = 128 * (1 - contrast);
+    var sourceCtx = aiCanvas.getContext('2d');
+    var outputCtx = workCanvas.getContext('2d');
+    var STRIP = 96, PAD = 12, y = 0;
 
-    for (var i = 0; i < s.length; i += 4) {
-      var r = s[i] + amount * (s[i] - b[i]);
-      var g = s[i + 1] + amount * (s[i + 1] - b[i + 1]);
-      var bl = s[i + 2] + amount * (s[i + 2] - b[i + 2]);
-      r = r * contrast + cOffset;
-      g = g * contrast + cOffset;
-      bl = bl * contrast + cOffset;
-      var luma = 0.299 * r + 0.587 * g + 0.114 * bl;
-      r = luma + (r - luma) * sat;
-      g = luma + (g - luma) * sat;
-      bl = luma + (bl - luma) * sat;
-      o[i]     = r < 0 ? 0 : r > 255 ? 255 : r;
-      o[i + 1] = g < 0 ? 0 : g > 255 ? 255 : g;
-      o[i + 2] = bl < 0 ? 0 : bl > 255 ? 255 : bl;
-      o[i + 3] = s[i + 3];
+    function step() {
+      if (job !== postSeq || !aiCanvas || !workCanvas) return;
+      try {
+        // 每帧最多处理两条：只需要几 MB 临时像素数组，避免一次复制整张 4× 大图。
+        for (var stripe = 0; stripe < 2 && y < h; stripe++) {
+          var top = Math.max(0, y - PAD);
+          var bottom = Math.min(h, y + STRIP + PAD);
+          var tileH = bottom - top;
+          var innerH = Math.min(STRIP, h - y);
+          var input = sourceCtx.getImageData(0, top, w, tileH);
+          var s = input.data;
+          var b = amount > 0 ? getBlurData(input, w, tileH, top) : s;
+          var out = outputCtx.createImageData(w, innerH);
+          var o = out.data;
+          for (var row = 0; row < innerH; row++) {
+            var from = ((y - top + row) * w) * 4, to = row * w * 4;
+            for (var x = 0; x < w * 4; x += 4) {
+              var i = from + x, j = to + x;
+              var r = s[i] + amount * (s[i] - b[i]);
+              var g = s[i + 1] + amount * (s[i + 1] - b[i + 1]);
+              var bl = s[i + 2] + amount * (s[i + 2] - b[i + 2]);
+              r = r * contrast + cOffset;
+              g = g * contrast + cOffset;
+              bl = bl * contrast + cOffset;
+              var luma = 0.299 * r + 0.587 * g + 0.114 * bl;
+              o[j] = luma + (r - luma) * sat;
+              o[j + 1] = luma + (g - luma) * sat;
+              o[j + 2] = luma + (bl - luma) * sat;
+              o[j + 3] = s[i + 3];
+            }
+          }
+          outputCtx.putImageData(out, 0, y);
+          y += innerH;
+        }
+        if (y < h) {
+          requestAnimationFrame(step);
+        } else {
+          saveBtn.disabled = false;
+          if (postFinish) {
+            var finish = postFinish;
+            postFinish = null;
+            finish();
+          }
+        }
+      } catch (e) {
+        if (job !== postSeq) return;
+        busy = false;
+        postFinish = null;
+        progressWrap.style.display = 'none';
+        saveBtn.disabled = true;
+        showToast('图片渲染失败，建议换较低倍率重试');
+      }
     }
-    workCanvas.getContext('2d').putImageData(out, 0, 0);
-    var actx = afterCanvas.getContext('2d');
-    actx.clearRect(0, 0, w, h);
-    actx.drawImage(workCanvas, 0, 0);
+    requestAnimationFrame(step);
   }
 
   Object.keys(sliders).forEach(function (k) {
