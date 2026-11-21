@@ -84,6 +84,8 @@ function hex(val,def){
  if(/^#[\da-f]{3}$/i.test(v))return '#'+v.slice(1).split('').map(c=>c+c).join('').toLowerCase();
  return def;
 }
+const alphaOf=v=>{const m=/^#([0-9a-f]{2})[0-9a-f]{6}$/i.exec(String(v??''));return m?parseInt(m[1],16)/255:1};
+const withAlpha=(rgb,a)=>a>=.999?rgb:'rgba('+[1,3,5].map(i=>parseInt(rgb.slice(i,i+2),16)).join(',')+','+a.toFixed(4)+')';
 const rgb=h=>{if(/^#[\da-f]{3}$/i.test(h))h='#'+h.slice(1).split('').map(c=>c+c).join('');return [1,3,5].map(i=>parseInt(h.slice(i,i+2),16));};
 const toHex=a=>'#'+a.map(v=>Math.round(Math.max(0,Math.min(255,v))).toString(16).padStart(2,'0')).join('');
 const blend=(a,b,t)=>toHex(rgb(a).map((v,i)=>v*(1-t)+rgb(b)[i]*t));
@@ -94,14 +96,14 @@ const greenPaint=[];
 for(const el of poster.querySelectorAll('svg [fill],svg [stroke],svg [stop-color],svg [flood-color]')){
  for(const attr of ['fill','stroke','stop-color','flood-color']){
   const v=el.getAttribute(attr);if(!v||!/^#[a-f0-9]{6}$/i.test(v))continue;
-  const [h,s,l]=hsl(v);if(h>=61&&h<=150&&s>.17&&l>.12)greenPaint.push([el,attr,v]);
+  const [h,s,l]=hsl(v);if(h>=61&&h<=150&&s>.17&&l>.12)greenPaint.push([el,attr,v,el.getAttribute(attr==='fill'?'fill-opacity':attr==='stroke'?'stroke-opacity':attr==='stop-color'?'stop-opacity':'flood-opacity')]);
  }
 }
-function recolor(accent,shell){
+function recolor(accent,shell,accentAlpha=1,shellAlpha=1){
  const base=hsl(CONFIG.accent),target=hsl(accent),delta=target[0]-base[0];
  const original=accent.toLowerCase()===CONFIG.accent;
- for(const [el,attr,v] of greenPaint){const [h,s,l]=hsl(v);el.setAttribute(attr,original?v:fromHsl(h+delta,Math.min(.95,s*Math.min(1.5,target[1]/base[1])),l));}
- const p={accent,shell,light:blend(accent,'#ffffff',.69),dark:blend(accent,'#303030',.24),edge:blend(accent,'#737373',.31),panel:blend(shell,accent,.22),mount:blend(shell,accent,.36)};
+ for(const [el,attr,v,originalAlpha] of greenPaint){const [h,s,l]=hsl(v);el.setAttribute(attr,original?v:fromHsl(h+delta,Math.min(.95,s*Math.min(1.5,target[1]/base[1])),l));const opacityAttr=attr==='fill'?'fill-opacity':attr==='stroke'?'stroke-opacity':attr==='stop-color'?'stop-opacity':'flood-opacity';if(accentAlpha<.999)el.setAttribute(opacityAttr,((originalAlpha===null?1:parseFloat(originalAlpha)||0)*accentAlpha).toFixed(4));else if(originalAlpha===null)el.removeAttribute(opacityAttr);else el.setAttribute(opacityAttr,originalAlpha);}
+ const p={accent:withAlpha(accent,accentAlpha),shell:withAlpha(shell,shellAlpha),light:withAlpha(blend(accent,'#ffffff',.69),accentAlpha),dark:withAlpha(blend(accent,'#303030',.24),accentAlpha),edge:withAlpha(blend(accent,'#737373',.31),accentAlpha),panel:withAlpha(blend(shell,accent,.22),shellAlpha),mount:withAlpha(blend(shell,accent,.36),shellAlpha)};
  for(const [k,v] of Object.entries(p))poster.style.setProperty('--'+k,v);
  const grad=(id,colors)=>document.querySelectorAll('#'+id+' stop').forEach((x,i)=>x.setAttribute('stop-color',colors[i]));
  grad('topbar',[blend(accent,'#f9f4df',.56),blend(accent,'#9fae80',.23),blend(accent,'#f1edda',.12),blend(accent,'#fff9e7',.47),blend(accent,'#f8f5e2',.70)]);
@@ -133,7 +135,7 @@ window.ReedenShareTemplate={render(payload={}){
  row.dataset.backdrop=get(params,'screenBackdrop','blur')==='solid'?'solid':'blur';
  const sig=JSON.stringify([indices,incoming.map(s=>[s?.id,s?.page,s?.image])]);if(row.dataset.sig!==sig){row.dataset.sig=sig;row.replaceChildren();
  for(const i of indices){const slot=slots[i];const item=incoming.find(s=>s?.id===slot.id)||incoming.find(s=>s?.page===slot.page)||incoming[i]||{};row.append(makeShot(item,i,isDemo));}}
- recolor(hex(get(params,'accentColor',CONFIG.accent),CONFIG.accent),hex(get(params,'shellColor',CONFIG.shell),CONFIG.shell));
+ recolor(hex(get(params,'accentColor',CONFIG.accent),CONFIG.accent),hex(get(params,'shellColor',CONFIG.shell),CONFIG.shell),alphaOf(get(params,'accentColor',CONFIG.accent)),alphaOf(get(params,'shellColor',CONFIG.shell)));
  poster.style.setProperty('--heart',hex(get(params,'heartColor','#dda9bf'),'#dda9bf'));
  poster.style.setProperty('--metal',hex(get(params,'metalColor','#b7bbbf'),'#b7bbbf'));
  poster.style.setProperty('--pearl',hex(get(params,'pearlColor','#a98bd3'),'#a98bd3'));
@@ -152,7 +154,7 @@ window.ReedenShareTemplate={render(payload={}){
  poster.style.setProperty('--title-size',number(params,'titleSize',34,18,54)/12.43+'cqw');
  poster.style.setProperty('--author-size',number(params,'authorSize',22,12,38)/12.43+'cqw');
  poster.style.setProperty('--desc-size',number(params,'descriptionSize',21,12,34)/12.43+'cqw');
- poster.style.setProperty('--caption-color',hex(get(params,'captionColor','#30451d'),'#30451d'));
+ poster.style.setProperty('--caption-color',withAlpha(hex(get(params,'captionColor','#30451d'),'#30451d'),alphaOf(get(params,'captionColor','#30451d'))));
  if(clean(appearance.fontFamily))poster.style.setProperty('--user-font',JSON.stringify(clean(appearance.fontFamily)));else poster.style.removeProperty('--user-font');
  if(typeof window.Reeden?.resize==='function'){window.Reeden.resize();requestAnimationFrame(()=>window.Reeden?.resize?.());}
 }};
@@ -173,7 +175,7 @@ if(['system-ui','serif','sans-serif','monospace'].includes(family))poster.style.
 function renderSoon(){if(frame)return;frame=requestAnimationFrame(()=>{frame=0;refresh()})}
 function hexToHsv(hex){let [r,g,b]=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255),v=Math.max(r,g,b),d=v-Math.min(r,g,b),h=0;if(d)h=v===r?((g-b)/d+6)%6:v===g?(b-r)/d+2:(r-g)/d+4;return [Math.round(h*60),Math.round(v?d/v*100:0),Math.round(v*100)]}
 function hsvToHex(h,s,v){s/=100;v/=100;let f=n=>{let k=(n+h/60)%6;return Math.round(255*(v-v*s*Math.max(0,Math.min(k,4-k,1)))).toString(16).padStart(2,'0')};return '#'+f(5)+f(3)+f(1)}
-function colorRow(m,key,value){const el=document.createElement('details');el.className='gu-color';const sum=document.createElement('summary'),label=document.createElement('span'),sw=document.createElement('i');sw.className='gu-swatch';label.textContent=m.dataset.redLabel;sum.append(label,sw);el.append(sum);const tracks=[],outs=[];for(const [i,name,max] of [[0,'色相',360],[1,'饱和度',100],[2,'明度',100],[3,'不透明度',100]]){const row=document.createElement('label');row.className='gu-row';const lab=document.createElement('span'),range=document.createElement('input'),out=document.createElement('output');lab.textContent=name;range.type='range';range.min=0;range.max=max;range.step=1;if(i===0)range.className='gu-h';row.append(lab,range,out);if(i!==3)el.append(row);tracks.push(range);outs.push(out)}
+function colorRow(m,key,value){const el=document.createElement('details');el.className='gu-color';const sum=document.createElement('summary'),label=document.createElement('span'),sw=document.createElement('i');sw.className='gu-swatch';label.textContent=m.dataset.redLabel;sum.append(label,sw);el.append(sum);const tracks=[],outs=[];for(const [i,name,max] of [[0,'色相',360],[1,'饱和度',100],[2,'明度',100],[3,'不透明度',100]]){const row=document.createElement('label');row.className='gu-row';const lab=document.createElement('span'),range=document.createElement('input'),out=document.createElement('output');lab.textContent=name;range.type='range';range.min=0;range.max=max;range.step=1;if(i===0)range.className='gu-h';row.append(lab,range,out);el.append(row);tracks.push(range);outs.push(out)}
 const hex=document.createElement('input');hex.type='text';hex.className='gu-input';hex.setAttribute('aria-label',m.dataset.redLabel+' HEX');const native=document.createElement('input');native.type='color';native.setAttribute('aria-label',m.dataset.redLabel+' 系统取色');const tail=document.createElement('div');tail.className='gu-row';tail.append(hex,native);el.append(tail);
 function set(rgb,alpha=100,keep=false){const rgbHex=rgb.toLowerCase();if(!keep){const hsv=hexToHsv(rgbHex);hsv.forEach((n,i)=>tracks[i].value=n)}tracks[3].value=alpha;tracks.forEach((r,i)=>outs[i].value=r.value+(i===0?'°':'%'));const a=Math.round(alpha*255/100).toString(16).padStart(2,'0');params[key]=alpha===100?rgbHex:'#'+a+rgbHex.slice(1);hex.value=params[key].toUpperCase();native.value=rgbHex;sw.style.background=rgbHex+a;tracks[1].style.background='linear-gradient(90deg,#aaa,'+hsvToHex(+tracks[0].value,100,+tracks[2].value)+')';tracks[2].style.background='linear-gradient(90deg,#000,'+hsvToHex(+tracks[0].value,+tracks[1].value,100)+')';}
 tracks.forEach(r=>r.addEventListener('input',()=>{set(hsvToHex(+tracks[0].value,+tracks[1].value,+tracks[2].value),+tracks[3].value,true);renderSoon()}));hex.addEventListener('change',()=>{let v=hex.value.trim();if(/^#[\da-f]{8}$/i.test(v))set('#'+v.slice(3),Math.round(parseInt(v.slice(1,3),16)*100/255));else if(/^#[\da-f]{6}$/i.test(v))set(v,+tracks[3].value);else hex.value=params[key];renderSoon()});native.addEventListener('input',()=>{set(native.value,+tracks[3].value);renderSoon()});set(value);colors.push({reset:()=>set(value)});el._sync=v=>{if(/^#[\da-f]{8}$/i.test(v))set('#'+v.slice(3),parseInt(v.slice(1,3),16)*100/255);else set(v,100)};return el}
