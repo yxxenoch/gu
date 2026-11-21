@@ -1,5 +1,6 @@
 // Generate static catalog covers from the actual default template canvas.
 // Re-capture after the lake texture and snow upgrade, preserving the genuine live render.
+// Update cached cover for original cloud/sky restoration and larger layered snow.
 // Run manually or in CI. The resulting images are committed under assets/gallery-covers.
 // The public website never runs this script or launches hidden editors.
 const { chromium } = require('playwright');
