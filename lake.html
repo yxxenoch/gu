@@ -50,10 +50,10 @@
 <div class="section" role="tabpanel" id="lake-panel-screens" aria-labelledby="lake-tab-screens"><h2>01 · 截图照片</h2><div class="batch-upload"><button id="batchUpload" type="button" class="primary">＋ 一次上传 1–4 张截图</button><input id="batchFiles" type="file" accept="image/*" multiple hidden><p id="batchStatus" class="muted" aria-live="polite">可在相册里多选，一次填入对应截图位置。</p></div><div class="row"><label for="count">展示数量</label><select id="count"><option value="1">1 张</option><option value="2">2 张</option><option value="3">3 张</option><option value="4" selected>4 张</option></select></div><div class="slots" id="slots"></div><p class="muted">批量上传后仍可单独替换、左右换顺序；导出时不重复截图。</p></div>
 <div class="section" role="tabpanel" id="lake-panel-text" aria-labelledby="lake-tab-text" hidden><h2>02 · 主题文字</h2><label class="field">主题名<input id="title" type="text" value="湖中倒影" maxlength="90"></label><div class="twos"><label class="field">制作者<input id="author" type="text" value="" placeholder="填写制作者" maxlength="60"></label><label class="field">字体颜色<input id="ink" type="color" value="#33506e"></label></div><label class="field">主题简介<textarea id="desc" maxlength="250" placeholder="填写主题简介（可选）"></textarea></label><div class="row"><label>主题名字号</label><input id="titleSize" type="range" min="14" max="72" value="34"><output data-for="titleSize"></output></div><div class="row"><label>作者字号</label><input id="authorSize" type="range" min="10" max="38" value="18"><output data-for="authorSize"></output></div><div class="row"><label>简介字号</label><input id="descSize" type="range" min="10" max="38" value="17"><output data-for="descSize"></output></div><label class="field">选择字体<select id="fontChoice"><option value="serif">原版宋体 · 典雅</option><option value="kai">楷体 · 温柔</option><option value="sans">简洁黑体</option><option value="georgia">Georgia · 英文衬线</option></select></label><label class="field">上传字体（上传后可在上方切换）<input id="font" type="file" accept=".ttf,.otf,.woff,.woff2" style="display:block;width:100%;font-size:12px"></label></div>
 <div class="section" role="tabpanel" id="lake-panel-style" aria-labelledby="lake-tab-style" hidden><h2>03 · 湖面与天空</h2><div class="field">天空风格 · 点击图片切换<input id="sky" type="hidden" value="mist"><div id="skyCards" class="sky-cards">
-<button type="button" data-sky-card="mist"><canvas width="140" height="110"></canvas><span>晨雾</span></button>
-<button type="button" data-sky-card="day"><canvas width="140" height="110"></canvas><span>晴昼</span></button>
-<button type="button" data-sky-card="dusk"><canvas width="140" height="110"></canvas><span>暮光</span></button>
-<button type="button" data-sky-card="night"><canvas width="140" height="110"></canvas><span>星夜</span></button>
+<button type="button" data-sky-card="mist"><canvas width="140" height="196"></canvas><span>晨雾</span></button>
+<button type="button" data-sky-card="day"><canvas width="140" height="196"></canvas><span>晴昼</span></button>
+<button type="button" data-sky-card="dusk"><canvas width="140" height="196"></canvas><span>暮光</span></button>
+<button type="button" data-sky-card="night"><canvas width="140" height="196"></canvas><span>星夜</span></button>
 </div></div>
 <div class="color-presets"><div class="color-head"><strong>湖水颜色</strong><input id="waterColor" type="color" value="#6f96c4" aria-label="自定义湖水颜色"></div><div class="swatches" data-palette="waterColor"></div></div>
 <div class="color-presets"><div class="color-head"><strong>飞鸟颜色</strong><input id="birdColor" type="color" value="#4a6a8a" aria-label="自定义飞鸟颜色"></div><div class="swatches" data-palette="birdColor"></div></div><div class="row"><label>水纹精细度</label><input id="detail" type="range" min="30" max="100" value="75"><output data-for="detail"></output></div><div class="row"><label>倒影清晰度</label><input id="reflection" type="range" min="10" max="100" value="82"><output data-for="reflection"></output></div><div class="row"><label>水波力度</label><input id="wave" type="range" min="0" max="100" value="44"><output data-for="wave"></output></div><div class="row"><label>流动速度</label><input id="speed" type="range" min="20" max="160" value="80"><output data-for="speed"></output></div><div class="checks"><label><input id="ripples" type="checkbox" checked> 水波纹</label><label><input id="refl" type="checkbox" checked> 水中倒影</label><label><input id="clouds" type="checkbox" checked> 云朵</label><label><input id="birds" type="checkbox" checked> 飞鸟</label><label><input id="moon" type="checkbox" checked> 日月</label></div></div>
@@ -77,8 +77,52 @@ function say(msg){$('status').textContent=msg}
 function hexRGB(hex){let c=(hex||'#6f96c4').replace('#','');return [0,2,4].map(i=>parseInt(c.slice(i,i+2),16)||0)}
 function grad(c,x0,y0,x1,y1,stops){const g=c.createLinearGradient(x0,y0,x1,y1);for(const [p,v] of stops)g.addColorStop(p,v);return g}
 function rounded(c,x,y,w,h,r){r=Math.min(r,w/2,h/2);c.beginPath();c.roundRect(x,y,w,h,r)}
-function drawBackground(c,w,h){const p=palettes[state.sky],y=h*.662;c.fillStyle=grad(c,0,0,0,y,[[0,p[0]],[.37,p[1]],[.64,p[2]],[1,p[3]]]);c.fillRect(0,0,w,y);if(state.moon){c.save();const moonX=w*.82,moonY=h*.18,r=w*.043;const halo=c.createRadialGradient(moonX,moonY,3,moonX,moonY,r*3.7);halo.addColorStop(0,state.sky==='day'?'#fffbe76b':'#f8fcff77');halo.addColorStop(1,'#ffffff00');c.fillStyle=halo;c.beginPath();c.arc(moonX,moonY,r*3.7,0,7);c.fill();c.fillStyle=state.sky==='day'||state.sky==='dusk'?'#fff3d0':'#f5f8ff';c.beginPath();c.arc(moonX,moonY,r,0,7);c.fill();if(state.sky!=='day'&&state.sky!=='dusk'){c.fillStyle='#b9cbe13f';for(const [dx,dy,rr] of [[-.24,-.12,.20],[.21,.19,.14],[.12,-.32,.08]]){c.beginPath();c.arc(moonX+dx*r,moonY+dy*r,rr*r,0,7);c.fill()}}c.restore()}if(state.clouds){c.save();c.filter='blur('+Math.max(6,w*.018)+'px)';c.fillStyle=state.sky==='night'?'#a8bfd284':'#fffefeaa';[[.15,.215,.135,.025],[.51,.24,.16,.028],[.84,.265,.115,.016]].forEach(([x,yy,rx,ry])=>{c.beginPath();c.ellipse(w*x,h*yy,w*rx,h*ry,0,0,7);c.fill()});c.restore()}if(state.birds){c.save();c.strokeStyle=state.sky==='night'?'#d0deedb8':'#476889d9';c.lineWidth=w*.0022;c.lineCap='round';[[.35,.245,1],[.39,.225,.63],[.46,.265,.65],[.32,.269,.46],[.43,.203,.5]].forEach(([x,yy,s])=>{const a=w*.013*s;c.beginPath();c.moveTo(w*x-a,w*yy);c.quadraticCurveTo(w*x-a*.5,w*yy-a*.48,w*x,w*yy);c.quadraticCurveTo(w*x+a*.5,w*yy-a*.48,w*x+a,w*yy);c.stroke()});c.restore()}
-c.fillStyle=grad(c,0,y,0,h,[[0,'#c3d9ef'],[.17,'#b4cee8'],[.68,state.waterColor],[1,p[4]]]);c.fillRect(0,y,w,h-y);c.fillStyle='#f7fbffbb';c.fillRect(0,y-1,w,2);
+// Sky palette, moon, cloud ellipses and birds follow the user's original 600x840 SVG.
+const lakeSkies={
+ mist:[[0,'#dfeaf4'],[.30,'#b9cfe4'],[.46,'#e8eef5'],[.62,'#9fb9d8'],[.82,'#7d9cc2'],[1,'#5f7fa6']],
+ day:[[0,'#78b4e6'],[.38,'#a8d2f0'],[.62,'#dcecf7'],[1,'#f4f8f6']],
+ dusk:[[0,'#56649a'],[.30,'#9a86b0'],[.54,'#e9afa0'],[.64,'#f7d6b2'],[1,'#f3e4d2']],
+ night:[[0,'#0c1833'],[.38,'#1d3560'],[.62,'#3a5a90'],[1,'#6a8bb8']]
+};
+function drawBackground(c,w,h,sky=state.sky){
+ c.save();c.scale(w/600,h/840);
+ const horizon=840*.662;
+ const skyGrad=sky==='mist'?grad(c,378,0,222,840,lakeSkies[sky]):grad(c,0,0,0,840,lakeSkies[sky]);
+ c.fillStyle=skyGrad;c.fillRect(0,0,600,horizon);
+ // Moon or sun glow matches the original SVG's radial-gradient discs.
+ if(state.moon){
+   const isSun=sky==='day'||sky==='dusk',mx=488,my=isSun?132:124;
+   const halo=c.createRadialGradient(mx,my,12,mx,my,isSun?105:98);
+   const hue=isSun?(sky==='dusk'?'255,200,144':'255,240,192'):'231,242,255';
+   halo.addColorStop(0,'rgba('+hue+',.72)');halo.addColorStop(.45,'rgba('+hue+',.26)');halo.addColorStop(1,'rgba('+hue+',0)');
+   c.fillStyle=halo;c.beginPath();c.arc(mx,my,isSun?105:98,0,Math.PI*2);c.fill();
+   c.fillStyle=isSun?(sky==='dusk'?'#fff1d0':'#fff8e0'):'#f6f9ff';c.beginPath();c.arc(mx,my,25,0,Math.PI*2);c.fill();
+   if(!isSun){c.fillStyle='#d4dfef66';for(const [x,y,r] of [[480,118,6],[497,133,4.5],[494,114,3]]){c.beginPath();c.arc(x,y,r,0,Math.PI*2);c.fill()}}
+ }
+ if(sky==='night'){
+   for(let i=0;i<70;i++){const x=lakeHash(i,8,3)*600,yy=lakeHash(i,14,7)*210,r=.5+lakeHash(i,3,5)*1.4;
+     c.fillStyle='rgba(255,255,255,'+(.35+lakeHash(i,5,17)*.6).toFixed(2)+')';c.beginPath();c.arc(x,yy,r,0,Math.PI*2);c.fill()}
+ }
+ if(state.clouds){
+   c.save();c.filter='blur(5px)';c.globalAlpha=sky==='night'?.35*.62:.62;
+   c.fillStyle=sky==='dusk'?'#ffe9dc':sky==='night'?'#8fa6cc':'#ffffff';
+   for(const [x,y,rx,ry] of [[92,150,62,12],[128,141,40,15],[66,143,32,11],[338,172,84,12],[368,162,50,15],[300,166,44,10],[520,178,52,9],[540,171,30,11]]){
+     c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);c.fill()}
+   c.restore()
+ }
+ if(state.birds){
+   c.save();
+   const auto=state.birdColor==='#4a6a8a';
+   c.strokeStyle=auto?(sky==='night'?'#c9d8f0':sky==='dusk'?'#4d3b58':sky==='day'?'#3d5f80':'#4a6a8a'):state.birdColor;
+   c.globalAlpha=.7;c.lineWidth=1.6;c.lineCap='round';c.lineJoin='round';
+   for(const [x,y,z] of [[196,150,1.3],[228,138,1],[252,158,.8],[214,172,.7],[270,140,.6]]){
+     c.save();c.translate(x,y);c.scale(z,z);c.beginPath();c.moveTo(0,0);c.quadraticCurveTo(4,-5,8,0);c.quadraticCurveTo(12,-5,16,0);c.stroke();c.restore()}
+   c.restore()
+ }
+ c.fillStyle=grad(c,0,horizon,0,840,[[0,'#c3d9ef'],[.14,'#a9c6e4'],[.70,state.waterColor],[1,'#4f719c']]);
+ c.fillRect(0,horizon,600,840-horizon);
+ c.fillStyle='#f7fbff90';c.fillRect(0,horizon-1,600,2);
+ c.restore();
 }
 function wrapText(c,str,maxWidth,limit=4){const lines=[],text=String(str||'').split('\n');for(const line of text){let current='';for(const ch of line){if(c.measureText(current+ch).width>maxWidth&&current){lines.push(current);current=ch}else current+=ch;}lines.push(current);if(lines.length>=limit)break}return lines.slice(0,limit)}
 function drawTitle(c,w,h){const k=w/W;c.save();c.fillStyle=state.ink;c.textAlign='center';c.textBaseline='middle';c.shadowColor='#ffffff90';c.shadowBlur=w*.012;c.font='600 '+(state.titleSize*k)+'px '+fontFamily;const lines=wrapText(c,state.title,w*.78,2);let top=h*.096;for(const line of lines){c.fillText(line,w/2,top,w*.85);top+=state.titleSize*k*1.23;}c.shadowBlur=0;c.globalAlpha=.83;c.font=(state.authorSize*k)+'px '+fontFamily;c.fillText(state.author,w/2,top+w*.012);c.globalAlpha=.80;c.font=(state.descSize*k)+'px '+fontFamily;for(const [i,line] of wrapText(c,state.desc,w*.72,3).entries())c.fillText(line,w/2,top+w*.039+i*state.descSize*k*1.35);c.restore()}
