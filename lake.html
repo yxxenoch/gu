@@ -133,6 +133,29 @@ addEventListener('scroll',floating,{passive:true});addEventListener('resize',flo
 $('floatHide').onclick=()=>{$('floating').classList.toggle('collapsed');$('floatHide').textContent=$('floating').classList.contains('collapsed')?'＋':'−'};
 const head=$('floatHead'),flo=$('floating');let drag=null;head.onpointerdown=e=>{if(e.target.tagName==='BUTTON')return;const r=flo.getBoundingClientRect();drag={id:e.pointerId,x:e.clientX-r.left,y:e.clientY-r.top};head.setPointerCapture(e.pointerId)};head.onpointermove=e=>{if(!drag||drag.id!==e.pointerId)return;flo.style.right='auto';flo.style.bottom='auto';flo.style.left=clamp(e.clientX-drag.x,4,window.innerWidth-flo.offsetWidth-4)+'px';flo.style.top=clamp(e.clientY-drag.y,4,window.innerHeight-flo.offsetHeight-4)+'px'};for(const ev of ['pointerup','pointercancel','lostpointercapture'])head.addEventListener(ev,()=>drag=null);
 window.addEventListener('message',e=>{if(e.data?.type==='studio-active'){paused=!e.data.active;refresh()}});
+const lakeTabNames=['screens','text','style','motion','export'];
+function openLakeTab(name,scroll){
+ if(!lakeTabNames.includes(name))return;
+ for(const button of document.querySelectorAll('#lake-tabs [data-lake-tab]')){
+   const selected=button.dataset.lakeTab===name;
+   button.setAttribute('aria-selected',String(selected));
+   button.tabIndex=selected?0:-1;
+ }
+ for(const panel of document.querySelectorAll('.edit [role="tabpanel"]'))panel.hidden=panel.id!=='lake-panel-'+name;
+ if(scroll)requestAnimationFrame(()=>document.getElementById('lake-tabs').scrollIntoView({block:'start',behavior:'smooth'}));
+}
+for(const tab of document.querySelectorAll('#lake-tabs [data-lake-tab]')){
+ tab.addEventListener('click',()=>openLakeTab(tab.dataset.lakeTab,true));
+ tab.addEventListener('keydown',e=>{
+  if(e.key!=='ArrowRight'&&e.key!=='ArrowLeft')return;
+  e.preventDefault();
+  const n=lakeTabNames.indexOf(tab.dataset.lakeTab);
+  const next=lakeTabNames[(n+(e.key==='ArrowRight'?1:-1)+lakeTabNames.length)%lakeTabNames.length];
+  const el=document.getElementById('lake-tab-'+next);
+  el.focus();openLakeTab(next,false);
+ });
+}
+openLakeTab('screens',false);
 bind();syncUI();refresh();raf=requestAnimationFrame(tick);try{parent.postMessage({type:'studio-ready'},location.origin)}catch(e){}
 })();
 </script></body></html>
