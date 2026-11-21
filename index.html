@@ -4,21 +4,21 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#263c35">
-<meta name="description" content="咕の返图：十六款风格各异的返图模板。挑选喜欢的纸感、拼贴与动态风格，上传照片，在手机上完成制作。">
+<meta name="description" content="咕の返图：多款风格各异的返图模板。挑选喜欢的纸感、拼贴与动态风格，上传照片，在手机上完成制作。">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/brand/favicon-32.png">
 <link rel="icon" type="image/png" sizes="64x64" href="assets/brand/favicon-64.png">
 <link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="咕の返图">
 <meta property="og:title" content="咕の返图 · 一座随身返图画室">
-<meta property="og:description" content="十六款风格各异的返图模板。挑选喜欢的纸感、拼贴与动态风格，上传照片，在手机上完成制作。">
+<meta property="og:description" content="多款风格各异的返图模板。挑选喜欢的纸感、拼贴与动态风格，上传照片，在手机上完成制作。">
 <meta property="og:url" content="https://yxxenoch.github.io/gu/">
 <meta property="og:image" content="https://yxxenoch.github.io/gu/assets/brand/og-image.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="咕の返图 · 一座随身返图画室">
-<meta name="twitter:description" content="十六款风格各异的返图模板。挑选喜欢的纸感、拼贴与动态风格，上传照片，在手机上完成制作。">
+<meta name="twitter:description" content="多款风格各异的返图模板。挑选喜欢的纸感、拼贴与动态风格，上传照片，在手机上完成制作。">
 <meta name="twitter:image" content="https://yxxenoch.github.io/gu/assets/brand/og-image.jpg">
 <title>咕の返图 · 一座随身返图画室</title>
 <style>
@@ -159,6 +159,7 @@ const ITEMS=[
  {id:'yan',name:'焰',sub:'暖色 · 炽光 · 层叠',tags:['拼贴'],symbol:'✧',colors:['#a55a43','#edc49e','#ffe7bd','#fff5db']},
  {id:'theme',name:'主题预览专供',sub:'主题截图 · 动态展示',tags:['展示'],symbol:'▣',colors:['#506b6a','#adbfc1','#ecf2ea','#f6ede3']},
  {id:'pink-paint',name:'千禧桌面',sub:'复古画图 · CRT 闪烁 · 动态三图',tags:['展示','趣味'],symbol:'▣',colors:['#e4aec9','#dbb6c8','#c0c0c0','#17149a']},
+ {id:'lake',name:'湖光 · 湖中倒影',sub:'细雪 · 水波倒影 · GIF动图',tags:['展示','趣味'],symbol:'≈',colors:['#779ac3','#dae8f3','#f2f7fc','#f7fbff']},
  {id:'retro-green-emoji',name:'古早绿色emoji',sub:'韩系复古 · 青柠纸感 · 摇摇贴纸',tags:['展示','纸感','趣味'],symbol:'☻',colors:['#b6e581','#f8f8ec','#e4eed1','#597b32']},
  {id:'dark',name:'信号丢失',sub:'故障美学 · 雾面玻璃',tags:['拼贴','展示'],symbol:'⌁',colors:['#242933','#85829b','#d8e0e6','#d0c6e1']},
  {id:'ukiyo',name:'浮世三景',sub:'和风 · 屏风 · 花瓣',tags:['纸感','展示'],symbol:'三',colors:['#355e75','#c6a18a','#f1dbc1','#f2eee0']},
@@ -171,7 +172,7 @@ const safeHash=()=>{try{return decodeURIComponent(location.hash.slice(1))}catch{
 let filter='全部',query='',busy=false,toastTimer=0,loadTimer=0,firstVisit=storage.get('gu-has-visited',false)===false;
 const frames=new Map(),loaded=new Set(),itemsById=Object.fromEntries(ITEMS.map(x=>[x.id,x]));
 function isRemotePreview(){return location.protocol==='file:'}
-function studioURL(id){const base=isRemotePreview()?'https://yxxenoch.github.io/gu/':'./';const versions={'pink-paint':'paint-v12-auto-float','retro-green-emoji':'buddy-v2-paper-motion',zipbag:'zipbag-picker-1',origami:'origami-media-1','petal-post-return':'petal-picker-1',yan:'yan-11',huajian:'huajian-picker-1',fuguang:'film-light-v3',collage:'film-light-v3'};return base+encodeURIComponent(id)+'.html?v='+(versions[id]||'editor-controls-2')+(id==='dark'?'&flash=soft-1':'')}
+function studioURL(id){const base=isRemotePreview()?'https://yxxenoch.github.io/gu/':'./';const versions={'lake':'lake-snow-gif-v1','pink-paint':'paint-v12-auto-float','retro-green-emoji':'buddy-v2-paper-motion',zipbag:'zipbag-picker-1',origami:'origami-media-1','petal-post-return':'petal-picker-1',yan:'yan-11',huajian:'huajian-picker-1',fuguang:'film-light-v3',collage:'film-light-v3'};return base+encodeURIComponent(id)+'.html?v='+(versions[id]||'editor-controls-2')+(id==='dark'?'&flash=soft-1':'')}
 function notify(msg){const el=$('#toast');el.textContent=msg;el.classList.add('is-visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('is-visible'),3100)}
 /* On phones move the drawer outside the iframe workspace so Android
    cannot mix its painted layers with live editor canvases. */
