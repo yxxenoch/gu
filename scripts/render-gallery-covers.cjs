@@ -6,7 +6,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const http = require('node:http');
 
-const ids = ['fuguang','collage','guzhe','stitch','sunlit','food','zipbag','magazine','huajian','origami','petal-post-return','yan','theme','dark','ukiyo'];
+const ids = ['fuguang','collage','guzhe','stitch','sunlit','food','zipbag','magazine','huajian','origami','petal-post-return','yan','theme','dark','ukiyo','pink-paint','retro-green-emoji','lake'];
 const root = path.resolve(__dirname,'..');
 const outDir = path.join(root,'assets','gallery-covers');
 fs.mkdirSync(outDir,{recursive:true});
@@ -47,8 +47,8 @@ async function captureCanvas(page){
     return url.startsWith('data:image/webp;base64,')&&url.length>2300?url:null;
   }).catch(()=>null);
 }
-async function captureStage(page){
-  for(const selector of ['.stage-wrap','#stage-wrap','.stage','#preview','.preview-col','#art','#view','.preview','.canvas-shell']){
+async function captureStage(page, customSelectors){
+  for(const selector of (customSelectors||['#poster','.poster','.stage-wrap','#stage-wrap','.stage','#preview','.preview-col','#art','#view','.preview','.canvas-shell'])){
     const el=page.locator(selector).first();
     if(!await el.count())continue;
     const box=await el.boundingBox().catch(()=>null);
@@ -58,12 +58,12 @@ async function captureStage(page){
       // Re-encode the stage screenshot as WebP inside the page so every cover
       // shares one format (and stays small) regardless of capture source.
       const dataUrl=await page.evaluate(async b64=>{
-        const img=new Image();
-        img.src='data:image/png;base64,'+b64;
-        await img.decode();
-        const c=document.createElement('canvas');
-        c.width=img.naturalWidth;c.height=img.naturalHeight;
-        c.getContext('2d').drawImage(img,0,0);
+        const img=new Image();img.src='data:image/png;base64,'+b64;await img.decode();
+        const c=document.createElement('canvas');c.width=360;c.height=240;
+        const g=c.getContext('2d');g.fillStyle='#f7f4ed';g.fillRect(0,0,360,240);
+        const k=Math.min(356/img.naturalWidth,236/img.naturalHeight);
+        const w=img.naturalWidth*k,h=img.naturalHeight*k;
+        g.drawImage(img,(360-w)/2,(240-h)/2,w,h);
         return c.toDataURL('image/webp',0.85);
       },png.toString('base64'));
       if(dataUrl.startsWith('data:image/webp;base64,'))return {buffer:Buffer.from(dataUrl.split(',')[1],'base64'),selector};
@@ -81,7 +81,15 @@ async function captureStage(page){
       const page=await context.newPage();let output=null,kind='canvas',error='';
       try{
         await page.goto('http://127.0.0.1:'+port+'/'+id+'.html?gallery-build=1',{waitUntil:'domcontentloaded',timeout:30000});
+        // Newly added DOM-based themes have a real poster; capture it directly,
+        // never a generic illustrated placeholder or an editor interface.
+        if(['pink-paint','retro-green-emoji'].includes(id)){
+          await page.waitForTimeout(2000);
+          const stage=await captureStage(page,['#poster','.poster']);
+          if(stage){output=stage.buffer;kind='poster:'+stage.selector;}
+        }
         for(const delay of [1400,1800,2300,2800]){
+          if(output)break;
           await page.waitForTimeout(delay);
           const url=await captureCanvas(page);
           if(url){output=Buffer.from(url.split(',')[1],'base64');break;}
@@ -108,7 +116,7 @@ async function captureStage(page){
     fs.writeFileSync(path.join(outDir,'manifest.json'),JSON.stringify({version:1,generatedAt:new Date().toISOString(),covers:manifest},null,2)+'\n');
     const count=manifest.filter(x=>x.path).length;
     process.stdout.write('FINISHED '+count+'/'+ids.length+' genuine static template captures\n');
-    if(count<12)process.exitCode=1;
+    if(count<18)process.exitCode=1;
     await context.close();
   }finally{if(browser)await browser.close();await close();}
 })().catch(err=>{console.error(err);process.exitCode=1;server.close();});
