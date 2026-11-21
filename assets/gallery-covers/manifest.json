@@ -1,17 +1,17 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-15T18:33:05.576Z",
+  "generatedAt": "2026-11-21T08:07:29.916Z",
   "covers": [
     {
       "id": "fuguang",
       "path": "assets/gallery-covers/fuguang.webp",
-      "bytes": 2810,
+      "bytes": 2822,
       "source": "canvas"
     },
     {
       "id": "collage",
       "path": "assets/gallery-covers/collage.webp",
-      "bytes": 5436,
+      "bytes": 5462,
       "source": "canvas"
     },
     {
@@ -29,7 +29,7 @@
     {
       "id": "sunlit",
       "path": "assets/gallery-covers/sunlit.webp",
-      "bytes": 4304,
+      "bytes": 4316,
       "source": "canvas"
     },
     {
@@ -77,19 +77,37 @@
     {
       "id": "theme",
       "path": "assets/gallery-covers/theme.webp",
-      "bytes": 14746,
+      "bytes": 3620,
       "source": "stage:.stage"
     },
     {
       "id": "dark",
       "path": "assets/gallery-covers/dark.webp",
-      "bytes": 3380,
+      "bytes": 3632,
       "source": "canvas"
     },
     {
       "id": "ukiyo",
       "path": "assets/gallery-covers/ukiyo.webp",
-      "bytes": 12312,
+      "bytes": 12300,
+      "source": "canvas"
+    },
+    {
+      "id": "pink-paint",
+      "path": "assets/gallery-covers/pink-paint.webp",
+      "bytes": 6182,
+      "source": "poster:#poster"
+    },
+    {
+      "id": "retro-green-emoji",
+      "path": "assets/gallery-covers/retro-green-emoji.webp",
+      "bytes": 7126,
+      "source": "poster:#poster"
+    },
+    {
+      "id": "lake",
+      "path": "assets/gallery-covers/lake.webp",
+      "bytes": 3762,
       "source": "canvas"
     }
   ]
