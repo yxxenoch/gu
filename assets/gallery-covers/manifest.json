@@ -1,17 +1,17 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-21T08:07:29.916Z",
+  "generatedAt": "2026-11-21T08:10:02.559Z",
   "covers": [
     {
       "id": "fuguang",
       "path": "assets/gallery-covers/fuguang.webp",
-      "bytes": 2822,
+      "bytes": 2820,
       "source": "canvas"
     },
     {
       "id": "collage",
       "path": "assets/gallery-covers/collage.webp",
-      "bytes": 5462,
+      "bytes": 5440,
       "source": "canvas"
     },
     {
@@ -29,7 +29,7 @@
     {
       "id": "sunlit",
       "path": "assets/gallery-covers/sunlit.webp",
-      "bytes": 4316,
+      "bytes": 4342,
       "source": "canvas"
     },
     {
@@ -83,13 +83,13 @@
     {
       "id": "dark",
       "path": "assets/gallery-covers/dark.webp",
-      "bytes": 3632,
+      "bytes": 4280,
       "source": "canvas"
     },
     {
       "id": "ukiyo",
       "path": "assets/gallery-covers/ukiyo.webp",
-      "bytes": 12300,
+      "bytes": 12290,
       "source": "canvas"
     },
     {
@@ -107,7 +107,7 @@
     {
       "id": "lake",
       "path": "assets/gallery-covers/lake.webp",
-      "bytes": 3762,
+      "bytes": 3846,
       "source": "canvas"
     }
   ]
