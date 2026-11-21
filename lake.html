@@ -12,11 +12,18 @@
 .edit .row:has(input[type=range]){display:grid;grid-template-columns:6.7em minmax(0,1fr) 3em;gap:7px}
 .edit .row:has(input[type=range]) output{width:auto}
 .edit .section .checks{padding:6px 0;gap:7px 14px}
+/* Lake editor now shares the calm white studio header and preview toolbar. */
+.head{position:sticky;top:0;z-index:50;background:#fafbf9;color:#365365;border-bottom:1px solid #dce6e9}
+.brand small{color:#778d96}.head button{background:#fff;border-color:#d7e1e4;color:#365365}
+.head .primary{background:#365a6f;border-color:#365a6f;color:#fff}
+.preview-tools{display:flex;gap:6px;flex-wrap:wrap}
+.preview-tools button{flex:1 1 auto;padding:6px 8px;font-size:12px;white-space:nowrap;background:#fff}
+@media(max-width:780px){.lake-tabs{top:54px}.poster{width:min(100%,420px,45dvh);height:auto}.preview-tools button{padding:6px 5px;flex-basis:20%;font-size:11px}}
 @media(max-width:780px){.lake-tabs{top:0;gap:4px;padding:5px;position:sticky}.lake-tabs button{padding:9px 2px}.edit{padding-top:7px!important}.edit .intro{margin:2px 3px 8px;font-size:11px;line-height:1.6}}
 @media(max-width:780px){.head{height:54px;padding:0 10px}.brand b{font-size:14px}.brand small{font-size:9px}.head-actions{gap:4px}.head button{padding:6px}.layout{display:block}.preview-side{position:relative;top:auto;height:auto;padding:11px 12px 6px;gap:7px}.stage{height:auto;max-height:none;overflow:hidden;padding:9px}.poster{width:min(100%,420px);height:auto;max-height:none}.preview-foot{padding:2px}.edit{height:auto;overflow:visible;border:0;padding:10px 12px 70px}.section{margin-bottom:10px}.slots{grid-template-columns:repeat(2,minmax(0,1fr))}.slot-pick canvas{height:84px}.float{width:117px}.float img{max-height:144px}}
 </style></head><body>
-<header class="head"><div class="brand"><b>湖中倒影</b><small>GU STUDIO · SNOW ON THE LAKE</small></div><div class="head-actions"><button id="undo" type="button" title="撤回">↶ 撤回</button><button id="redo" type="button" title="重做">↷ 重做</button><button id="toggle" type="button">暂停动效</button><button id="goBack" type="button">返回画室</button></div></header>
-<main class="layout"><section class="preview-side"><div class="preview-title"><strong>水纹与倒影 · 动态预览</strong><span id="numBadge">四张展示</span></div><div class="stage"><canvas id="poster" class="poster" width="800" height="1120" aria-label="湖中倒影模板动态预览"></canvas></div><div class="preview-foot"><span>天空 · 水纹 · 雪粒，所见即所得</span><button id="zoom" type="button">放大查看</button></div></section>
+<header class="head"><div class="brand"><b>湖中倒影</b><small>GU STUDIO · SNOW ON THE LAKE</small></div><div class="head-actions"><button id="goBack" type="button">返回画室</button><button id="openExport" type="button" class="primary">导出作品</button></div></header>
+<main class="layout"><section class="preview-side"><div class="preview-title"><strong>实时预览 · 水纹与倒影</strong><span id="numBadge">四张展示</span></div><div class="preview-tools"><button id="undo" type="button" title="撤回">↶ 撤回</button><button id="redo" type="button" title="重做">↷ 重做</button><button id="toggle" type="button">暂停动效</button><button id="floatOpen" type="button">悬浮预览</button></div><div class="stage"><canvas id="poster" class="poster" width="800" height="1120" aria-label="湖中倒影模板动态预览"></canvas></div><div class="preview-foot"><span>天空 · 水纹 · 雪粒，所见即所得</span><button id="zoom" type="button">放大查看</button></div></section>
 <section class="edit">
 <nav class="lake-tabs" id="lake-tabs" role="tablist" aria-label="编辑分区">
 <button type="button" role="tab" data-lake-tab="screens" id="lake-tab-screens" aria-controls="lake-panel-screens" aria-selected="true">截图</button>
@@ -128,7 +135,7 @@ $('zoom').onclick=()=>{refresh();$('zoomImage').src=canvas.toDataURL('image/png'
 $('poster').onclick=$('zoom').onclick;$('closeZoom').onclick=()=>{$('modal').hidden=true};
 $('modal').onclick=e=>{if(e.target===$('modal'))$('modal').hidden=true};
 $('font').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const ff=new FontFace('LakeUserFont',await f.arrayBuffer());await ff.load();document.fonts.add(ff);fontFamily='"LakeUserFont",Georgia,serif';refresh();say('字体已应用')}catch(err){say('字体无法加载：'+err.message)}};
-function floating(){const flo=$('floating'),preview=$('poster');const r=preview.getBoundingClientRect(),should=r.bottom<90&&!document.hidden&&window.innerWidth<781;flo.hidden=!should;if(should&&performance.now()-floatLast>200)refresh()}
+function floating(){const flo=$('floating'),preview=$('poster');const r=preview.getBoundingClientRect(),should=!document.hidden&&(manualFloat||(r.bottom<90&&window.innerWidth<781));flo.hidden=!should;if(should&&performance.now()-floatLast>200)refresh()}
 addEventListener('scroll',floating,{passive:true});addEventListener('resize',floating);
 $('floatHide').onclick=()=>{$('floating').classList.toggle('collapsed');$('floatHide').textContent=$('floating').classList.contains('collapsed')?'＋':'−'};
 const head=$('floatHead'),flo=$('floating');let drag=null;head.onpointerdown=e=>{if(e.target.tagName==='BUTTON')return;const r=flo.getBoundingClientRect();drag={id:e.pointerId,x:e.clientX-r.left,y:e.clientY-r.top};head.setPointerCapture(e.pointerId)};head.onpointermove=e=>{if(!drag||drag.id!==e.pointerId)return;flo.style.right='auto';flo.style.bottom='auto';flo.style.left=clamp(e.clientX-drag.x,4,window.innerWidth-flo.offsetWidth-4)+'px';flo.style.top=clamp(e.clientY-drag.y,4,window.innerHeight-flo.offsetHeight-4)+'px'};for(const ev of ['pointerup','pointercancel','lostpointercapture'])head.addEventListener(ev,()=>drag=null);
@@ -156,6 +163,9 @@ for(const tab of document.querySelectorAll('#lake-tabs [data-lake-tab]')){
  });
 }
 openLakeTab('screens',false);
+$('openExport').onclick=()=>openLakeTab('export',true);
+let manualFloat=false;
+$('floatOpen').onclick=()=>{manualFloat=!manualFloat;$('floatOpen').textContent=manualFloat?'关闭悬浮':'悬浮预览';floating()};
 bind();syncUI();refresh();raf=requestAnimationFrame(tick);try{parent.postMessage({type:'studio-ready'},location.origin)}catch(e){}
 })();
 </script></body></html>
