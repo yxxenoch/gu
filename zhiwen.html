@@ -606,7 +606,7 @@ function smartDefaults(p){const b=p.cat==='book',v=p.cat==='vintage';
  s.creaseSize=b?20:v?42:30;s.creaseSharp=b?40:50;s.folds=v?'auto':'0';
  if(['foxed','teastain','pulp'].includes(p.id))s.crease=Math.max(s.crease,10);
  s.textSize=100;s.textArea=50;s.textLead=100;
- s.textColor=p.id==='night'?'#d9d1c0':'#17130f';s.textAlpha=p.id==='night'?86:100;s.preset=null}
+ s.textColor=p.id==='night'?'#17130f':'#17130f';s.textAlpha=100;s.preset=null}
 function applyPreset(i){const P=PRESETS[i];setStyle(P[0],true);Object.assign(s,P[3]);s.preset=i;if(!photos.length)s.ratio='9:19.5';textureCache.clear();commit();requestRender()}
 function initPresets(){const grid=$('presetGrid');grid.innerHTML=PRESETS.map((P,i)=>`<button type="button" class="preset" data-preset="${i}"><canvas width="96" height="150"></canvas><b>${P[1]}</b><span>${P[2]}</span></button>`).join('');
  grid.onclick=e=>{const b=e.target.closest('[data-preset]');if(b)applyPreset(+b.dataset.preset)};
