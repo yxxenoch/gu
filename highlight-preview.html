@@ -7,7 +7,7 @@
 @keyframes reeden-rainbow{0%,100%{color:#b74767}33%{color:#387c62}66%{color:#6055ba}}
 @keyframes reeden-pop{0%{transform:scale(.7);opacity:0}70%{transform:scale(1.09)}100%{transform:scale(1);opacity:1}}
 @keyframes reeden-spin{to{transform:rotate(360deg)}}
-@keyframes reeden-sweep{0%,100%{text-shadow:-1em 0 .4em transparent}50%{text-shadow:0 0 .45em #fff;color:#b38a48}}</style><nav><a href="./">咕の返图</a> ／ <a href="./theme-tools.html">主题工具</a> ／ 标题高亮</nav><h1>标题高亮预览</h1><section id="maker"><h2>制作标题特效</h2><label>标题动效 <select id="effect"><option value="float">浮动</option><option value="breathe">呼吸</option><option value="blink">闪烁</option><option value="shake">抖动</option><option value="rainbow">彩虹变色</option><option value="pop">弹出</option><option value="spin">旋转</option><option value="fade-in">淡入</option><option value="sweep">扫光</option><option value="still">静态</option></select></label><label>标题底图 <input id="picture" type="file" accept="image/png,image/gif,image/jpeg,image/webp"></label><label>Reeden 图片 ID <input id="pictureId" placeholder="带底图导出时填写"></label><small>在 Reeden 添加同一张图片，把图片 ID 填在这里即可绑定底图。</small><label>标题文字 <input id="makerTitle" value="山间来信"></label><div id="makerPaper"><strong id="makerPreview"></strong></div><button id="saveCss">下载 CSS</button><button id="saveJson">下载规则 JSON</button><small id="makerStatus" role="status"></small></section><section><h2>预览已有规则</h2><button id="paste">粘贴并识别</button><button id="choose">打开 JSON 文件</button><input hidden id="file" type="file" accept=".json,.txt"><textarea id="code" aria-label="高亮规则 JSON"></textarea><button id="apply">应用 JSON</button><label>标题规则 <select id="rules"></select></label><label id="assetLabel" hidden>本地背景图 <input id="asset" type="file" accept="image/png,image/jpeg,image/gif,image/webp"></label><small id="status" role="status"></small></section><section><label>章节标题 <input id="titleInput" value="山间来信"></label><button id="short">短标题</button><button id="long">长标题</button><label>阅读外观 <select id="mode"><option>日间</option><option>夜间</option></select></label><label>阅读字号 <input id="size" type="range" min="12" max="32" value="18"> <output id="px"></output></label></section><section id="paper"><h2 id="sample"></h2><p>雨停以后，窗边的书页在风里轻轻翻动。</p></section><script>
+@keyframes reeden-sweep{0%,100%{text-shadow:-1em 0 .4em transparent}50%{text-shadow:0 0 .45em #fff;color:#b38a48}}</style><nav><a href="./">咕の返图</a> ／ <a href="./theme-tools.html">主题工具</a> ／ 标题高亮</nav><h1>标题高亮预览</h1><section id="maker"><h2>制作标题特效</h2><label>标题动效 <select id="effect"><option value="float">浮动</option><option value="breathe">呼吸</option><option value="blink">闪烁</option><option value="shake">抖动</option><option value="rainbow">彩虹变色</option><option value="pop">弹出</option><option value="spin">旋转</option><option value="fade-in">淡入</option><option value="sweep">扫光</option><option value="still">静态</option></select></label><label>标题底图 <input id="picture" type="file" accept="image/png,image/gif,image/jpeg,image/webp"></label><label>Reeden 图片 ID <input id="pictureId" placeholder="仅单独导出 CSS / JSON 时填写"></label><small>下载 .red 会自动绑定本地底图，无需填写 ID。</small><label>标题文字 <input id="makerTitle" value="山间来信"></label><div id="makerPaper"><strong id="makerPreview"></strong></div><button id="saveRed">一键下载 .red（含底图）</button><button id="saveCss">下载 CSS</button><button id="saveJson">下载规则 JSON</button><small id="makerStatus" role="status"></small></section><section><h2>预览已有规则</h2><button id="paste">粘贴并识别</button><button id="choose">打开 JSON 文件</button><input hidden id="file" type="file" accept=".json,.txt"><textarea id="code" aria-label="高亮规则 JSON"></textarea><button id="apply">应用 JSON</button><label>标题规则 <select id="rules"></select></label><label id="assetLabel" hidden>本地背景图 <input id="asset" type="file" accept="image/png,image/jpeg,image/gif,image/webp"></label><small id="status" role="status"></small></section><section><label>章节标题 <input id="titleInput" value="山间来信"></label><button id="short">短标题</button><button id="long">长标题</button><label>阅读外观 <select id="mode"><option>日间</option><option>夜间</option></select></label><label>阅读字号 <input id="size" type="range" min="12" max="32" value="18"> <output id="px"></output></label></section><section id="paper"><h2 id="sample"></h2><p>雨停以后，窗边的书页在风里轻轻翻动。</p></section><script>
 const el=id=>document.getElementById(id);
 let rules=[],assets=new Map();
 const allowed=/^(color|background-(color|size|position|repeat)|font-(size|weight|style)|text-(align|shadow|decoration)|letter-spacing|line-height|padding(-top|-left|-bottom|-right)?|border(-radius|-width|-color|-style)?)$/;
@@ -39,11 +39,12 @@ for(const [id,text] of [['short','来信'],['long','第十二章　沿着山间�
 el('code').value=JSON.stringify({reedenHighlightRules:1,rules:[{name:'示例标题',target:'title',keyword:'',css:'color: {primaryColor}; background-color: #c9c8a2; padding: 0.4em 0.8em; border-radius: 6px; text-align: center;'}]},null,2);apply();
 
 let pictureUrl='';
-function buildStyle(preview){
+function buildStyle(preview,packing=false){
  const id=el('pictureId').value.trim(), effect=el('effect').value;
  const declarations=['text-align: center','display: inline-block','padding: 0.7em 1.4em','line-height: 1.5','color: '+(preview?'inherit':'{primaryColor}')];
- const image=preview?pictureUrl:id;
- if(image)declarations.push('background-image: url("'+image+'")','background-size: contain','background-position: center','background-repeat: no-repeat');
+ const image=preview?pictureUrl:packing?null:id;
+ if(image)declarations.push('background-image: url("'+image+'")');
+ if(image||(packing&&pictureUrl))declarations.push('background-size: contain','background-position: center','background-repeat: no-repeat');
  if(effect!=='still'){
   const once=['pop','fade-in'].includes(effect);
   declarations.push('animation: reeden-'+effect+(once?' 1.2s ease-out 1 forwards':' 2.4s ease-in-out infinite'));
@@ -61,4 +62,71 @@ function saveStyle(json){
  const a=document.createElement('a'),url=URL.createObjectURL(new Blob([data],{type:json?'application/json':'text/css;charset=utf-8'}));a.href=url;a.download='标题特效.'+(json?'json':'css');document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);el('makerStatus').textContent='已生成下载文件。'
 }
 el('saveCss').onclick=()=>saveStyle(false);el('saveJson').onclick=()=>saveStyle(true);showMaker();
+function imageMd5(bytes) {
+ const data=new Uint8Array(Math.ceil((bytes.length+9)/64)*64);
+ data.set(bytes);data[bytes.length]=128;
+ const view=new DataView(data.buffer);
+ view.setBigUint64(data.length-8,BigInt(bytes.length)*8n,true);
+ const state=new Int32Array([0x67452301,0xefcdab89,0x98badcfe,0x10325476]);
+ const shifts=[7,12,17,22,5,9,14,20,4,11,16,23,6,10,15,21];
+ const constants=Array.from({length:64},(_,i)=>Math.floor(Math.abs(Math.sin(i+1))*2**32));
+ for(let offset=0;offset<data.length;offset+=64){
+  let [a,b,c,d]=state;
+  for(let i=0;i<64;i++){
+   const round=i>>4, index=[i,(5*i+1)%16,(3*i+5)%16,(7*i)%16][round];
+   const f=[(b&c)|(~b&d),(d&b)|(~d&c),b^c^d,c^(b|~d)][round];
+   const v=(a+f+constants[i]+view.getUint32(offset+4*index,true))|0;
+   const shift=shifts[round*4+i%4];
+   [a,b,c,d]=[d,(b+((v<<shift)|(v>>>(32-shift))))|0,b,c];
+  }
+  ;[a,b,c,d].forEach((x,i)=>state[i]+=x)
+ }
+ return Array.from(state,x=>[0,8,16,24].map(s=>((x>>>s)&255).toString(16).padStart(2,'0')).join('')).join('').toUpperCase()
+}
+function redArchive(entries){
+ const contents=[],directory=[],enc=new TextEncoder();let offset=0;
+ const header=n=>new DataView(new ArrayBuffer(n));
+ const table=Array.from({length:256},(_,v)=>{for(let i=0;i<8;i++)v=(v>>>1)^((v&1)?0xedb88320:0);return v});
+ for(const [path,value] of entries){
+  const name=enc.encode(path),data=enc.encode(JSON.stringify(value));let crc=-1;
+  for(const byte of data)crc=table[(crc^byte)&255]^(crc>>>8);
+  crc=~crc;
+  const local=header(30),central=header(46);
+  local.setUint32(0,0x04034b50,true);central.setUint32(0,0x02014b50,true);central.setUint16(4,20,true);
+  for(const [h,p] of [[local,4],[central,6]]){
+   h.setUint16(p,20,true);h.setUint16(p+2,2048,true);h.setUint16(p+8,33,true);h.setUint32(p+10,crc,true);
+   h.setUint32(p+14,data.length,true);h.setUint32(p+18,data.length,true);h.setUint16(p+22,name.length,true)
+  }
+  central.setUint32(42,offset,true);contents.push(local.buffer,name,data);directory.push(central.buffer,name);offset+=30+name.length+data.length
+ }
+ const end=header(22);end.setUint32(0,0x06054b50,true);end.setUint16(8,entries.length,true);end.setUint16(10,entries.length,true);
+ end.setUint32(12,directory.reduce((n,x)=>n+x.byteLength,0),true);end.setUint32(16,offset,true);
+ return new Blob([new Uint8Array([82,69,68,4]),...contents,...directory,end.buffer],{type:'application/octet-stream'})
+}
+async function titleRed(file,css){
+ const id=crypto.randomUUID(), rule={name:'标题特效',keyword:'',isRegex:false,titleOnly:true,target:'title',enabled:true,sortOrder:0,global:true,styleType:'background',styleColorType:'teal',styleMode:'advanced',styleCssText:css};
+ if(file){
+  const bytes=new Uint8Array(await file.arrayBuffer());
+  rule.styleCssText='background-image: url("'+imageMd5(bytes)+'");\n'+css;
+  const compressed=new Uint8Array(await new Response(file.stream().pipeThrough(new CompressionStream('gzip'))).arrayBuffer());
+  let binary='';for(let i=0;i<compressed.length;i+=8192)binary+=String.fromCharCode(...compressed.subarray(i,i+8192));
+  rule.backgroundImageData=btoa(binary)
+ }
+ const theme={name:'标题特效'},entries=[['manifest.json',{version:1,type:'multi_theme',count:1}],['0/theme.json',theme]];
+ for(const mode of ['light','dark']){
+  const sid=crypto.randomUUID(),bg=mode==='light'?'#FAF7ED':'#252A28',fg=mode==='light'?'#354538':'#DEDCD2';
+  theme[mode]={readerColorSchemaId:sid,primaryColor:'#FF'+fg.slice(1),backgroundColor:'#FF'+bg.slice(1),foregroundColor:'#FF'+fg.slice(1)};
+  entries.push(['reader_schema/'+sid+'/schema.json',{name:'标题特效',themeMode:mode,backgroundColor:bg,textColor:fg,primaryColor:fg,layoutConfig:{},boundHighlightRuleIds:[id],boundHighlightRules:[{id,rule}]}])
+ }
+ return redArchive(entries)
+}
+
+el('saveRed').onclick=async()=>{
+ const button=el('saveRed');button.disabled=true;
+ try{
+  const blob=await titleRed(el('picture').files[0],buildStyle(false,true));
+  const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='标题特效.red';
+  document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);el('makerStatus').textContent='已生成标题特效.red，请在 Reeden 中导入主题包。'
+ }catch(e){el('makerStatus').textContent='打包失败：'+e.message}finally{button.disabled=false}
+};
 </script></html>
