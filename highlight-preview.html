@@ -98,42 +98,18 @@ function imageMd5(bytes) {
  }
  return Array.from(state,x=>[0,8,16,24].map(s=>((x>>>s)&255).toString(16).padStart(2,'0')).join('')).join('').toUpperCase()
 }
-function redArchive(entries){
- const contents=[],directory=[],enc=new TextEncoder();let offset=0;
- const header=n=>new DataView(new ArrayBuffer(n));
- const table=Array.from({length:256},(_,v)=>{for(let i=0;i<8;i++)v=(v>>>1)^((v&1)?0xedb88320:0);return v});
- for(const [path,value] of entries){
-  const name=enc.encode(path),data=enc.encode(JSON.stringify(value));let crc=-1;
-  for(const byte of data)crc=table[(crc^byte)&255]^(crc>>>8);
-  crc=~crc;
-  const local=header(30),central=header(46);
-  local.setUint32(0,0x04034b50,true);central.setUint32(0,0x02014b50,true);central.setUint16(4,20,true);
-  for(const [h,p] of [[local,4],[central,6]]){
-   h.setUint16(p,20,true);h.setUint16(p+2,2048,true);h.setUint16(p+8,33,true);h.setUint32(p+10,crc,true);
-   h.setUint32(p+14,data.length,true);h.setUint32(p+18,data.length,true);h.setUint16(p+22,name.length,true)
-  }
-  central.setUint32(42,offset,true);contents.push(local.buffer,name,data);directory.push(central.buffer,name);offset+=30+name.length+data.length
- }
- const end=header(22);end.setUint32(0,0x06054b50,true);end.setUint16(8,entries.length,true);end.setUint16(10,entries.length,true);
- end.setUint32(12,directory.reduce((n,x)=>n+x.byteLength,0),true);end.setUint32(16,offset,true);
- return new Blob([new Uint8Array([82,69,68,4]),...contents,...directory,end.buffer],{type:'application/octet-stream'})
-}
 async function titleRed(file,css){
- const id=crypto.randomUUID(), rule={name:'标题特效',keyword:'',isRegex:false,titleOnly:true,target:'title',enabled:true,sortOrder:0,global:true,styleType:'background',styleColorType:'teal',styleMode:'advanced',styleCssText:css};
+ const rule={name:'标题特效',keyword:'',isRegex:false,isMultiline:false,options:'{"scene":"reader"}',target:'title',enabled:true,sortOrder:0,global:true,styleType:'background',styleColorType:'teal',styleMode:'advanced',styleCssText:css};
  if(file){
   const bytes=new Uint8Array(await file.arrayBuffer());
   rule.styleCssText='background-image: url("'+imageMd5(bytes)+'");\n'+css;
   const compressed=new Uint8Array(await new Response(file.stream().pipeThrough(new CompressionStream('gzip'))).arrayBuffer());
   let binary='';for(let i=0;i<compressed.length;i+=8192)binary+=String.fromCharCode(...compressed.subarray(i,i+8192));
-  rule.backgroundImageData=btoa(binary)
+  rule.backgroundImageData=btoa(binary);rule.images={[imageMd5(bytes)]:rule.backgroundImageData}
  }
- const theme={name:'标题特效'},entries=[['manifest.json',{version:1,type:'multi_theme',count:1}],['0/theme.json',theme]];
- for(const mode of ['light','dark']){
-  const sid=crypto.randomUUID(),bg=mode==='light'?'#FAF7ED':'#252A28',fg=mode==='light'?'#354538':'#DEDCD2';
-  theme[mode]={readerColorSchemaId:sid,primaryColor:'#FF'+fg.slice(1),backgroundColor:'#FF'+bg.slice(1),foregroundColor:'#FF'+fg.slice(1)};
-  entries.push(['reader_schema/'+sid+'/schema.json',{name:'标题特效',themeMode:mode,backgroundColor:bg,textColor:fg,primaryColor:fg,layoutConfig:'{}',boundHighlightRuleIds:[id],boundHighlightRules:[{id,rule}]}])
- }
- return redArchive(entries)
+ const payload=new Blob([JSON.stringify({version:1,type:'highlightRule',data:[rule]})]);
+ const compressed=await new Response(payload.stream().pipeThrough(new CompressionStream('gzip'))).arrayBuffer();
+ return new Blob([new Uint8Array([82,69,68,1]),compressed],{type:'application/octet-stream'})
 }
 
 el('saveRed').onclick=async()=>{
@@ -141,7 +117,7 @@ el('saveRed').onclick=async()=>{
  try{
   const blob=await titleRed(el('picture').files[0],buildStyle(false,true));
   const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='标题特效.red';
-  document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);el('makerStatus').textContent='已生成标题特效.red，请在 Reeden 中导入主题包。'
+  document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);el('makerStatus').textContent='已生成标题特效.red，请在 Reeden 的高亮规则页导入。'
  }catch(e){el('makerStatus').textContent='打包失败：'+e.message}finally{button.disabled=false}
 };
 </script></html>
