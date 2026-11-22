@@ -500,12 +500,12 @@ function sync(){sliderIDs.forEach(id=>{if($(id)){$(id).value=s[id];let val=s[id]
 function snap(){return JSON.stringify(s)}
 function commit(){let st=snap();if(history[historyIndex]===st){sync();return}history=history.slice(0,historyIndex+1);history.push(st);if(history.length>50)history.shift();historyIndex=history.length-1;sync()}
 function restore(step){let j=historyIndex+step;if(j<0||j>=history.length)return;historyIndex=j;s=JSON.parse(history[j]);textureCache.clear();sync();requestRender()}
-function setStyle(id){let p=papers.find(x=>x.id===id);if(!p)return;
+function setStyle(id,quiet){let p=papers.find(x=>x.id===id);if(!p)return;
  s.style=id;s.paperColor=p.base;
  s.grain=Math.round(10+p.grain*45);s.fiber=Math.round(12+p.fiber*65);s.mottle=Math.round(6+p.mottle*60);s.fleck=p.cat==='clean'?Math.round(p.fleck*18):Math.round(6+p.fleck*55);
  s.crease=p.cat==='clean'?0:Math.round(p.crease*65);s.edge=p.cat==='clean'?0:Math.round(p.edge*65);
  {s.show=p.show||0;s.press=p.press||0;s.showMode=p.back||'h';s.spine=p.cat==='book'?45:0;const pr=PE.profileOf(p);s.relief=Math.round(30+pr.relief*45);s.inkSoak=Math.round(35+pr.absorb*35)}s.intensity=p.cat==='clean'?76:p.cat==='special'?73:82;s.tint=p.tint||(p.cat==='clean'?26:p.cat==='special'?39:p.cat==='book'?70:61);
- smartDefaults(p);textureCache.clear();scanPatternCache.clear();if(currentPaperCat!==p.cat)selectPaperCat(p.cat,false);commit();requestRender()
+ smartDefaults(p);textureCache.clear();scanPatternCache.clear();if(currentPaperCat!==p.cat)selectPaperCat(p.cat,false);if(!quiet){commit();requestRender()}
 }
 let currentPaperCat='clean';
 const catNotes={book:'书籍内页用纸：胶版纸、轻型纸、圣经纸、线装竹纸和真实旧书页扫描；自带背面透墨、铅印压痕与书脊阴影，适合做电子书阅读页底纹。',clean:'洁净的白纸、宣纸风格与细密纸齿；默认关闭明显污渍和折痕。',special:'压纹、珠光、亚麻、锤纹和柔雾涂层；每种具有不同细节。',vintage:'牛皮纸、古书页与自然旧化；可随时降低斑点和边缘泛黄。'};
@@ -607,7 +607,7 @@ function smartDefaults(p){const b=p.cat==='book',v=p.cat==='vintage';
  if(['foxed','teastain','pulp'].includes(p.id))s.crease=Math.max(s.crease,10);
  s.textSize=100;s.textArea=50;s.textLead=100;
  s.textColor=p.id==='night'?'#d9d1c0':'#17130f';s.textAlpha=p.id==='night'?86:100;s.preset=null}
-function applyPreset(i){const P=PRESETS[i];setStyle(P[0]);Object.assign(s,P[3]);s.preset=i;if(!photos.length)s.ratio='9:19.5';textureCache.clear();commit();requestRender()}
+function applyPreset(i){const P=PRESETS[i];setStyle(P[0],true);Object.assign(s,P[3]);s.preset=i;if(!photos.length)s.ratio='9:19.5';textureCache.clear();commit();requestRender()}
 function initPresets(){const grid=$('presetGrid');grid.innerHTML=PRESETS.map((P,i)=>`<button type="button" class="preset" data-preset="${i}"><canvas width="96" height="150"></canvas><b>${P[1]}</b><span>${P[2]}</span></button>`).join('');
  grid.onclick=e=>{const b=e.target.closest('[data-preset]');if(b)applyPreset(+b.dataset.preset)};
  let i=0;const step=()=>{if(i>=PRESETS.length){textureCache.clear();requestRender();return}const P=PRESETS[i],save=JSON.stringify(s),p=papers.find(x=>x.id===P[0]);
