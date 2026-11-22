@@ -7,7 +7,7 @@
 @keyframes reeden-rainbow{0%,100%{color:#b74767}33%{color:#387c62}66%{color:#6055ba}}
 @keyframes reeden-pop{0%{transform:scale(.7);opacity:0}70%{transform:scale(1.09)}100%{transform:scale(1);opacity:1}}
 @keyframes reeden-spin{to{transform:rotate(360deg)}}
-@keyframes reeden-sweep{0%,100%{text-shadow:-1em 0 .4em transparent}50%{text-shadow:0 0 .45em #fff;color:#b38a48}}</style><nav><a href="./">咕の返图</a> ／ <a href="./theme-tools.html">主题工具</a> ／ 标题高亮</nav><h1>标题高亮预览</h1><section id="maker"><h2>制作标题特效</h2><label>标题动效 <select id="effect"><option value="float">浮动</option><option value="breathe">呼吸</option><option value="blink">闪烁</option><option value="shake">抖动</option><option value="rainbow">彩虹变色</option><option value="pop">弹出</option><option value="spin">旋转</option><option value="fade-in">淡入</option><option value="sweep">扫光</option><option value="still">静态</option></select></label><label>标题底图 <input id="picture" type="file" accept="image/png,image/gif,image/jpeg,image/webp"></label><label>Reeden 图片 ID <input id="pictureId" placeholder="仅单独导出 CSS / JSON 时填写"></label><small>下载 .red 会自动绑定本地底图，无需填写 ID。</small><label>标题文字 <input id="makerTitle" value="山间来信"></label><div id="makerPaper"><strong id="makerPreview"></strong></div><button id="saveRed">一键下载 .red（含底图）</button><button id="saveCss">下载 CSS</button><button id="saveJson">下载规则 JSON</button><small id="makerStatus" role="status"></small></section><section><h2>预览已有规则</h2><button id="paste">粘贴并识别</button><button id="choose">打开 JSON 文件</button><input hidden id="file" type="file" accept=".json,.txt"><textarea id="code" aria-label="高亮规则 JSON"></textarea><button id="apply">应用 JSON</button><label>标题规则 <select id="rules"></select></label><label id="assetLabel" hidden>本地背景图 <input id="asset" type="file" accept="image/png,image/jpeg,image/gif,image/webp"></label><small id="status" role="status"></small></section><section><label>章节标题 <input id="titleInput" value="山间来信"></label><button id="short">短标题</button><button id="long">长标题</button><label>阅读外观 <select id="mode"><option>日间</option><option>夜间</option></select></label><label>阅读字号 <input id="size" type="range" min="12" max="32" value="18"> <output id="px"></output></label></section><section id="paper"><h2 id="sample"></h2><p>雨停以后，窗边的书页在风里轻轻翻动。</p></section><script>
+@keyframes reeden-sweep{0%,100%{text-shadow:-1em 0 .4em transparent}50%{text-shadow:0 0 .45em #fff;color:#b38a48}}#diagram{position:relative;width:fit-content;max-width:100%;margin:auto}#cutImage{display:block;max-width:100%;max-height:240px}#diagram i{position:absolute;background:#df3965;pointer-events:none}#line0,#line2{top:0;height:100%;width:1px}#line1,#line3{left:0;width:100%;height:1px}</style><nav><a href="./">咕の返图</a> ／ <a href="./theme-tools.html">主题工具</a> ／ 标题高亮</nav><h1>标题高亮预览</h1><section id="maker"><h2>制作标题特效</h2><label>标题动效 <select id="effect"><option value="float">浮动</option><option value="breathe">呼吸</option><option value="blink">闪烁</option><option value="shake">抖动</option><option value="rainbow">彩虹变色</option><option value="pop">弹出</option><option value="spin">旋转</option><option value="fade-in">淡入</option><option value="sweep">扫光</option><option value="still">静态</option></select></label><label>标题底图 <input id="picture" type="file" accept="image/png,image/gif,image/jpeg,image/webp"></label><label>Reeden 图片 ID <input id="pictureId" placeholder="仅单独导出 CSS / JSON 时填写"></label><small>下载 .red 会自动绑定本地底图，无需填写 ID。</small><details id="cuts" hidden><summary>调整底图 9S（九切片）</summary><label><input type="checkbox" id="nineOn">启用九切片</label><div id="diagram"><img id="cutImage" alt="原图与切线"><i id="line0"></i><i id="line1"></i><i id="line2"></i><i id="line3"></i></div><label>左切线 <input id="cut0" type="range" min="0" step="1"><output id="num0"></output></label><label>上切线 <input id="cut1" type="range" min="0" step="1"><output id="num1"></output></label><label>右切线 <input id="cut2" type="range" min="0" step="1"><output id="num2"></output></label><label>下切线 <input id="cut3" type="range" min="0" step="1"><output id="num3"></output></label><label>九切片缩放 <input id="sliceScale" type="range" min="5" max="150" value="100"><output id="scaleValue"></output></label></details><label>标题文字 <input id="makerTitle" value="山间来信"></label><div id="makerPaper"><strong id="makerPreview"></strong></div><button id="saveRed">一键下载 .red（含底图）</button><button id="saveCss">下载 CSS</button><button id="saveJson">下载规则 JSON</button><small id="makerStatus" role="status"></small></section><section><h2>预览已有规则</h2><button id="paste">粘贴并识别</button><button id="choose">打开 JSON 文件</button><input hidden id="file" type="file" accept=".json,.txt"><textarea id="code" aria-label="高亮规则 JSON"></textarea><button id="apply">应用 JSON</button><label>标题规则 <select id="rules"></select></label><label id="assetLabel" hidden>本地背景图 <input id="asset" type="file" accept="image/png,image/jpeg,image/gif,image/webp"></label><small id="status" role="status"></small></section><section><label>章节标题 <input id="titleInput" value="山间来信"></label><button id="short">短标题</button><button id="long">长标题</button><label>阅读外观 <select id="mode"><option>日间</option><option>夜间</option></select></label><label>阅读字号 <input id="size" type="range" min="12" max="32" value="18"> <output id="px"></output></label></section><section id="paper"><h2 id="sample"></h2><p>雨停以后，窗边的书页在风里轻轻翻动。</p></section><script>
 const el=id=>document.getElementById(id);
 let rules=[],assets=new Map();
 const allowed=/^(color|background-(color|size|position|repeat)|font-(size|weight|style)|text-(align|shadow|decoration)|letter-spacing|line-height|padding(-top|-left|-bottom|-right)?|border(-radius|-width|-color|-style)?)$/;
@@ -39,6 +39,14 @@ for(const [id,text] of [['short','来信'],['long','第十二章　沿着山间�
 el('code').value=JSON.stringify({reedenHighlightRules:1,rules:[{name:'示例标题',target:'title',keyword:'',css:'color: {primaryColor}; background-color: #c9c8a2; padding: 0.4em 0.8em; border-radius: 6px; text-align: center;'}]},null,2);apply();
 
 let pictureUrl='';
+function slice(preview){
+ const img=el('cutImage'),w=img.naturalWidth,h=img.naturalHeight;
+ if(!pictureUrl||el('cuts').hidden||!el('nineOn').checked||!w||!h)return [];
+ const [l,t,r,b]=[0,1,2,3].map(i=>+el('cut'+i).value),scale=+el('sliceScale').value;
+ if(!preview)return ['reeden-background-nine-slice: '+[l,t,r,b].join(' ')+' / '+w+' '+h,'reeden-background-nine-slice-basis: bubble','reeden-background-nine-slice-scale: '+scale+'%'];
+ const edges=[t,w-r,h-b,l];
+ return ['background-image:none','border-image-source:url("'+pictureUrl+'")','border-image-slice:'+edges.join(' ')+' fill','border-image-width:'+edges.map(x=>(x*scale/100)+'px').join(' ')]
+}
 function buildStyle(preview,packing=false){
  const id=el('pictureId').value.trim(), effect=el('effect').value;
  const declarations=['text-align: center','display: inline-block','padding: 0.7em 1.4em','line-height: 1.5','color: '+(preview?'inherit':'{primaryColor}')];
@@ -49,10 +57,17 @@ function buildStyle(preview,packing=false){
   const once=['pop','fade-in'].includes(effect);
   declarations.push('animation: reeden-'+effect+(once?' 1.2s ease-out 1 forwards':' 2.4s ease-in-out infinite'));
  }
- return declarations.join(';\n')+';'
+ return declarations.concat(slice(preview)).join(';\n')+';'
 }
 function showMaker(){const preview=el('makerPreview');preview.textContent=el('makerTitle').value;preview.style.cssText=buildStyle(true)}
-el('picture').onchange=e=>{const file=e.target.files[0];if(pictureUrl)URL.revokeObjectURL(pictureUrl);pictureUrl=file?URL.createObjectURL(file):'';el('pictureId').value='';showMaker()};
+el('picture').onchange=e=>{const file=e.target.files[0];if(pictureUrl)URL.revokeObjectURL(pictureUrl);pictureUrl=file?URL.createObjectURL(file):'';el('pictureId').value='';el('cuts').hidden=true;el('nineOn').checked=false;if(file)el('cutImage').src=pictureUrl;showMaker()};
+function syncCuts(){
+ const img=el('cutImage');
+ for(let i=0;i<4;i++){const field=el('cut'+i),axis=i%2?'top':'left';el('line'+i).style[axis]=100*field.value/(i%2?img.naturalHeight:img.naturalWidth)+'%';el('num'+i).textContent=field.value+' px'}
+ el('scaleValue').textContent=el('sliceScale').value+'%';showMaker()
+}
+el('cutImage').onload=()=>{const img=el('cutImage');[0,1,2,3].forEach(i=>{const field=el('cut'+i),dim=i%2?img.naturalHeight:img.naturalWidth;field.max=dim;field.value=i<2?Math.floor(dim/3):Math.ceil(dim*2/3);field.oninput=()=>{const other=+el('cut'+((i+2)%4)).value;field.value=i<2?Math.min(+field.value,other-1):Math.max(+field.value,other+1);el('nineOn').checked=true;syncCuts()}});el('cuts').hidden=false;syncCuts()};
+el('nineOn').onchange=syncCuts;el('sliceScale').oninput=syncCuts;
 el('makerTitle').oninput=showMaker;el('effect').onchange=showMaker;
 function saveStyle(json){
  const id=el('pictureId').value.trim();
@@ -116,7 +131,7 @@ async function titleRed(file,css){
  for(const mode of ['light','dark']){
   const sid=crypto.randomUUID(),bg=mode==='light'?'#FAF7ED':'#252A28',fg=mode==='light'?'#354538':'#DEDCD2';
   theme[mode]={readerColorSchemaId:sid,primaryColor:'#FF'+fg.slice(1),backgroundColor:'#FF'+bg.slice(1),foregroundColor:'#FF'+fg.slice(1)};
-  entries.push(['reader_schema/'+sid+'/schema.json',{name:'标题特效',themeMode:mode,backgroundColor:bg,textColor:fg,primaryColor:fg,layoutConfig:{},boundHighlightRuleIds:[id],boundHighlightRules:[{id,rule}]}])
+  entries.push(['reader_schema/'+sid+'/schema.json',{name:'标题特效',themeMode:mode,backgroundColor:bg,textColor:fg,primaryColor:fg,layoutConfig:'{}',boundHighlightRuleIds:[id],boundHighlightRules:[{id,rule}]}])
  }
  return redArchive(entries)
 }
