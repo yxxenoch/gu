@@ -271,7 +271,7 @@ const ZHF='"Songti SC","STSong","Source Han Serif SC","Noto Serif CJK SC","SimSu
 // Sets a page of body text (used for the reverse-side ghost and the preview sample).
 function layoutK(W,H){const ph=H/W>1.7,a=(s.textArea??50)/100;return{fs:(ph?1.3:1)*(s.textSize??100)/100,mx:ph?.04+(1-a)*.12:.07+(1-a)*.14,my:ph?.045+(1-a)*.1:.065+(1-a)*.13,ld:(s.textLead??100)/100}}
 function typeset(g,W,H,pmm,mode,off,color,pageNo){
- const r=rng(off*97+11),LA=layoutK(W,H),fs=(mode==='en'?3.5:3.85)/pmm*LA.fs,mx=W*LA.mx,top=H*LA.my,bw=W-2*mx,bh=H*(1-LA.my*2-.01);g.fillStyle=color;g.textBaseline='alphabetic';
+ const r=rng(off*97+11),LA=layoutK(W,H),fs=(mode==='en'?3.5:3.85)/pmm*LA.fs,mx=W*LA.mx,top=H*LA.my,bw=W-2*mx,bh=Math.min(H*(1-LA.my*2-.01),H*.9-top);g.fillStyle=color;g.textBaseline='alphabetic';
  if(mode==='en'){g.font=`${fs}px Georgia,"Times New Roman","Songti SC",serif`;g.textAlign='left';const words=TXT_EN.split(' '),lh=fs*1.5*LA.ld;let wi=(off*37)%words.length,y=top+fs,first=true;
   while(y<top+bh){let line=[],lw=first?fs*1.4:0;const sw=g.measureText(' ').width;let end=false;
    while(true){const wd=words[wi%words.length],ww=g.measureText(wd).width;if(lw+ww>bw)break;line.push([wd,ww]);lw+=ww+sw;wi++;if(/[.?]$/.test(wd)&&r()<.16){end=true;break}}
