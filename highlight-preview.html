@@ -1,0 +1,33 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src blob: data:"><title>标题高亮预览 · 咕の返图</title><style>
+*{box-sizing:border-box}body{margin:auto;max-width:760px;background:#f4f2eb;color:#33493d;font:16px/1.6 system-ui;padding:20px}a{color:inherit}section{margin:14px 0;background:#fffdf7;border:1px solid #d7dbcf;border-radius:14px;padding:16px}button,input,select,textarea{font:inherit;max-width:100%}button,select,input{border:1px solid #bbc8bd;border-radius:8px;padding:5px 9px;background:#fafbf5;color:#33493d}button{cursor:pointer;margin:3px}textarea{width:100%;height:7em}#paper{overflow:hidden;overflow-wrap:anywhere;font-family:serif}#sample{max-width:100%;margin:0}label{display:block;margin:7px 0}#paper p{text-indent:2em}small{display:block}
+</style><nav><a href="./">咕の返图</a> ／ <a href="./chapter-preview.html">SVG 预览</a> ／ 标题高亮</nav><h1>标题高亮预览</h1><section><button id="paste">粘贴并识别</button><button id="choose">打开 JSON 文件</button><input hidden id="file" type="file" accept=".json,.txt"><textarea id="code" aria-label="高亮规则 JSON"></textarea><button id="apply">应用 JSON</button><label>标题规则 <select id="rules"></select></label><label id="assetLabel" hidden>本地背景图 <input id="asset" type="file" accept="image/png,image/jpeg,image/gif,image/webp"></label><small id="status" role="status"></small></section><section><label>章节标题 <input id="titleInput" value="山间来信"></label><button id="short">短标题</button><button id="long">长标题</button><label>阅读外观 <select id="mode"><option>日间</option><option>夜间</option></select></label><label>阅读字号 <input id="size" type="range" min="12" max="32" value="18"> <output id="px"></output></label></section><section id="paper"><h2 id="sample"></h2><p>雨停以后，窗边的书页在风里轻轻翻动。</p></section><script>
+const el=id=>document.getElementById(id);
+let rules=[],assets=new Map();
+const allowed=/^(color|background-(color|size|position|repeat)|font-(size|weight|style)|text-(align|shadow|decoration)|letter-spacing|line-height|padding(-top|-left|-bottom|-right)?|border(-radius|-width|-color|-style)?)$/;
+function render(){
+ const rule=rules[el('rules').selectedIndex], title=el('sample'), night=el('mode').selectedIndex===1, ink=night?'#e4dfcc':'#403d33';
+ el('paper').style.background=night?'#282d2b':'#f8f1df';el('paper').style.color=ink;el('paper').style.fontSize=el('size').value+'px';el('px').textContent=el('size').value+' px';
+ title.textContent=el('titleInput').value;title.removeAttribute('style');el('assetLabel').hidden=true;
+ if(!rule)return;
+ const warnings=[], props={},unknown=[];
+ for(const d of (rule.css||'').split(';')){const i=d.indexOf(':');if(i>0)props[d.slice(0,i).trim().toLowerCase()]=d.slice(i+1).trim().replaceAll('{primaryColor}',ink)}
+ for(const [k,v] of Object.entries(props)){if(allowed.test(k)&&CSS.supports(k,v))title.style.setProperty(k,v);else if(k!=='background-image'&&!['reeden-background-nine-slice','reeden-background-nine-slice-scale'].includes(k))unknown.push(k)}
+ const bg=props['background-image'],url=assets.get(bg);
+ if(bg){el('assetLabel').hidden=false;if(url)title.style.backgroundImage='url('+url+')';else warnings.push('请选择规则对应的本地背景图')}
+ if(props['reeden-background-nine-slice']){
+ const parts=props['reeden-background-nine-slice'].split('/').map(p=>p.trim().split(/\s+/).map(Number));
+ const [l,t,r,b]=parts[0],[w,h]=parts[1]||[],scale=parseFloat(props['reeden-background-nine-slice-scale']||'100')/100;
+ if(url&&[l,t,r,b,w,h,scale].every(Number.isFinite)&&l>=0&&t>=0&&w>=r&&h>=b&&r>l&&b>t&&scale>0){let edges=[t,w-r,h-b,l];title.style.backgroundImage='none';title.style.borderImageSource='url('+url+')';title.style.borderImageSlice=edges.map((v,i)=>100*v/(i%2?w:h)+'%').join(' ')+' fill';title.style.borderImageWidth=edges.map(v=>v*scale+'px').join(' ');warnings.push('九切片按浏览器近似显示');if(parts.length>2)warnings.push('未模拟九切片内容区')}
+ }
+ if(rule.keyword)warnings.push('手动预览所选规则，未模拟关键词匹配');
+ if(unknown.length)warnings.push('未模拟：'+unknown.join('、'));
+ el('status').textContent=['已载入 '+rules.length+' 条标题规则',...warnings].join('。');
+}
+function apply(){try{const data=JSON.parse(el('code').value);if(data.reedenHighlightRules!==1||!Array.isArray(data.rules))throw Error('请使用 Reeden 高亮规则 JSON');rules=data.rules.filter(r=>r&&r.target==='title'&&typeof r.css==='string');if(!rules.length)throw Error('没有找到标题规则');el('rules').replaceChildren(...rules.map((r,i)=>new Option(r.name||'标题规则 '+(i+1),i)));render()}catch(e){rules=[];el('rules').replaceChildren();render();el('status').textContent=e.message}}
+el('apply').onclick=apply;el('paste').onclick=async()=>{try{el('code').value=await navigator.clipboard.readText();apply()}catch{el('code').focus();el('status').textContent='请在输入框长按粘贴，随后会自动识别。'}};
+el('code').onpaste=()=>setTimeout(apply,0);el('choose').onclick=()=>el('file').click();el('file').onchange=async e=>{const f=e.target.files[0];if(f){el('code').value=await f.text();apply();e.target.value=''}};
+el('asset').onchange=e=>{const file=e.target.files[0],rule=rules[el('rules').selectedIndex];if(file&&rule){const key=rule.css.match(/(?:^|;)\s*background-image\s*:\s*([^;]+)/i)?.[1].trim();if(assets.has(key))URL.revokeObjectURL(assets.get(key));assets.set(key,URL.createObjectURL(file));render();e.target.value=''}};
+for(const id of ['rules','mode','size','titleInput'])el(id).oninput=render;
+for(const [id,text] of [['short','来信'],['long','第十二章　沿着山间石阶一直走到那座亮着灯的小屋']])el(id).onclick=()=>{el('titleInput').value=text;render()};
+el('code').value=JSON.stringify({reedenHighlightRules:1,rules:[{name:'示例标题',target:'title',keyword:'',css:'color: {primaryColor}; background-color: #c9c8a2; padding: 0.4em 0.8em; border-radius: 6px; text-align: center;'}]},null,2);apply();
+</script></html>
