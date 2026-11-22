@@ -80,7 +80,7 @@ function saveStyle(json){
  const id=el('pictureId').value.trim();
  if((pictureUrl&&!id)||(id&&!/^[a-zA-Z0-9_-]+$/.test(id))){el('makerStatus').textContent='请填写这张底图在 Reeden 里的图片 ID。';el('pictureId').focus();return}
  const css=buildStyle(false);
- const data=json?JSON.stringify({reedenHighlightRules:1,rules:[{name:'标题特效',keyword:'',target:'title',css}]},null,2):css;
+ const data=json?JSON.stringify({reedenHighlightRules:1,rules:[{name:'标题特效',keyword:'{titleGroup}',target:'title',css}]},null,2):css;
  const a=document.createElement('a'),url=URL.createObjectURL(new Blob([data],{type:json?'application/json':'text/css;charset=utf-8'}));a.href=url;a.download='标题特效.'+(json?'json':'css');document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);el('makerStatus').textContent='已生成下载文件。'
 }
 el('saveCss').onclick=()=>saveStyle(false);el('saveJson').onclick=()=>saveStyle(true);showMaker();
@@ -106,7 +106,7 @@ function imageMd5(bytes) {
  return Array.from(state,x=>[0,8,16,24].map(s=>((x>>>s)&255).toString(16).padStart(2,'0')).join('')).join('').toUpperCase()
 }
 async function titleRed(file,css){
- const rule={name:'标题特效',keyword:'',isRegex:false,isMultiline:false,options:'{"scene":"reader"}',target:'title',enabled:true,sortOrder:0,global:true,styleType:'background',styleColorType:'teal',styleMode:'advanced',styleCssText:css};
+ const rule={name:'标题特效',keyword:'{titleGroup}',isRegex:false,isMultiline:false,options:'{"scene":"reader"}',target:'title',enabled:true,sortOrder:0,global:true,styleType:'background',styleColorType:'teal',styleMode:'advanced',styleCssText:css};
  if(file){
   const bytes=new Uint8Array(await file.arrayBuffer());
   rule.styleCssText='background-image: url("'+imageMd5(bytes)+'");\n'+css;
@@ -124,7 +124,7 @@ el('saveRed').onclick=async()=>{
  try{
   const blob=await titleRed(el('picture').files[0],buildStyle(false,true));
   const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='标题特效.red';
-  document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);el('makerStatus').textContent='已生成标题特效.red，请在 Reeden 的高亮规则页导入。'
+  document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);el('makerStatus').textContent='已生成标题特效.red。导入后请将这条规则移到标题规则最前面，并关闭阅读设置中的「标题样式」。'
  }catch(e){el('makerStatus').textContent='打包失败：'+e.message}finally{button.disabled=false}
 };
 </script></html>
