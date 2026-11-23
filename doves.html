@@ -186,6 +186,7 @@ function layout(){
  STEP=Math.PI/(mob?9:11);
  R=(CW*1.16)/(2*Math.sin(STEP/2));
  PER=Math.max(innerWidth,innerHeight)*1.15;
+ rot=Math.max(0,Math.min(LIST.length-1,cur))*STEP;tgt=null;
  scene.style.setProperty('--per',PER+'px');
  scene.style.width=innerWidth+'px';scene.style.height=innerHeight+'px';
  document.documentElement.style.setProperty('--cw',CW+'px');
