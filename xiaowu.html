@@ -96,6 +96,7 @@ a{color:var(--green)}[hidden]{display:none!important}
  </aside>
 </main>
 <div class="itembar" id="itembar" hidden>
+ <button data-op="smaller" title="缩小">－</button><button data-op="bigger" title="放大">＋</button>
  <button data-op="down" title="下移一层">⬇</button><button data-op="up" title="上移一层">⬆</button>
  <button data-op="flip" title="左右翻转">⇋</button><button data-op="copy" title="再来一件">⧉</button>
  <button data-op="del" class="del" title="拿走">🗑</button>
@@ -185,6 +186,8 @@ bar.addEventListener('click',e=>{const b=e.target.closest('button');if(!b||sel==
  if(op==='del'){items.splice(sel,1);sel=null}
  else if(op==='flip')it.f=!it.f;
  else if(op==='copy'){items.splice(sel+1,0,{...it,x:it.x+.035,y:it.y+.03});sel++}
+ else if(op==='bigger')it.s=Math.min(3,it.s*1.18);
+ else if(op==='smaller')it.s=Math.max(.35,it.s/1.18);
  else if(op==='up'&&sel<items.length-1){[items[sel],items[sel+1]]=[items[sel+1],items[sel]];sel++}
  else if(op==='down'&&sel>0){[items[sel],items[sel-1]]=[items[sel-1],items[sel]];sel--}
  renderItems();});
@@ -212,8 +215,11 @@ async function exportPNG(){const c=document.createElement('canvas');c.width=W2;c
  g.fillStyle='#f4ece0';g.fillRect(0,H2*.645,W2,H2*.018);
  g.fillStyle=r.floor;g.fillRect(0,H2*.66,W2,H2*.34);
  g.strokeStyle=shade(r.floor,-18);g.lineWidth=2;for(let i=0;i<9;i++){g.beginPath();g.moveTo(0,H2*.66+i*H2*.038);g.lineTo(W2,H2*.66+i*H2*.038);g.stroke()}
- /* 与屏幕上一致：家具像素尺寸按舞台实测比例换算，避免异形舞台裁掉边缘家具 */
- const sx=W2/stage.clientWidth,sy=H2/stage.clientHeight,ek=stageK();
+ /* 与屏幕上一致：家具像素尺寸按舞台实测比例换算，避免异形舞台裁掉边缘家具；
+    舞台被挤成一条线（手机横屏）时用参考尺寸兜底 */
+ const collapsed=stage.clientWidth<20||stage.clientHeight<20;
+ const sx=collapsed?W2/810:W2/stage.clientWidth,sy=collapsed?H2/600:H2/stage.clientHeight,
+       ek=collapsed?Math.min(W2/810,H2/600):stageK();
  for(const it of items){const f=FURN[it.t];const img=await svgImage(f.s,f.w,f.h);
   const w=f.w*it.s*ek*sx,h=f.h*it.s*ek*sy,px=it.x*W2,py=it.y*H2;
   g.save();if(it.f){g.translate(px+w,py);g.scale(-1,1)}else g.translate(px,py);
