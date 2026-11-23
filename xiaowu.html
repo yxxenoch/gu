@@ -151,7 +151,10 @@ function renderItems(){itemsBox.replaceChildren();items.forEach((it,i)=>{
  el.addEventListener('pointerdown',e=>startDrag(e,i));
  itemsBox.append(el);});
  if(sel!=null&&sel>=items.length)sel=null;bar.hidden=sel==null;
- if(sel!=null){const el=itemsBox.children[sel];el?.classList.add('sel');el?.querySelector('.handle')&&(el.querySelector('.handle').hidden=false);}
+ if(sel!=null){const el=itemsBox.children[sel];if(!el)return;
+  el.classList.add('sel');const dim=itemWH(items[sel]),h=el.querySelector('.handle');
+  /* 家具太小手柄会把它整个盖住，藏掉手柄保留下拖动 */
+  if(h)h.hidden=dim.w<52||dim.h<34;}
  positionBar();}
 function positionBar(){if(sel==null){bar.hidden=true;return}bar.hidden=false;
  const el=itemsBox.children[sel];if(!el)return;
@@ -209,9 +212,10 @@ async function exportPNG(){const c=document.createElement('canvas');c.width=W2;c
  g.fillStyle='#f4ece0';g.fillRect(0,H2*.645,W2,H2*.018);
  g.fillStyle=r.floor;g.fillRect(0,H2*.66,W2,H2*.34);
  g.strokeStyle=shade(r.floor,-18);g.lineWidth=2;for(let i=0;i<9;i++){g.beginPath();g.moveTo(0,H2*.66+i*H2*.038);g.lineTo(W2,H2*.66+i*H2*.038);g.stroke()}
- const ek=Math.min(W2/810,H2/600);
+ /* 与屏幕上一致：家具像素尺寸按舞台实测比例换算，避免异形舞台裁掉边缘家具 */
+ const sx=W2/stage.clientWidth,sy=H2/stage.clientHeight,ek=stageK();
  for(const it of items){const f=FURN[it.t];const img=await svgImage(f.s,f.w,f.h);
-  const w=f.w*it.s*ek,h=f.h*it.s*ek,px=it.x*W2,py=it.y*H2;
+  const w=f.w*it.s*ek*sx,h=f.h*it.s*ek*sy,px=it.x*W2,py=it.y*H2;
   g.save();if(it.f){g.translate(px+w,py);g.scale(-1,1)}else g.translate(px,py);
   g.drawImage(img,0,0,w,h);g.restore();}
  const a=document.createElement('a');a.download='咕的小屋-'+Date.now()+'.png';a.href=c.toDataURL('image/png');a.click();}
