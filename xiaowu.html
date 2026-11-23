@@ -26,8 +26,8 @@ a{color:var(--green)}[hidden]{display:none!important}
 .button.primary{background:var(--green);color:#fff}
 .button.ghost{background:transparent;border:1px solid var(--line)}
 .button:hover{filter:brightness(.97)}
-.workbench{display:grid;grid-template-columns:minmax(0,1fr) 330px;height:calc(100svh - 64px - env(safe-area-inset-top))}
-.stage-zone{position:relative;display:flex;flex-direction:column;min-width:0;background:#e6e0d3;background-image:radial-gradient(#b0a58e44 .7px,transparent .7px);background-size:13px 13px}
+.workbench{display:grid;grid-template-columns:minmax(0,1fr) 330px;grid-template-rows:minmax(0,1fr);height:calc(100svh - 64px - env(safe-area-inset-top))}
+.stage-zone{position:relative;display:flex;flex-direction:column;min-width:0;min-height:0;background:#e6e0d3;background-image:radial-gradient(#b0a58e44 .7px,transparent .7px);background-size:13px 13px}
 .rooms{display:flex;gap:6px;justify-content:center;padding:12px 12px 8px}
 .rooms button{min-height:38px;padding:7px 18px;border-radius:20px;border:1px solid #cdc0aa;background:#f6f0e2;font-size:12.5px;color:#6b5d48}
 .rooms button.active{background:var(--green);color:#fff;border-color:var(--green);font-weight:600}
@@ -46,7 +46,7 @@ a{color:var(--green)}[hidden]{display:none!important}
 .itembar button{min-width:38px;min-height:34px;border-radius:9px;background:#f0e8d6;font-size:14px}
 .itembar button.del{background:#f6e2de;color:#9a4a3a}
 .hint{position:absolute;top:10px;left:50%;transform:translateX(-50%);background:#4c4035cc;color:#f4ecd8;border-radius:20px;padding:6px 14px;font-size:11.5px;pointer-events:none;white-space:nowrap;transition:opacity .5s}
-.side{border-left:1px solid var(--line);background:var(--white);display:flex;flex-direction:column;min-width:0}
+.side{border-left:1px solid var(--line);background:var(--white);display:flex;flex-direction:column;min-width:0;min-height:0}
 .side-head{padding:16px 18px 0}
 .side-head h2{font-size:15px;font-weight:600;margin:0 0 2px}
 .side-head p{font-size:11.5px;color:var(--muted);margin:0 0 10px}
@@ -183,6 +183,13 @@ bar.addEventListener('click',e=>{const b=e.target.closest('button');if(!b||sel==
  else if(op==='up'&&sel<items.length-1){[items[sel],items[sel+1]]=[items[sel+1],items[sel]];sel++}
  else if(op==='down'&&sel>0){[items[sel],items[sel-1]]=[items[sel-1],items[sel]];sel--}
  renderItems();});
+/* 家具坐标随舞台大小缩放（初始坐标按 810×600 设计） */
+let stageW=810,stageH=600;
+function rescale(){const w=stage.clientWidth,h=stage.clientHeight;if(!w||!h)return;
+ if(w===stageW&&h===stageH)return;const kx=w/stageW,ky=h/stageH,k=Math.min(kx,ky);
+ rooms.forEach(r=>r.items.forEach(it=>{it.x*=kx;it.y*=ky;it.s=Math.max(.3,it.s*k)}));
+ stageW=w;stageH=h;}
+new ResizeObserver(()=>{rescale();renderItems()}).observe(stage);
 /* snapshot before each drag for undo */
 let preDrag=null;
 stage.addEventListener('pointerdown',()=>{preDrag=JSON.stringify(rooms)},true);
@@ -212,7 +219,7 @@ async function exportPNG(){const c=document.createElement('canvas');c.width=W2;c
   g.drawImage(img,0,0,w,h);g.restore();}
  const a=document.createElement('a');a.download='咕的小屋-'+Date.now()+'.png';a.href=c.toDataURL('image/png');a.click();}
 $('#save-png').onclick=exportPNG;$('#done').onclick=exportPNG;
-paintRoom();renderItems();setTimeout(()=>{$('#hint').style.opacity=.85},600);
+paintRoom();rescale();renderItems();setTimeout(()=>{$('#hint').style.opacity=.85},600);
 })();
 </script>
 </body>

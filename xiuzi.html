@@ -330,11 +330,14 @@ function render(target,scaleOut=1,transparent=false){
   const box=state.hoop?Math.min(W,H)*.62:Math.min(W,H)*.72;
   s=Math.max(2*scaleOut,Math.min(box/Math.max(1,lay.W),box*1.15/Math.max(1,lay.H)));
  }
- const contentW=Math.max(1,lay.W*s),contentH=Math.max(1,lay.H*s);
+ let contentW=Math.max(1,lay.W*s),contentH=Math.max(1,lay.H*s);
  const pad=Math.max(contentW*.22,90*scaleOut);
  /* 若内容溢出则放大画布 */
  const needW=contentW+pad*2,needH=contentH+pad*2;
  const f=Math.max(needW/W,needH/H,1);W=Math.round(W*f);H=Math.round(H*f);
+ /* 超出浏览器画布上限时整体缩小，保证导出可用 */
+ const q=Math.min(1,8000/Math.max(W,H),Math.sqrt(6e7/(W*H)));
+ if(q<1){s*=q;contentW*=q;contentH*=q;W=Math.round(W*q);H=Math.round(H*q)}
  const g=(target||cv).getContext('2d');
  (target||cv).width=W;(target||cv).height=H;
  seed=11;
@@ -360,8 +363,15 @@ function render(target,scaleOut=1,transparent=false){
   }
  });
  $('#preview-info').textContent=W+' × '+H;
+ if(!target)fitPreview();
  return{W,H};
 }
+/* 预览画布显示尺寸适配容器（竖幅不被裁） */
+function fitPreview(){const box=document.querySelector('.stage-wrap');if(!box)return;
+ const bw=box.clientWidth-52,bh=box.clientHeight-52;if(bw<=0||bh<=0)return;
+ const k=Math.min(1,bw/cv.width,bh/cv.height);
+ cv.style.width=Math.max(1,cv.width*k)+'px';cv.style.height=Math.max(1,cv.height*k)+'px';}
+addEventListener('resize',()=>fitPreview());
 /* ———— 控件 ———— */
 let raf=0;function schedule(){cancelAnimationFrame(raf);raf=requestAnimationFrame(()=>render())}
 $$('.tab').forEach(t=>t.onclick=()=>{$$('.tab').forEach(x=>{x.classList.toggle('active',x===t);x.setAttribute('aria-selected',x===t)});$$('.panel').forEach(p=>p.classList.toggle('active',p.id==='panel-'+t.dataset.tab))});
