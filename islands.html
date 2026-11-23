@@ -166,16 +166,18 @@ const vpEl=vp;[['8%',260,26,9],['30%',380,34,14],['58%',300,30,11],['80%',420,40
  const d=document.createElement('div');d.className='cloud';d.style.cssText=`top:${c[0]};width:${c[1]}px;height:${c[1]*.32}px;left:-20vw;--cd:${46+i*17}s;animation-delay:${-i*13}s`;vpEl.append(d)});
 [['12%',18],['22%',11],['70%',15]].forEach((g,i)=>{const d=document.createElement('div');d.className='gull';d.textContent='∿';d.style.cssText=`--gy:${g[0]};font-size:${g[1]}px;--gd:${22+i*9}s;animation-delay:${-i*8}s;top:0`;vpEl.append(d)});
 /* 平移 */
-let tx=0,ty=0,downAt=0,moved=false,px=0,py=0,down=false;
+let tx=0,ty=0,downAt=0,moved=false,px=0,py=0,dx0=0,dy0=0,down=false;
 function apply(){flock.style.transform=`translate(${tx}px,${ty}px)`}
 function bounds(){const bx=Math.max(...pos.map(p=>Math.abs(p.x)))+160-vp.clientWidth/2,by=Math.max(...pos.map(p=>Math.abs(p.y)))+140-vp.clientHeight/2;
  tx=Math.max(-Math.max(bx,40),Math.min(Math.max(bx,40),tx));ty=Math.max(-Math.max(by,40),Math.min(Math.max(by,40),ty))}
-vp.addEventListener('pointerdown',e=>{down=true;moved=false;px=e.clientX-tx;py=e.clientY-ty;downAt=performance.now();vp.setPointerCapture(e.pointerId)});
+vp.addEventListener('pointerdown',e=>{down=true;moved=false;px=e.clientX-tx;py=e.clientY-ty;dx0=e.clientX;dy0=e.clientY;downAt=performance.now();vp.setPointerCapture(e.pointerId)});
 vp.addEventListener('pointermove',e=>{if(!down)return;const nx=e.clientX-px,ny=e.clientY-py;
- if(Math.hypot(nx-tx,ny-ty)>4)moved=true;tx=nx;ty=ny;bounds();apply()});
+ if(Math.hypot(e.clientX-dx0,e.clientY-dy0)>6)moved=true;tx=nx;ty=ny;bounds();apply()});
 vp.addEventListener('pointerup',e=>{down=false;
- if(performance.now()-downAt<400&&!moved){const el=document.elementFromPoint(e.clientX,e.clientY),card=el&&el.closest('.card');
+ if(e.button===0&&performance.now()-downAt<400&&!moved){const el=document.elementFromPoint(e.clientX,e.clientY),card=el&&el.closest('.card');
   if(card){e.preventDefault();release(card)}}});
+/* 后退回来时清掉残留的放大层，页面保持可点 */
+addEventListener('pageshow',e=>{if(e.persisted){document.querySelector('.zoom-card')?.remove();document.querySelector('#veil').classList.remove('on');document.querySelectorAll('.unit.go').forEach(u=>u.classList.remove('go'))}});
 flock.addEventListener('click',e=>{const c=e.target.closest('.card');if(!c)return;e.preventDefault();release(c)});
 /* 点卡片：鸽子松嘴 → 卡片放大 → 进小屋 */
 function release(card){if(document.querySelector('.zoom-card'))return;
