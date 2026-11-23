@@ -192,10 +192,10 @@ function layout(){
 addEventListener('resize',()=>{layout();fitCanvas()});
 /* ============ 卡片 DOM ============ */
 function cardHTML(it,cls){const pic=`<span class="fb" style="background:linear-gradient(135deg,${it.c[0]},${it.c[1]})">${it.sym}</span>`;
- return`<a class="card ${cls||''}" href="./${it.id}.html" data-id="${it.id}">
+ return`<${it.id?'a':'span'} class="card ${cls||''}" ${it.id?`href="./${it.id}.html"`:''} data-id="${it.id}">
  <span class="dcard-shadow"></span>
  <img class="pic" src="${COVER+it.id}.webp" alt="" loading="lazy" onerror="this.outerHTML=this.dataset.fb" data-fb='${pic.replace(/'/g,"&#39;")}'>
- <div class="meta"><b>${it.name}</b><i>${it.sub}</i></div>${it.cat==='n'?'<span class="fresh">新</span>':''}</a>`}
+ <div class="meta"><b>${it.name}</b><i>${it.sub}</i></div>${it.cat==='n'?'<span class="fresh">新</span>':''}</${it.id?'a':'span'}>`}
 function buildRing(){ring.innerHTML='';slots.length=0;
  LIST.forEach((it,i)=>{const s=document.createElement('div');s.className='slot';
   s.innerHTML=cardHTML(it);ring.append(s);slots.push({el:s,card:s.firstElementChild,it,i});});}
@@ -242,7 +242,7 @@ function pose(){for(const s of slots){const d=s.i*STEP-rot;
   const op=vis?(Math.abs(d)<STEP*.05?1:Math.max(0,1-(Math.abs(d)/(STEP*3.2))**1.4)):0;
   s.el.style.opacity=op;s.el.style.pointerEvents=op>.25?'auto':'none';}}
 /* ============ 详情 ============ */
-function openDetail(it){const pic=`<span class="dfb" style="background:linear-gradient(135deg,${it.c[0]},${it.c[1]})">${it.sym}</span>`;
+function openDetail(it){if(!it.id)return;const pic=`<span class="dfb" style="background:linear-gradient(135deg,${it.c[0]},${it.c[1]})">${it.sym}</span>`;
  $('#det-body').innerHTML=`<img class="dpic" src="${COVER+it.id}.webp" alt="" onerror="this.outerHTML=this.dataset.fb" data-fb='${pic.replace(/'/g,"&#39;")}'>
  <h2>${it.name}</h2><p>${it.sub}</p><a class="go" href="./${it.id}.html">打开模板 →</a>`;
  $('#detail').classList.add('open')}
