@@ -149,26 +149,25 @@ function fan(rootx,rooty,rootz,tips,col,part,out){const v0=out.v.length;
   out.f.push({a:v0,b:v0+2+j,c:v0+1+j,col,part})}}
 const MESH={v:[],f:[]};
 (function build(){
- // 身体（胖）+ 头（大）+ 胸
- sph(0,0,0,1.05,.8,.78,8,5,'#f7f4ec','body',MESH);
- sph(.78,.62,0,.56,.55,.55,8,5,'#faf8f1','body',MESH);
- sph(.35,-.28,0,.7,.62,.62,7,4,'#efece2','body',MESH);
- // 豆豆眼 ×2
- sph(1.22,.72,.3,.09,.11,.09,5,3,'#3a3430','body',MESH);
- sph(1.22,.72,-.3,.09,.11,.09,5,3,'#3a3430','body',MESH);
+ // 身体（胖）+ 头（大而高，轮廓出双包）+ 胸
+ sph(0,0,0,1.05,.82,.8,8,5,'#fbfaf4','body',MESH);
+ sph(.72,.8,0,.6,.62,.6,8,5,'#fdfcf8','body',MESH);
+ // 豆豆眼 ×2（大一点更呆）
+ sph(1.18,.92,.32,.12,.14,.11,5,3,'#3a3430','body',MESH);
+ sph(1.18,.92,-.32,.12,.14,.11,5,3,'#3a3430','body',MESH);
  // 腮红
- sph(1.24,.52,.38,.07,.06,.05,4,3,'#f0b8a0','body',MESH);
- sph(1.24,.52,-.38,.07,.06,.05,4,3,'#f0b8a0','body',MESH);
+ sph(1.26,.62,.42,.08,.06,.06,4,3,'#f0b8a0','body',MESH);
+ sph(1.26,.62,-.42,.08,.06,.06,4,3,'#f0b8a0','body',MESH);
  // 小橘喙（向前 +x）
- cone(1.62,.56,0,.34,.15,6,'#e8a13c',MESH);
- // 尾巴（向后扇形）
- fan(-.9,.18,0,[[-2,.05,-.34],[-2.05,.22,0],[-2,.05,.34],[-1.75,.38,.18],[-1.75,.38,-.18]],'#e6e2d4','tail',MESH);
- // 翅膀（双面的扇形，root 在肩）
- fan(.15,.35,.5,[[.75,.55,1.35],[.1,.6,1.7],[-.55,.5,1.6],[-.85,.3,1.1]],'#e2e6f0','wingL',MESH);
- fan(.15,.35,-.5,[[.75,.55,-1.35],[.1,.6,-1.7],[-.55,.5,-1.6],[-.85,.3,-1.1]],'#d9deeb','wingR',MESH);
+ cone(1.72,.68,0,.4,.17,6,'#e8983c',MESH);
+ // 尾巴（向后散开的扇形）
+ fan(-.9,.18,0,[[-2.1,.18,-.42],[-2.15,.42,0],[-2.1,.18,.42],[-1.8,.55,.22],[-1.8,.55,-.22]],'#ede9db','tail',MESH);
+ // 翅膀（双面向后掠的扇形，root 在肩）
+ fan(.15,.4,.42,[[.55,.5,1.2],[-.1,.55,1.55],[-.85,.45,1.45],[-1.15,.3,.95]],'#f0eee6','wingL',MESH);
+ fan(.15,.4,-.42,[[.55,.5,-1.2],[-.1,.55,-1.55],[-.85,.45,-1.45],[-1.15,.3,-.95]],'#e9e6dc','wingR',MESH);
  // 粉色小脚
- sph(.35,-.78,.22,.11,.08,.12,5,3,'#d08a7e','body',MESH);
- sph(.35,-.78,-.22,.11,.08,.12,5,3,'#d08a7e','body',MESH);
+ sph(.35,-.78,.22,.11,.08,.12,5,3,'#d98f85','body',MESH);
+ sph(.35,-.78,-.22,.11,.08,.12,5,3,'#d98f85','body',MESH);
 })();
 const LIGHT=[-.45,.75,.62];{const l=Math.hypot(...LIGHT);LIGHT[0]/=l;LIGHT[1]/=l;LIGHT[2]/=l}
 function shade(hex,k){const n=parseInt(hex.slice(1),16),r=n>>16,g=n>>8&255,b=n&255;
@@ -193,7 +192,7 @@ function drawDove2(d,t){const flap=Math.sin(t*2.4+d.flap)*0.55+0.15,roll=Math.si
    p.push([d.x+x3*S,d.y-yy*S]);z+=zz2}
   z/=3;
   const nl=f.n[0]*LIGHT[0]+f.n[1]*LIGHT[1]+f.n[2]*LIGHT[2];
-  buf.push({p,z,k:.66+.34*Math.max(.15,nl),f})}}
+  buf.push({p,z,k:.74+.26*Math.max(.2,nl),f})}}
 function paint(list){list.sort((a,b)=>b.z-a.z);
  for(const q of list){ctx.beginPath();ctx.moveTo(q.p[0][0],q.p[0][1]);
   ctx.lineTo(q.p[1][0],q.p[1][1]);ctx.lineTo(q.p[2][0],q.p[2][1]);ctx.closePath();
