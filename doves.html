@@ -80,6 +80,7 @@ button{cursor:pointer;border:0;touch-action:manipulation}
 #detail.open .det-bg{opacity:1}
 .det-card{position:relative;width:min(86vw,420px);background:var(--paper);border:1px solid #e6dbc8;border-radius:24px;
  padding:18px;box-shadow:0 40px 90px #3d2f2055;transform:translateY(30px) scale(.92);opacity:0;
+ max-height:88svh;overflow-y:auto;overscroll-behavior:contain;
  transition:transform .38s cubic-bezier(.2,.9,.3,1.2),opacity .3s}
 #detail.open .det-card{transform:none;opacity:1}
 .det-card .dpic{display:block;width:100%;aspect-ratio:4/3;border-radius:14px;object-fit:cover;background:#e9e2d4}
