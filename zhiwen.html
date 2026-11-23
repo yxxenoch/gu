@@ -311,13 +311,14 @@ function drawStripFeatures(cfg,F,y0,rows){
  return {fd,dd:d.getImageData(0,0,cfg.w,rows).data}}
 const sstep=(a,b,x)=>{const t=clamp((x-a)/(b-a),0,1);return t*t*(3-2*t)};
 // Computes paper maps for rows [y0,y1): albedo rgb, shade, valley, crack, alpha, shadow, spec
+function crumpleGrid(cfg){const S=2.5+cfg.crScale*cfg.crScale*30,Wm=cfg.w*cfg.mmpp,Hm=cfg.h*cfg.mmpp,key=[cfg.seed,S.toFixed(2),cfg.crSharp,Wm.toFixed(1),Hm.toFixed(1)].join('|');if(crumpleGrid.k===key)return crumpleGrid.v;const st=Math.min(.6,Math.max(.18,S/30)),gw=Math.ceil(Wm/st)+3,gh=Math.ceil(Hm/st)+3,G=new Float32Array(gw*gh),r=rng(cfg.seed*7+13);for(let o=0,so=S,ao=1;o<3&&so>st*5;o++,so*=.45,ao*=.5){const n=Math.round(Wm*Hm/(so*so)*.17),e=so*(.004+(1-cfg.crSharp)*.08);for(let k=0;k<n;k++){const cx=r()*Wm,cy=r()*Hm,an=r()*Math.PI,dx=Math.cos(an),dy=Math.sin(an),L=so*(3+r()*6),R=so*(.5+r()*.7),A=(r()<.5?-1:1)*ao*so*(.3+r()*.7)*(1+S/14),ext=L+R*4;const x0=Math.max(0,Math.floor((cx-ext)/st)),x1=Math.min(gw-1,Math.ceil((cx+ext)/st)),y0=Math.max(0,Math.floor((cy-ext)/st)),y1=Math.min(gh-1,Math.ceil((cy+ext)/st));for(let gy=y0;gy<=y1;gy++){const py=gy*st-cy;for(let gx=x0;gx<=x1;gx++){const px=gx*st-cx,at=Math.abs(px*dx+py*dy);if(at>L)continue;const d=Math.abs(-px*dy+py*dx);if(d>R*4)continue;const u=at/L*2;G[gy*gw+gx]+=A*Math.exp(-Math.sqrt(d*d+e*e)/R-u*u)}}}}crumpleGrid.k=key;crumpleGrid.v={G,gw,gh,st};return crumpleGrid.v}
 function paperRows(cfg,y0,y1){
  const {w,h,mmpp,pr,I}=cfg,F=features(cfg),N=noise(cfg.seed),N2=noise(cfg.seed+101),y0e=y0-1,rows=y1-y0+2,n=w*rows;
  const feat=drawStripFeatures(cfg,F,y0e,rows),fd=feat.fd,dd=feat.dd;
  const scan=scanStrip(cfg,y0e,rows),gd=ghostStrip(cfg,y0e,rows),showK=cfg.show*.42*Math.min(1,I*1.25),bump=Math.abs(cfg.press)*.007*I;
  const H=new Float32Array(n),V=new Float32Array(n),FM=new Float32Array(n);
  const toothW=pr.toothMM,minW=2*mmpp,toothH=pr.toothH*(.25+cfg.grain*1.5)*I*sstep(1.1,3,toothW/mmpp),fiberH=.012*(.3+cfg.fiber)*I;
- const creaseA=.05*I*(.4+cfg.crease),crum=.05*I*sstep(0,.9,cfg.crease)*cfg.crease,CRS=2.5+cfg.crScale*cfg.crScale*30,laid=pr.laid,weave=pr.weave;
+ const creaseA=.05*I*(.4+cfg.crease),crum=.05*I*sstep(0,.9,cfg.crease)*cfg.crease,CG=crum>0?crumpleGrid(cfg):null,CRK=2.6,laid=pr.laid,weave=pr.weave;
  for(let j=0;j<rows;j++){const y=y0e+j,ym=y*mmpp;for(let x=0;x<w;x++){const i=j*w+x,xm=x*mmpp;let t;
   if(pr.tooth==='worley'){const[d1,d2]=N.worley(xm/toothW,ym/toothW);t=(1-Math.min(1,d1*1.25))*.85+N.fbm(xm/.35,ym/.35,2,minW/.35)*.25-.4}
   else if(pr.tooth==='pebble'){const[d1,d2]=N.worley(xm/toothW,ym/toothW);t=sstep(0,.12,d2-d1)-.5+N.n(xm/.3,ym/.3)*.15}
@@ -328,7 +329,7 @@ function paperRows(cfg,y0,y1){
   if(laid){const l=Math.cos(6.283*ym/.95+N.n(xm/3,ym/3)*1.2),cc=(((xm+N.n(ym/9,1)*.6)%25)+25)%25-12.5,c=Math.exp(-(cc*cc)/.12);hh+=(l*.004-c*.006)*I*(.3+cfg.fiber);FM[i]-=c*.4}
   if(weave){const p=.62,jit=N.n(xm/2,ym/2)*.9,wx=1-Math.abs(Math.sin(Math.PI*xm/p+jit)),wy=1-Math.abs(Math.sin(Math.PI*ym/p-jit));hh+=(wx*wx*(.6+.4*N.n(xm/4,ym/.6))+wy*wy*(.6+.4*N.n(xm/.6,ym/4)))*.016*weave*I*(.3+cfg.fiber)}
   const fi=i*4;hh+=fd[fi+2]/255*fiberH;if(gd&&bump)hh+=gd[fi+3]/255*bump;
-  if(crum>0){const S=CRS,wq=.03+(1-cfg.crSharp)*.22,wx=xm+N2.n(xm/(S*1.7),ym/(S*1.7))*S*.32,wy=ym+N2.n(xm/(S*1.7)+5.3,ym/(S*1.7)-2.1)*S*.32;let ch=0;for(let o=0,so=S,ao=1;o<3;o++,so*=.43,ao*=.42){const[d1,d2]=(o&1?N2:N).worley(wx/so+o*17.3,wy/so-o*9.1);ch+=ao*so*(d1*.45-Math.exp(-(d2-d1)/wq)*.3)}hh+=crum*2.1*ch}
+  if(crum>0){const gx=Math.max(0,xm)/CG.st,gy=Math.max(0,ym)/CG.st,ix=gx|0,iy=gy|0,fx=gx-ix,fy=gy-iy,o=iy*CG.gw+ix,G=CG.G,W=CG.gw;hh+=crum*CRK*((G[o]*(1-fx)+G[o+1]*fx)*(1-fy)+(G[o+W]*(1-fx)+G[o+W+1]*fx)*fy)}
   for(const c of F.creases){const px=x-c.x0,py=y-c.y0,tt=px*c.dx+py*c.dy,d=Math.abs(px*-c.dy+py*c.dx);
    const along=c.fold?1:sstep(0,c.L*.25,tt)*sstep(c.L,c.L*.75,tt);if(along<=0)continue;const dd2=Math.sqrt(d*d+c.sharp*c.sharp);hh+=c.A*along*creaseA*c.R*mmpp*(1-Math.exp(-dd2/c.R))}
   H[i]=hh;V[i]=t}}
