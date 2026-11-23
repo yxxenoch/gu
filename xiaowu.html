@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#f2e9dd">
+<meta name="description" content="布置小屋：点一下家具放进小屋，拖一拖摆好位置。两间房间，换墙换地板，存成图片。">
+<title>布置小屋 · 咕の返图</title>
+<style>
+:root{--ink:#4c4035;--muted:#847a6b;--line:#ddd2c2;--paper:#f0ede6;--green:#7a5c40;--soft:#eee4d9;--white:#fdfbf7;--radius:18px;color-scheme:light}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--paper);color:var(--ink);font:14px/1.6 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;overflow:hidden}
+button,input,select{font:inherit}button{cursor:pointer;border:0;touch-action:manipulation}button:disabled{opacity:.45}
+button:focus-visible,input:focus-visible{outline:3px solid #c9a584;outline-offset:3px}
+input,select{max-width:100%;color:var(--ink);background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:15px}
+input[type=range]{padding:0;border:0;height:26px;width:100%;accent-color:var(--green);background:transparent}
+input[type=color]{width:46px;height:42px;padding:4px}
+a{color:var(--green)}[hidden]{display:none!important}
+.topbar{height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;border-bottom:1px solid var(--line);background:rgba(240,237,230,.97);position:relative;z-index:30;gap:10px;padding-top:env(safe-area-inset-top);height:calc(64px + env(safe-area-inset-top))}
+.brand{display:flex;gap:10px;align-items:center}
+.brand-mark{width:34px;height:34px;border:1px solid #b7a99a;border-radius:50%;display:grid;place-items:center;font:21px Georgia,serif;color:var(--green)}
+.brand h1{font:600 18px/1.2 "Songti SC","Noto Serif CJK SC",serif;letter-spacing:3px;margin:0}
+.brand small{font-size:9px;letter-spacing:2px;color:var(--muted)}
+.top-actions{display:flex;gap:7px;align-items:center}
+.button{min-height:40px;padding:9px 14px;border-radius:11px;background:var(--soft);font-size:12.5px;font-weight:600;display:inline-flex;gap:6px;align-items:center;justify-content:center}
+.button.primary{background:var(--green);color:#fff}
+.button.ghost{background:transparent;border:1px solid var(--line)}
+.button:hover{filter:brightness(.97)}
+.workbench{display:grid;grid-template-columns:minmax(0,1fr) 330px;height:calc(100svh - 64px - env(safe-area-inset-top))}
+.stage-zone{position:relative;display:flex;flex-direction:column;min-width:0;background:#e6e0d3;background-image:radial-gradient(#b0a58e44 .7px,transparent .7px);background-size:13px 13px}
+.rooms{display:flex;gap:6px;justify-content:center;padding:12px 12px 8px}
+.rooms button{min-height:38px;padding:7px 18px;border-radius:20px;border:1px solid #cdc0aa;background:#f6f0e2;font-size:12.5px;color:#6b5d48}
+.rooms button.active{background:var(--green);color:#fff;border-color:var(--green);font-weight:600}
+.stage-clip{flex:1;display:flex;align-items:center;justify-content:center;padding:8px 18px 18px;min-height:0}
+#stage{position:relative;width:min(100%,calc((100svh - 190px)*1.35));aspect-ratio:13.5/10;max-height:100%;border-radius:14px;overflow:hidden;box-shadow:0 18px 45px #4f3f2c30;touch-action:none;user-select:none}
+#wall{position:absolute;inset:0 0 34%;background:#e8d8c8}
+#wallpaper{position:absolute;inset:0 0 34%;opacity:.5}
+#floor{position:absolute;inset:66% 0 0;background:#c9a684}
+#baseboard{position:absolute;left:0;right:0;top:64.5%;height:1.8%;background:#f4ece0;box-shadow:0 2px 4px #0001}
+.fur{position:absolute;left:0;top:0;transform-origin:0 0;cursor:grab;line-height:0;filter:drop-shadow(2px 4px 3px #3a2c1c22)}
+.fur svg{width:100%;height:100%;overflow:visible}
+.fur.sel{filter:drop-shadow(2px 4px 3px #3a2c1c22) drop-shadow(0 0 0.6px #7a5c40) drop-shadow(0 0 3px #7a5c40aa)}
+.fur:active{cursor:grabbing}
+.handle{position:absolute;width:26px;height:26px;right:-13px;bottom:-13px;border-radius:50%;background:#fdfaf0;border:2px solid #7a5c40;display:grid;place-items:center;font-size:13px;color:#7a5c40;cursor:nwse-resize;touch-action:none}
+.itembar{position:absolute;z-index:20;left:50%;transform:translateX(-50%);bottom:10px;display:flex;gap:6px;background:#fdfaf0ee;border:1px solid #ddd0b8;border-radius:14px;padding:6px 8px;box-shadow:0 8px 24px #4f3f2c30}
+.itembar button{min-width:38px;min-height:34px;border-radius:9px;background:#f0e8d6;font-size:14px}
+.itembar button.del{background:#f6e2de;color:#9a4a3a}
+.hint{position:absolute;top:10px;left:50%;transform:translateX(-50%);background:#4c4035cc;color:#f4ecd8;border-radius:20px;padding:6px 14px;font-size:11.5px;pointer-events:none;white-space:nowrap;transition:opacity .5s}
+.side{border-left:1px solid var(--line);background:var(--white);display:flex;flex-direction:column;min-width:0}
+.side-head{padding:16px 18px 0}
+.side-head h2{font-size:15px;font-weight:600;margin:0 0 2px}
+.side-head p{font-size:11.5px;color:var(--muted);margin:0 0 10px}
+.palette{flex:1;overflow-y:auto;padding:4px 16px 16px;min-height:0}
+.pal-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pal{border:1px solid var(--line);border-radius:12px;background:#fbf7ee;padding:8px 4px 6px;text-align:center;cursor:pointer}
+.pal:hover{background:#f6efdd}
+.pal svg{width:100%;height:44px}
+.pal small{display:block;font-size:10px;color:var(--muted);margin-top:2px}
+.pal-cat{font-size:11px;color:#9c8c62;letter-spacing:.12em;margin:12px 0 7px}
+.side-foot{padding:12px 16px calc(14px + env(safe-area-inset-bottom));border-top:1px solid var(--line);display:grid;gap:8px}
+.side-foot .row{display:flex;gap:7px}
+.side-foot .row .button{flex:1}
+.color-row{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--muted)}
+.color-row label{display:flex;align-items:center;gap:6px;flex:1}
+.return-home{position:fixed;bottom:12px;right:12px;z-index:150;background:#4c4035;color:#fff;padding:8px 12px;border-radius:12px;text-decoration:none;font-size:12px}
+@media(max-width:760px){.workbench{display:flex;flex-direction:column}.stage-zone{flex:1;min-height:0}#stage{width:min(96vw,calc((100svh - 320px)*1.35))}.side{border-left:0;border-top:1px solid var(--line);flex:none;height:236px}.palette{padding:4px 12px 8px}.side-head{display:none}.side-foot{display:none}.pal-grid{grid-template-columns:repeat(4,1fr)}.topbar{padding:0 12px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header class="topbar">
+ <div class="brand"><span class="brand-mark">屋</span><div><h1>布置小屋</h1><small>LITTLE COTTAGE / NEW ROOM</small></div></div>
+ <div class="top-actions"><button class="button ghost" id="undo">↶ 撤销</button><button class="button ghost" id="reset">重置</button><button class="button primary" id="done">完成 ✓</button></div>
+</header>
+<main class="workbench">
+ <section class="stage-zone">
+  <div class="rooms"><button data-room="0" class="active">房间一</button><button data-room="1">房间二 · 阁楼</button></div>
+  <div class="stage-clip">
+   <div id="stage" aria-label="小屋场景：拖家具摆位置">
+    <div id="wall"></div><div id="wallpaper"></div><div id="floor"></div><div id="baseboard"></div>
+    <div id="items"></div>
+    <div class="hint" id="hint">点下面的家具放进小屋 · 拖动摆放</div>
+   </div>
+  </div>
+ </section>
+ <aside class="side">
+  <div class="side-head"><h2>家具（点一下放进小屋）</h2><p>拖动摆位置 · 角上圆点拉大小 · 选中后下方有操作</p></div>
+  <div class="palette" id="palette"></div>
+  <div class="side-foot">
+   <div class="color-row">
+    <label>墙色<input type="color" id="wall-c" value="#e8d8c8"></label>
+    <label>地板<input type="color" id="floor-c" value="#c9a684"></label>
+   </div>
+   <div class="row"><button class="button ghost" id="save-png">存成图片</button></div>
+  </div>
+ </aside>
+</main>
+<div class="itembar" id="itembar" hidden>
+ <button data-op="down" title="下移一层">⬇</button><button data-op="up" title="上移一层">⬆</button>
+ <button data-op="flip" title="左右翻转">⇋</button><button data-op="copy" title="再来一件">⧉</button>
+ <button data-op="del" class="del" title="拿走">🗑</button>
+</div>
+<a href="./islands.html" class="return-home">🏝 回小岛</a>
+<script>
+(()=>{'use strict';
+const $=s=>document.querySelector(s);
+const W='#f4ecdc',WD='#8a6847',GR='#7fa98f',RD='#c98a6d',GD='#d9a648',BL='#a9c8be',PK='#d9979b',DK='#4c6356';
+const FURN={
+ bed:{n:'小床',w:150,h:96,s:`<svg viewBox="0 0 150 96"><rect x="8" y="18" width="10" height="66" rx="3" fill="${WD}"/><rect x="132" y="34" width="10" height="50" rx="3" fill="${WD}"/><rect x="14" y="46" width="122" height="30" rx="8" fill="${W}" stroke="${WD}" stroke-width="2.5"/><rect x="18" y="38" width="34" height="20" rx="8" fill="#e8f0f8"/><path d="M56 46h74v18a8 8 0 01-8 8H56z" fill="${RD}"/><path d="M56 52h74M56 60h74" stroke="#b8765f" stroke-width="2"/><rect x="14" y="76" width="122" height="8" rx="3" fill="${WD}"/></svg>`},
+ desk:{n:'书桌',w:130,h:96,s:`<svg viewBox="0 0 130 96"><rect x="10" y="40" width="110" height="10" rx="4" fill="#b98d5f"/><rect x="18" y="50" width="10" height="40" fill="${WD}"/><rect x="102" y="50" width="10" height="40" fill="${WD}"/><rect x="52" y="52" width="40" height="26" rx="3" fill="#a8815f"/><circle cx="72" cy="65" r="3" fill="${GD}"/><rect x="24" y="20" width="26" height="20" rx="3" fill="${BL}"/><path d="M60 40q4-14 12-16" stroke="${GR}" stroke-width="2.5" fill="none"/><ellipse cx="74" cy="22" rx="7" ry="4" fill="${GR}" transform="rotate(-24 74 22)"/></svg>`},
+ chair:{n:'椅子',w:70,h:96,s:`<svg viewBox="0 0 70 96"><rect x="16" y="10" width="10" height="50" rx="4" fill="${WD}"/><rect x="44" y="10" width="10" height="50" rx="4" fill="${WD}"/><rect x="14" y="22" width="42" height="8" rx="4" fill="#b98d5f"/><rect x="14" y="36" width="42" height="8" rx="4" fill="#b98d5f"/><rect x="10" y="56" width="50" height="10" rx="4" fill="#b98d5f"/><rect x="14" y="66" width="8" height="26" fill="${WD}"/><rect x="48" y="66" width="8" height="26" fill="${WD}"/></svg>`},
+ lamp:{n:'落地灯',w:64,h:120,s:`<svg viewBox="0 0 64 120"><path d="M32 30v76" stroke="${WD}" stroke-width="5" stroke-linecap="round"/><ellipse cx="32" cy="110" rx="20" ry="6" fill="${WD}"/><path d="M14 30h36l-5-24H19z" fill="${GD}" stroke="#b98d5f" stroke-width="2.5"/><ellipse cx="32" cy="30" rx="18" ry="4" fill="#b98d5f"/><circle cx="32" cy="17" r="5" fill="#f6e3a0" opacity=".9"/></svg>`},
+ plant:{n:'绿植',w:84,h:110,s:`<svg viewBox="0 0 84 110"><path d="M42 66q-2-26-14-38M42 66q0-30 10-44M42 66q4-22 16-30" stroke="#5f8a64" stroke-width="3.4" fill="none" stroke-linecap="round"/><ellipse cx="26" cy="26" rx="9" ry="14" fill="${GR}" transform="rotate(-24 26 26)"/><ellipse cx="52" cy="18" rx="9" ry="15" fill="#95b874" transform="rotate(12 52 18)"/><ellipse cx="62" cy="36" rx="8" ry="12" fill="${GR}" transform="rotate(38 62 36)"/><ellipse cx="34" cy="42" rx="7" ry="10" fill="#8fae78" transform="rotate(-10 34 42)"/><path d="M26 66h32l-4 38H30z" fill="${RD}"/><path d="M26 66h32l-1 8H27z" fill="#b8765f"/></svg>`},
+ shelf:{n:'书架',w:104,h:120,s:`<svg viewBox="0 0 104 120"><rect x="8" y="8" width="88" height="104" rx="4" fill="#b98d5f"/><rect x="14" y="14" width="76" height="92" fill="#f0e6d0"/><rect x="14" y="42" width="76" height="5" fill="#b98d5f"/><rect x="14" y="74" width="76" height="5" fill="#b98d5f"/><g><rect x="18" y="20" width="8" height="22" fill="${RD}"/><rect x="27" y="18" width="8" height="24" fill="${BL}"/><rect x="36" y="22" width="8" height="20" fill="${GD}"/><rect x="45" y="19" width="8" height="23" fill="${GR}"/><rect x="56" y="24" width="20" height="16" fill="#e8d8c8"/></g><g><rect x="18" y="52" width="8" height="22" fill="${DK}"/><rect x="27" y="50" width="8" height="24" fill="${PK}"/><rect x="36" y="54" width="8" height="20" fill="${BL}"/><circle cx="70" cy="62" r="10" fill="${GD}"/></g><rect x="18" y="84" width="30" height="20" rx="3" fill="${W}" stroke="${WD}" stroke-width="2"/><rect x="54" y="88" width="28" height="16" fill="${RD}"/></svg>`},
+ rug:{n:'地毯',w:160,h:64,s:`<svg viewBox="0 0 160 64"><ellipse cx="80" cy="34" rx="74" ry="26" fill="#e0b7a8"/><ellipse cx="80" cy="34" rx="60" ry="20" fill="#eed2c8"/><ellipse cx="80" cy="34" rx="44" ry="14" fill="#e0b7a8"/><ellipse cx="80" cy="34" rx="26" ry="8" fill="#eed2c8"/><g stroke="#c9a684" stroke-width="2" stroke-linecap="round"><path d="M6 34h-8M154 34h8M20 20l-7-5M140 20l7-5M20 48l-7 5M140 48l7 5"/></g></svg>`},
+ cat:{n:'猫',w:76,h:64,s:`<svg viewBox="0 0 76 64"><ellipse cx="36" cy="44" rx="26" ry="15" fill="#8f8272"/><path d="M58 44q14-2 12-14" stroke="#8f8272" stroke-width="7" fill="none" stroke-linecap="round"/><circle cx="22" cy="28" r="14" fill="#9a8f7e"/><path d="M12 20l-2-12 10 6M32 20l4-11 6 9" fill="#9a8f7e"/><circle cx="17" cy="27" r="2" fill="${DK}"/><circle cx="27" cy="27" r="2" fill="${DK}"/><path d="M22 32q-2 3-5 1M22 32q2 3 5 1" stroke="${DK}" stroke-width="1.6" fill="none"/></svg>`},
+ paint:{n:'挂画',w:96,h:76,s:`<svg viewBox="0 0 96 76"><rect x="14" y="8" width="68" height="52" rx="3" fill="${W}" stroke="${WD}" stroke-width="4"/><rect x="22" y="16" width="52" height="36" fill="${BL}"/><circle cx="60" cy="26" r="5" fill="${GD}"/><path d="M22 52l14-14 10 10 12-13 16 17z" fill="${GR}"/><path d="M40 66h16" stroke="${WD}" stroke-width="3" stroke-linecap="round"/></svg>`},
+ clock:{n:'挂钟',w:60,h:76,s:`<svg viewBox="0 0 60 76"><circle cx="30" cy="30" r="24" fill="${W}" stroke="${WD}" stroke-width="3.5"/><circle cx="30" cy="30" r="3" fill="${DK}"/><path d="M30 30V16M30 30l9 5" stroke="${DK}" stroke-width="2.6" stroke-linecap="round"/><path d="M30 62v8" stroke="${WD}" stroke-width="3"/><circle cx="30" cy="72" r="4" fill="${GD}"/></svg>`},
+ record:{n:'唱片机',w:110,h:76,s:`<svg viewBox="0 0 110 76"><rect x="10" y="22" width="90" height="42" rx="7" fill="#b98d5f"/><circle cx="46" cy="43" r="18" fill="#3a3630"/><circle cx="46" cy="43" r="7" fill="${RD}"/><path d="M82 30l-14 20" stroke="#e8dcc8" stroke-width="3.4" stroke-linecap="round"/><circle cx="82" cy="30" r="4" fill="#e8dcc8"/><rect x="16" y="64" width="8" height="8" fill="${WD}"/><rect x="86" y="64" width="8" height="8" fill="${WD}"/></svg>`},
+ cushion:{n:'坐垫',w:80,h:44,s:`<svg viewBox="0 0 80 44"><ellipse cx="40" cy="24" rx="34" ry="16" fill="${PK}"/><ellipse cx="40" cy="20" rx="34" ry="15" fill="#e4b4b8"/><path d="M16 20q24-8 48 0" stroke="#d9979b" stroke-width="2.4" fill="none"/></svg>`},
+ lights:{n:'串灯',w:150,h:56,s:`<svg viewBox="0 0 150 56"><path d="M6 8q34 30 69 26t69-18" fill="none" stroke="${DK}" stroke-width="2.2"/><g fill="${GD}"><circle cx="22" cy="26" r="4"/><circle cx="48" cy="36" r="4"/><circle cx="76" cy="36" r="4"/><circle cx="104" cy="30" r="4"/><circle cx="130" cy="22" r="4"/></g><g fill="#f6e3a0" opacity=".65"><circle cx="22" cy="26" r="7"/><circle cx="48" cy="36" r="7"/><circle cx="76" cy="36" r="7"/><circle cx="104" cy="30" r="7"/><circle cx="130" cy="22" r="7"/></g></svg>`},
+ tea:{n:'小茶几',w:96,h:72,s:`<svg viewBox="0 0 96 72"><ellipse cx="48" cy="30" rx="40" ry="10" fill="#b98d5f"/><rect x="14" y="30" width="8" height="34" fill="${WD}"/><rect x="74" y="30" width="8" height="34" fill="${WD}"/><rect x="34" y="12" width="26" height="14" rx="4" fill="${BL}"/><path d="M60 16q8-2 8 4t-8 4" fill="none" stroke="${BL}" stroke-width="3"/><path d="M40 8q2-5 4 0M50 8q2-5 4 0" stroke="#b9c4b6" stroke-width="2" fill="none" stroke-linecap="round"/></svg>`},
+ window:{n:'小窗',w:104,h:96,s:`<svg viewBox="0 0 104 96"><rect x="16" y="8" width="72" height="66" rx="4" fill="${W}" stroke="${WD}" stroke-width="4"/><rect x="23" y="15" width="58" height="52" fill="#bfd8e4"/><rect x="23" y="15" width="58" height="20" fill="#dcebf2"/><path d="M52 15v52M23 41h58" stroke="${WD}" stroke-width="3"/><circle cx="68" cy="26" r="6" fill="#f6e3a0"/><path d="M30 60q10-10 20-2t22-4" stroke="#8fb6c9" stroke-width="2.6" fill="none"/><rect x="8" y="74" width="88" height="8" rx="3" fill="${WD}"/></svg>`},
+ hearth:{n:'壁炉',w:110,h:96,s:`<svg viewBox="0 0 110 96"><rect x="14" y="22" width="82" height="66" rx="4" fill="#c9b8a2"/><rect x="14" y="22" width="82" height="12" fill="#b09c82"/><rect x="34" y="42" width="42" height="46" rx="20" fill="#5c4a38"/><path d="M55 80q10-8 8-18-1-8-8-10-7 2-8 10-1 7 3 12-4-4-4-9-4 9 2 15z" fill="#e0a94f"/><path d="M55 82q5-4 4-9-4-6-8-2-3 5 4 11z" fill="#f2d38a"/><rect x="8" y="86" width="94" height="7" rx="3" fill="#b09c82"/></svg>`},
+ stool:{n:'圆凳',w:56,h:64,s:`<svg viewBox="0 0 56 64"><ellipse cx="28" cy="20" rx="24" ry="9" fill="${BL}"/><rect x="12" y="22" width="6" height="34" fill="${WD}" transform="rotate(8 15 39)"/><rect x="38" y="22" width="6" height="34" fill="${WD}" transform="rotate(-8 41 39)"/><ellipse cx="28" cy="20" rx="24" ry="9" fill="none" stroke="#7fa4a0" stroke-width="2"/></svg>`},
+ ladder:{n:'梯子',w:60,h:110,s:`<svg viewBox="0 0 60 110"><path d="M16 6v100M44 6v100" stroke="${WD}" stroke-width="6" stroke-linecap="round"/><path d="M16 20h28M16 38h28M16 56h28M16 74h28M16 92h28" stroke="#b98d5f" stroke-width="5" stroke-linecap="round"/></svg>`},
+ quilt:{n:'被子堆',w:96,h:60,s:`<svg viewBox="0 0 96 60"><rect x="10" y="34" width="76" height="20" rx="8" fill="${BL}"/><rect x="14" y="20" width="68" height="20" rx="8" fill="${PK}"/><rect x="20" y="6" width="56" height="20" rx="8" fill="#e8dcc0"/><path d="M20 16h56M14 30h68M10 44h76" stroke="#fff8" stroke-width="2"/></svg>`},
+};
+const CATS=[['大件家具',['bed','desk','shelf','hearth','window','ladder']],['小物',['chair','tea','stool','cushion','lamp','plant','record','quilt']],['装饰',['paint','clock','lights','rug','cat']]];
+const stage=$('#stage'),itemsBox=$('#items'),bar=$('#itembar');
+const rooms=[{wall:'#e8d8c8',floor:'#c9a684',items:[{t:'window',x:300,y:60,s:1.3,f:0},{t:'bed',x:60,y:300,s:1.15,f:0},{t:'rug',x:330,y:330,s:1.1,f:0},{t:'shelf',x:600,y:170,s:1,f:0},{t:'plant',x:700,y:260,s:1,f:0},{t:'cat',x:400,y:340,s:.95,f:0}]},
+ {wall:'#dce4e2',floor:'#b98d5f',items:[{t:'lights',x:120,y:30,s:1.3,f:0},{t:'quilt',x:80,y:330,s:1.1,f:0},{t:'ladder',x:640,y:150,s:1,f:0},{t:'cushion',x:330,y:360,s:1,f:0},{t:'record',x:470,y:300,s:1,f:0}]}];
+let room=0,items=rooms[0].items,sel=null,undoStack=[];
+let uid=0;
+function pushUndo(){undoStack.push(JSON.stringify(rooms));if(undoStack.length>60)undoStack.shift()}
+function paintRoom(){const r=rooms[room];$('#wall').style.background=r.wall;$('#floor').style.background=r.floor;
+ $('#wallpaper').style.backgroundImage=`radial-gradient(${shade(r.wall,-12)} 1.1px,transparent 1.3px)`;$('#wallpaper').style.backgroundSize='17px 17px';
+ $('#wall-c').value=r.wall;$('#floor-c').value=r.floor;}
+function shade(h,amt){const n=parseInt(h.slice(1),16),r=n>>16,g=n>>8&255,b=n&255,k=amt>0?255:0,t=Math.abs(amt)/100;
+ const f=v=>Math.round(v+(k-v)*t);return`rgb(${f(r)},${f(g)},${f(b)})`}
+function renderItems(){itemsBox.replaceChildren();items.forEach((it,i)=>{
+ const el=document.createElement('div');el.className='fur'+(i===sel?' sel':'');el.dataset.i=i;
+ el.innerHTML=FURN[it.t].s+'<span class="handle" hidden>⤡</span>';
+ el.style.width=FURN[it.t].w*it.s+'px';el.style.height=FURN[it.t].h*it.s+'px';
+ el.style.zIndex=10+i;
+ el.style.transform=it.f?`translate(${it.x+FURN[it.t].w*it.s}px,${it.y}px) scaleX(-1)`:`translate(${it.x}px,${it.y}px)`;
+ el.addEventListener('pointerdown',e=>startDrag(e,i));
+ itemsBox.append(el);});
+ if(sel!=null&&sel>=items.length)sel=null;bar.hidden=sel==null;
+ if(sel!=null){const el=itemsBox.children[sel];el?.classList.add('sel');el?.querySelector('.handle')&&(el.querySelector('.handle').hidden=false);}
+ positionBar();}
+function positionBar(){if(sel==null){bar.hidden=true;return}bar.hidden=false;
+ const el=itemsBox.children[sel];if(!el)return;
+ const r=el.getBoundingClientRect(),sr=stage.getBoundingClientRect();
+ bar.style.left=((r.left+r.right)/2-sr.left)+'px';bar.style.bottom=(sr.bottom-r.top+8)+'px';}
+function addItem(t){pushUndo();const sw=stage.clientWidth/810,sh=stage.clientHeight/600;
+ const w=FURN[t].w,h=FURN[t].h;items.push({t,x:stage.clientWidth/2-w/2,y:stage.clientHeight/2-h/2,s:1,f:0});sel=items.length-1;renderItems();$('#hint').style.opacity=0}
+/* palette */
+$('#palette').innerHTML=CATS.map(([c,ids])=>'<div class="pal-cat">'+c+'</div><div class="pal-grid">'+ids.map(t=>'<div class="pal" data-t="'+t+'" role="button" tabindex="0">'+FURN[t].s+'<small>'+FURN[t].n+'</small></div>').join('')+'</div>').join('');
+$('#palette').addEventListener('click',e=>{const p=e.target.closest('.pal');if(p)addItem(p.dataset.t)});
+$('#palette').addEventListener('keydown',e=>{const p=e.target.closest('.pal');if(p&&(e.key==='Enter'||e.key===' ')){e.preventDefault();addItem(p.dataset.t)}});
+/* drag & resize */
+let drag=null;
+function startDrag(e,i){const it=items[i];sel=i;renderItems();const el=itemsBox.children[i];
+ const handle=e.target.closest('.handle');
+ drag={i,mode:handle?'scale':'move',x0:e.clientX,y0:e.clientY,ox:it.x,oy:it.y,s0:it.s,moved:false};
+ stage.setPointerCapture(e.pointerId);e.preventDefault();}
+stage.addEventListener('pointermove',e=>{if(!drag)return;const it=items[drag.i];if(!it)return;
+ const dx=e.clientX-drag.x0,dy=e.clientY-drag.y0;if(Math.hypot(dx,dy)>3)drag.moved=true;
+ if(drag.mode==='move'){it.x=drag.ox+dx;it.y=drag.oy+dy;}
+ else{const f=FURN[it.t];it.s=Math.max(.4,Math.min(3,drag.s0+(dx+dy)/(f.w*1.4)));}
+ const el=itemsBox.children[drag.i];
+ el.style.width=FURN[it.t].w*it.s+'px';el.style.height=FURN[it.t].h*it.s+'px';
+ el.style.transform=it.f?`translate(${it.x+FURN[it.t].w*it.s}px,${it.y}px) scaleX(-1)`:`translate(${it.x}px,${it.y}px)`;
+ positionBar();});
+stage.addEventListener('pointerup',()=>{if(drag&&drag.moved&&preDrag){undoStack.push(preDrag);if(undoStack.length>60)undoStack.shift()}preDrag=null;drag=null;});
+stage.addEventListener('pointerdown',e=>{if(e.target===stage||e.target.id==='wall'||e.target.id==='floor'||e.target.id==='wallpaper'||e.target.id==='baseboard'){sel=null;renderItems();}});
+bar.addEventListener('click',e=>{const b=e.target.closest('button');if(!b||sel==null)return;const it=items[sel];pushUndo();
+ const op=b.dataset.op;
+ if(op==='del'){items.splice(sel,1);sel=null}
+ else if(op==='flip')it.f=!it.f;
+ else if(op==='copy'){items.splice(sel+1,0,{...it,x:it.x+26,y:it.y+20});sel++}
+ else if(op==='up'&&sel<items.length-1){[items[sel],items[sel+1]]=[items[sel+1],items[sel]];sel++}
+ else if(op==='down'&&sel>0){[items[sel],items[sel-1]]=[items[sel-1],items[sel]];sel--}
+ renderItems();});
+/* snapshot before each drag for undo */
+let preDrag=null;
+stage.addEventListener('pointerdown',()=>{preDrag=JSON.stringify(rooms)},true);
+$('#undo').onclick=()=>{const s=undoStack.pop();if(!s)return;const keep=room;const data=JSON.parse(s);rooms[0]=data[0];rooms[1]=data[1];items=rooms[room].items;sel=null;paintRoom();renderItems();};
+$('#reset').onclick=()=>{pushUndo();rooms[room].items=[];items=rooms[room].items;sel=null;renderItems();};
+document.querySelectorAll('.rooms button').forEach(b=>b.onclick=()=>{room=+b.dataset.room;items=rooms[room].items;sel=null;
+ document.querySelectorAll('.rooms button').forEach(x=>x.classList.toggle('active',x===b));paintRoom();renderItems();});
+$('#wall-c').addEventListener('input',e=>{rooms[room].wall=e.target.value;paintRoom()});
+$('#floor-c').addEventListener('input',e=>{rooms[room].floor=e.target.value;paintRoom()});
+$('#wall-c').addEventListener('change',pushUndo);$('#floor-c').addEventListener('change',pushUndo);
+addEventListener('keydown',e=>{if(e.key==='Delete'||e.key==='Backspace'){if(sel!=null&&document.activeElement.tagName!=='INPUT'){pushUndo();items.splice(sel,1);sel=null;renderItems()}}});
+/* ———— 导出 PNG ———— */
+const W2=1080,H2=800;
+function svgImage(svg,w,h){return new Promise((res,rej)=>{const img=new Image();img.onload=()=>res(img);img.onerror=rej;
+ img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg.replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" '))})}
+async function exportPNG(){const c=document.createElement('canvas');c.width=W2;c.height=H2;const g=c.getContext('2d');
+ const r=rooms[room];
+ g.fillStyle=r.wall;g.fillRect(0,0,W2,H2*.66);
+ g.fillStyle=shade(r.wall,-12);for(let y=0;y<H2*.66;y+=22)for(let x=0;x<W2;x+=22)g.fillRect(x+10,y+10,3,3);
+ g.fillStyle='#f4ece0';g.fillRect(0,H2*.645,W2,H2*.018);
+ g.fillStyle=r.floor;g.fillRect(0,H2*.66,W2,H2*.34);
+ g.strokeStyle=shade(r.floor,-18);g.lineWidth=2;for(let i=0;i<9;i++){g.beginPath();g.moveTo(0,H2*.66+i*H2*.038);g.lineTo(W2,H2*.66+i*H2*.038);g.stroke()}
+ const sx=W2/stage.clientWidth,sy=H2/stage.clientHeight,s=Math.max(sx,sy);
+ for(const it of items){const f=FURN[it.t];const img=await svgImage(f.s,f.w,f.h);
+  const w=f.w*it.s*sx,h=f.h*it.s*sy;
+  g.save();if(it.f){g.translate(it.x*sx+w,it.y*sy);g.scale(-1,1)}else g.translate(it.x*sx,it.y*sy);
+  g.drawImage(img,0,0,w,h);g.restore();}
+ const a=document.createElement('a');a.download='咕的小屋-'+Date.now()+'.png';a.href=c.toDataURL('image/png');a.click();}
+$('#save-png').onclick=exportPNG;$('#done').onclick=exportPNG;
+paintRoom();renderItems();setTimeout(()=>{$('#hint').style.opacity=.85},600);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f2ede2">
+<meta name="description" content="绣字铺：把喜欢的文字一针一线绣在布上。十字绣、缎面绣，换布换线，导出成图。">
+<title>绣字铺 · 咕の返图</title>
+<style>
+:root{--ink:#4c4035;--muted:#847a6b;--line:#ddd2c2;--paper:#f0ede6;--green:#983e32;--soft:#eee4d9;--white:#fdfbf7;--danger:#a84646;--radius:18px;color-scheme:light}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--paper);color:var(--ink);font:14px/1.6 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif}
+button,input,select,textarea{font:inherit}button,select,input[type=color],input[type=range]{cursor:pointer}
+button{border:0;touch-action:manipulation}button:disabled{opacity:.45;cursor:wait}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #c99a84;outline-offset:3px}
+button{color:inherit}
+input,select,textarea{max-width:100%;color:var(--ink);background:#fff;border:1px solid var(--line);border-radius:10px;padding:11px 12px;font-size:16px;min-width:0}
+input[type=text],textarea,select{width:100%}input[type=file]{display:none}
+textarea{resize:vertical;min-height:74px}
+input[type=range]{padding:0;border:0;height:28px;width:100%;accent-color:var(--green);background:transparent;touch-action:pan-y}
+input[type=color]{width:48px;height:44px;padding:4px}
+input[type=checkbox]{width:20px;height:20px;accent-color:var(--green)}
+a{color:var(--green)}[hidden]{display:none!important}
+.topbar{height:76px;display:flex;align-items:center;justify-content:space-between;padding:0 36px;border-bottom:1px solid var(--line);background:rgba(240,237,230,.97);position:sticky;top:0;z-index:30;gap:12px;padding-top:env(safe-area-inset-top);height:calc(76px + env(safe-area-inset-top))}
+.brand{display:flex;gap:12px;align-items:center}
+.brand-mark{width:38px;height:38px;border:1px solid #b7a99a;border-radius:50%;display:grid;place-items:center;font:24px Georgia,serif;color:var(--green)}
+.brand h1{font:600 20px/1.2 "Songti SC","Noto Serif CJK SC",serif;letter-spacing:3px;margin:0}
+.brand small{font-size:9px;letter-spacing:2.2px;color:var(--muted)}
+.top-actions{display:flex;gap:8px;align-items:center}
+.saved{font-size:11px;color:var(--muted);margin-right:12px}
+.button{min-height:44px;padding:10px 17px;border-radius:12px;background:var(--soft);font-size:13px;font-weight:600;display:inline-flex;gap:7px;align-items:center;justify-content:center}
+.button.primary{background:var(--green);color:#fff}
+.button.ghost{background:transparent;border:1px solid var(--line)}
+.button.danger{color:var(--danger);background:#f9eeee}
+.button:hover{filter:brightness(.97)}
+.workbench{display:grid;grid-template-columns:minmax(0,1fr) 400px;max-width:1500px;margin:0 auto;min-height:calc(100svh - 76px)}
+.preview-column{padding:30px 40px;position:sticky;top:calc(76px + env(safe-area-inset-top));height:calc(100svh - 76px - env(safe-area-inset-top));display:flex;flex-direction:column;min-width:0}
+.eyebrow{font:10px/1.5 Georgia,serif;letter-spacing:3px;color:var(--muted)}
+.preview-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}
+.preview-heading h2{font:500 24px "Songti SC","Noto Serif CJK SC",serif;letter-spacing:2px;margin:4px 0}
+.badge{font-size:10px;border:1px solid #d5c6b4;color:#8a7257;border-radius:20px;padding:4px 10px;white-space:nowrap}
+.stage-wrap{display:flex;align-items:center;justify-content:center;flex:1;min-height:0;border-radius:var(--radius);background:#e4dfd2;background-image:radial-gradient(#b0a58e55 .7px,transparent .7px);background-size:12px 12px;padding:26px;position:relative;overflow:hidden}
+.canvas-shell{position:relative;max-width:100%;max-height:100%;line-height:0;box-shadow:0 20px 46px #5c4a3324;border-radius:4px}
+#preview{display:block;max-width:100%;max-height:100%}
+.preview-footer{display:flex;justify-content:space-between;align-items:center;padding:14px 2px 0;gap:12px;font-size:12px;color:var(--muted)}
+.preview-tools{display:flex;gap:5px}
+.preview-tools .button{min-height:36px;min-width:36px;padding:5px 10px;font-size:12px}
+.editor{border-left:1px solid var(--line);background:var(--white);min-width:0}
+.editor-head{padding:26px 25px 0}
+.editor-head h2{font-size:17px;font-weight:600;margin:0 0 3px}
+.editor-head p{font-size:12px;color:var(--muted);margin:0 0 18px}
+.tabs{display:flex;padding:0 16px;border-bottom:1px solid var(--line);gap:4px;background:var(--white);overflow-x:auto;scrollbar-width:none}
+.tab{flex:1;background:transparent;min-height:54px;font-size:12px;color:var(--muted);border-bottom:2px solid transparent;white-space:nowrap;padding:0 8px}
+.tab.active{color:var(--green);border-bottom-color:var(--green);font-weight:700}
+.panel{padding:24px;display:none}.panel.active{display:block}
+.section{margin-bottom:26px}.section:last-child{margin-bottom:0}
+.section-heading{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px}
+.section-heading h3{font-size:13px;margin:0;font-weight:650}
+.section-heading small,.hint{color:var(--muted);font-size:11px}
+.hint{line-height:1.8;margin:10px 0}
+.field{display:block;margin-bottom:16px}
+.field>span{display:block;font-size:12px;color:var(--muted);margin-bottom:7px}
+.row{display:flex;align-items:center;gap:10px;margin:10px 0;font-size:13px}
+.row label{flex:1}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.segmented{display:flex;gap:6px;flex-wrap:wrap}
+.segmented button{flex:1;min-height:42px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:12px;padding:8px 6px}
+.segmented button.active{background:var(--green);color:#fff;border-color:var(--green);font-weight:600}
+.swatch{position:relative;min-height:56px;border:1px solid var(--line);border-radius:11px;overflow:hidden;padding:0;text-align:left}
+.swatch.active{outline:2px solid var(--green);outline-offset:1px}
+.swatch i{position:absolute;inset:0}
+.swatch b{position:absolute;left:8px;bottom:6px;font-size:10px;font-weight:600;color:#fff;text-shadow:0 1px 3px #0006}
+.preset{position:relative;min-height:86px;text-align:left;border:1px solid var(--line);border-radius:13px;padding:10px;background:#faf9f5;overflow:hidden}
+.preset.active{outline:2px solid var(--green);outline-offset:1px}
+.preset .sw{height:40px;border-radius:7px;margin-bottom:8px;display:flex;align-items:center;justify-content:center}
+.preset b{font-size:12px;font-weight:600;display:block}
+.preset small{font-size:10px;color:var(--muted)}
+.divider{height:1px;background:var(--line);margin:23px 0}
+.upload{display:flex;flex-direction:column;gap:3px;align-items:center;justify-content:center;min-height:76px;border:1.5px dashed #c4b6a2;border-radius:13px;background:#fbf7ee;cursor:pointer;text-align:center;padding:12px}
+.upload b{font-size:13px}.upload small{font-size:10.5px;color:var(--muted)}
+.note{font-size:11px;color:var(--muted);background:#f5efe4;border:1px solid #e6dcc8;border-radius:10px;padding:11px 13px;line-height:1.8}
+.footer-brand{font:10px Georgia,serif;letter-spacing:.24em;color:#b3a48c;text-align:center;margin-top:30px}
+.result{display:grid;gap:10px;margin-top:14px}
+.result img{max-width:100%;border-radius:8px;box-shadow:0 4px 20px #0001}
+.result .row{margin:0}
+.return-home{position:fixed;bottom:12px;right:12px;z-index:150;background:#4c4035;color:#fff;padding:8px 12px;border-radius:12px;text-decoration:none;font-size:12px}
+@media(max-width:900px){.topbar{padding-left:20px;padding-right:20px}.workbench{grid-template-columns:minmax(0,1fr) 360px}.preview-column{padding:24px}.saved{display:none}}
+@media(max-width:700px){.topbar{height:calc(64px + env(safe-area-inset-top));padding-left:16px;padding-right:16px}.brand{gap:8px}.brand-mark{width:30px;height:30px;font-size:20px}.brand h1{font-size:17px;letter-spacing:2px}.brand small{display:none}.workbench{display:block}.preview-column{position:sticky;top:calc(64px + env(safe-area-inset-top));z-index:20;height:min(50svh,430px);padding:12px 16px;background:var(--paper);border-bottom:1px solid var(--line)}.preview-heading{margin-bottom:8px}.preview-heading h2{font-size:15px;letter-spacing:1px;margin:0}.preview-heading .eyebrow{display:none}.stage-wrap{padding:10px;border-radius:12px}.editor{border-left:0;padding-bottom:calc(30px + env(safe-area-inset-bottom))}.editor-head{padding:18px 20px 0}.panel{padding:20px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="topbar">
+ <div class="brand"><span class="brand-mark" aria-hidden="true">绣</span><div><h1>绣字铺</h1><small>STITCHED WORDS / NEW ROOM</small></div></div>
+ <div class="top-actions"><span class="saved">本地创作 · 无需登录</span><button class="button primary" id="go-export">导出成图 ↗</button></div>
+</header>
+<main class="workbench">
+ <section class="preview-column" aria-label="实时预览">
+  <div class="preview-heading"><div><span class="eyebrow">ONE THREAD AT A TIME.</span><h2>把字，一针一线绣上去。</h2></div><span class="badge">● 实时预览</span></div>
+  <div class="stage-wrap"><div class="canvas-shell"><canvas id="preview" width="1000" height="1000" aria-label="绣字预览"></canvas></div></div>
+  <div class="preview-footer"><span id="preview-info">1000 × 1000</span><div class="preview-tools"><button class="button ghost" id="zoom-fit">适配</button></div></div>
+ </section>
+ <aside class="editor" aria-label="绣字编辑器">
+  <div class="editor-head"><h2>你的绣品，你来定义。</h2><p>写几个字 → 挑线和布 → 存成喜欢的样子</p></div>
+  <nav class="tabs" role="tablist" aria-label="编辑分类">
+   <button class="tab active" data-tab="text" role="tab" aria-selected="true">文字</button>
+   <button class="tab" data-tab="stitch" role="tab" aria-selected="false" tabindex="-1">绣法</button>
+   <button class="tab" data-tab="thread" role="tab" aria-selected="false" tabindex="-1">线色</button>
+   <button class="tab" data-tab="fabric" role="tab" aria-selected="false" tabindex="-1">布与绷</button>
+   <button class="tab" data-tab="export" role="tab" aria-selected="false" tabindex="-1">导出</button>
+  </nav>
+
+  <section class="panel active" id="panel-text">
+   <div class="section">
+    <label class="field"><span>要绣的字（可换行）</span><textarea id="text" maxlength="120" rows="3">慢慢走
+欣赏啊</textarea></label>
+    <label class="field"><span>字体</span><select id="font">
+     <option value='"Songti SC","Noto Serif CJK SC","STSong",serif'>宋体 · 书卷气</option>
+     <option value='"PingFang SC","Microsoft YaHei",sans-serif'>黑体 · 干净利落</option>
+     <option value='"Kaiti SC","KaiTi","STKaiti",serif'>楷体 · 手写温度</option>
+     <option value='"Yuanti SC","YouYuan",sans-serif'>圆体 · 软乎乎</option>
+     <option value="custom">自己导入的字体</option>
+    </select></label>
+    <label class="upload" for="font-file" id="font-upload" hidden><b>＋ 导入字体</b><small>TTF / OTF / WOFF · 文件只在本机使用</small></label>
+    <input id="font-file" type="file" accept=".ttf,.otf,.woff,.woff2">
+    <div class="grid2">
+     <label class="field"><span>字间距</span><input id="tracking" type="range" min="0" max="8" value="2"></label>
+     <label class="field"><span>行距</span><input id="leading" type="range" min="2" max="18" value="7"></label>
+    </div>
+    <div class="section-heading"><h3>对齐</h3></div>
+    <div class="segmented" id="align">
+     <button data-v="left">靠左</button><button data-v="center" class="active">居中</button><button data-v="right">靠右</button>
+    </div>
+   </div>
+   <div class="section">
+    <div class="section-heading"><h3>绣字大小</h3><small id="cells-label">每字 13 针</small></div>
+    <input id="cells" type="range" min="8" max="22" value="13" aria-label="每字针数">
+    <p class="hint">针数越多，字越细腻，绣起来也越费线（导出图更大）。</p>
+   </div>
+   <div class="footer-brand">STITCHED WORDS / MADE WITH CARE</div>
+  </section>
+
+  <section class="panel" id="panel-stitch">
+   <div class="section">
+    <div class="section-heading"><h3>绣法</h3><small>两种基本针法</small></div>
+    <div class="grid2">
+     <button class="preset" data-stitch="cross"><span class="sw" style="background:#f6efdb"><svg width="66" height="30" viewBox="0 0 66 30"><g stroke="#983e32" stroke-width="4" stroke-linecap="round"><path d="M4 5l10 10M14 5L4 15M28 5l10 10M38 5L28 15M52 5l10 10M62 5L52 15M4 18l10 10M14 18L4 28M28 18l10 10M38 18l10 10M52 18l10 10M62 18L52 28" transform="scale(.9)"/></g></svg></span><b>十字绣</b><small>经典 × 针脚，颗粒感</small></button>
+     <button class="preset" data-stitch="satin"><span class="sw" style="background:#f6efdb"><svg width="66" height="30" viewBox="0 0 66 30"><g stroke="#983e32" stroke-width="3.4" stroke-linecap="round"><path d="M5 6h24M5 12h24M5 18h24M5 24h24M38 6h22M38 12h22M38 18h22M38 24h16"/></g></svg></span><b>缎面绣</b><small>平顺横针，更饱满</small></button>
+    </div>
+   </div>
+   <div class="section">
+    <div class="row"><label for="fit-hoop">让绣字填满绣绷</label><input id="fit-hoop" type="checkbox" checked></div>
+    <div id="size-box" hidden>
+    <div class="section-heading"><h3>针脚密度</h3><small id="size-label">针目 7 px</small></div>
+    <input id="stitch-size" type="range" min="4" max="12" value="7" aria-label="针目大小">
+    <p class="hint">一针在画布上占的像素。配合字的大小，决定绣面松紧。</p></div>
+   </div>
+   <div class="section">
+    <div class="section-heading"><h3>针脚质感</h3><small>绣线的蓬松度</small></div>
+    <input id="plump" type="range" min="40" max="95" value="68" aria-label="绣线粗细">
+   </div>
+  </section>
+
+  <section class="panel" id="panel-thread">
+   <div class="section">
+    <div class="section-heading"><h3>绣线</h3><small>单色或花线</small></div>
+    <div class="segmented" id="thread-mode">
+     <button data-v="single" class="active">单色线</button><button data-v="variegated">花线渐变</button><button data-v="rainbow">一字一色</button>
+    </div>
+   </div>
+   <div class="section" id="single-box">
+    <label class="field"><span>线色</span><input id="thread" type="color" value="#983e32"></label>
+    <div class="grid3" id="thread-presets"></div>
+   </div>
+   <div class="section" id="variegated-box" hidden>
+    <div class="section-heading"><h3>花线配色</h3><small>颜色沿线缓缓过渡</small></div>
+    <div class="grid2" id="vari-presets"></div>
+   </div>
+   <div class="section">
+    <div class="row"><label for="shading">针脚明暗（更有立体感）</label><input id="shading" type="checkbox" checked></div>
+   </div>
+  </section>
+
+  <section class="panel" id="panel-fabric">
+   <div class="section">
+    <div class="section-heading"><h3>布料</h3><small>绣布底色与织纹</small></div>
+    <div class="grid3" id="fabric-presets"></div>
+    <label class="field" style="margin-top:12px"><span>自定义布色</span><input id="fabric" type="color" value="#ece3d2"></label>
+    <label class="field"><span>织纹强度</span><input id="weave" type="range" min="0" max="100" value="60"></label>
+   </div>
+   <div class="divider"></div>
+   <div class="section">
+    <div class="row"><label for="hoop">绷在绣绷里</label><input id="hoop" type="checkbox" checked></div>
+    <label class="field"><span>绣绷木色</span><input id="hoop-color" type="color" value="#b3855a"></label>
+   </div>
+   <div class="section">
+    <div class="section-heading"><h3>画布</h3><small id="ratio-label">1 : 1</small></div>
+    <div class="segmented" id="ratios">
+     <button data-v="1:1" class="active">1:1</button><button data-v="4:5">4:5</button><button data-v="3:4">3:4</button><button data-v="9:16">9:16</button><button data-v="16:9">16:9</button>
+    </div>
+    <label class="field" style="margin-top:14px"><span>字在布上的位置</span><input id="pos-y" type="range" min="20" max="80" value="50"></label>
+   </div>
+   <div class="note">线稿和布都在你的设备上生成，不上传任何地方。</div>
+  </section>
+
+  <section class="panel" id="panel-export">
+   <div class="section">
+    <div class="section-heading"><h3>存成图片</h3><small>两种都试试</small></div>
+    <div class="row"><button class="button primary" id="save-png" style="flex:1">带布 PNG</button><button class="button ghost" id="save-alpha" style="flex:1">透明线稿 PNG</button></div>
+    <label class="field" style="margin-top:14px"><span>导出倍率</span><select id="scale-out"><option value="1">1× · 与预览一致</option><option value="2" selected>2× · 高清</option><option value="3">3× · 印刷级</option></select></label>
+   </div>
+   <div class="result" id="result"></div>
+   <p class="hint">透明线稿只含绣线，可以叠在自己拍的照片或壁纸上。存不了相册时长按图片保存。</p>
+  </section>
+ </aside>
+</main>
+<a href="./islands.html" class="return-home">🏝 回小岛</a>
+<script>
+(()=>{'use strict';
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const cv=$('#preview'),ctx=cv.getContext('2d');
+const state={
+ text:'慢慢走\n欣赏啊',font:'"Songti SC","Noto Serif CJK SC","STSong",serif',customFont:null,
+ tracking:2,leading:7,align:'center',cells:13,
+ stitch:'cross',size:7,fit:true,plump:.68,
+ mode:'single',thread:'#983e32',vari:['#983e32','#d9a648'],shading:true,
+ fabric:'#ece3d2',weave:.6,hoop:true,hoopColor:'#b3855a',
+ ratio:[1,1],posY:.5,
+};
+/* ———— 小工具 ———— */
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+function hex2rgb(h){h=h.replace('#','');if(h.length===3)h=[...h].map(c=>c+c).join('');const n=parseInt(h,16);return[n>>16&255,n>>8&255,n&255]}
+function rgb2hex(r,g,b){return'#'+[r,g,b].map(v=>clamp(Math.round(v),0,255).toString(16).padStart(2,'0')).join('')}
+function mix(a,b,t){const A=hex2rgb(a),B=hex2rgb(b);return rgb2hex(A[0]+(B[0]-A[0])*t,A[1]+(B[1]-A[1])*t,A[2]+(B[2]-A[2])*t)}
+function shade(h,amt){return amt>0?mix(h,'#ffffff',amt):mix(h,'#000000',-amt)}
+let seed=7;const rnd=()=>(seed=(seed*1103515245+12345)%2147483648)/2147483648;
+/* ———— 文字 → 针目网格 ———— */
+const gridCv=document.createElement('canvas'),gctx=gridCv.getContext('2d',{willReadFrequently:true});
+function layout(){
+ const C=state.cells,lines=state.text.split('\n'),out=[];
+ let maxW=0;const prepared=lines.map(line=>{
+  const cells=[];let w=0;
+  for(const char of line){
+   if(char===' '){const sw=Math.max(2,Math.round(C*.45));cells.push({sp:true,w:sw});w+=sw+state.tracking;continue}
+   /* 先用 4 倍尺寸绘制，再降采样到 C 格高的网格，字形更顺 */
+   const SS=4;
+   gridCv.width=C*SS*2;gridCv.height=C*SS;gctx.clearRect(0,0,gridCv.width,gridCv.height);
+   gctx.font=`${C*SS}px ${state.font}`;gctx.textBaseline='alphabetic';gctx.fillStyle='#000';
+   const mw=gctx.measureText(char).width,cw=Math.max(1,Math.ceil(mw/SS));
+   gctx.fillText(char,0,C*SS*.86);
+   const tiny=document.createElement('canvas');tiny.width=cw;tiny.height=C;
+   const t=tiny.getContext('2d');t.imageSmoothingEnabled=true;t.imageSmoothingQuality='high';
+   t.drawImage(gridCv,0,0,cw*SS,C*SS,0,0,cw,C);
+   const d=t.getImageData(0,0,cw,C).data,on=new Uint8Array(cw*C);
+   for(let i=0;i<cw*C;i++)on[i]=d[i*4+3]>110?1:0;
+   cells.push({on,w:cw,h:C});w+=cw+state.tracking;
+  }
+  if(cells.length)w-=state.tracking;
+  maxW=Math.max(maxW,w);return{cells,w};
+ });
+ /* 组装为整幅针目图 */
+ const lh=C+state.leading,H=prepared.length?C+ (prepared.length-1)*lh:0;
+ const W=maxW;
+ return{prepared,W,H,lh,C};
+}
+/* ———— 画一针 ———— */
+function drawCross(g,x,y,s,col,plump){
+ const lw=s*plump;
+ if(state.shading){g.strokeStyle=shade(col,-.28);g.lineCap='round';g.lineWidth=lw;
+  g.beginPath();g.moveTo(x+s*.16,y+s*.18);g.lineTo(x+s*.84,y+s*.88);g.stroke();
+  g.beginPath();g.moveTo(x+s*.84,y+s*.16);g.lineTo(x+s*.16,y+s*.84);g.stroke();}
+ g.strokeStyle=col;g.lineCap='round';g.lineWidth=lw*.92;
+ g.beginPath();g.moveTo(x+s*.14,y+s*.14);g.lineTo(x+s*.86,y+s*.86);g.stroke();
+ g.strokeStyle=shade(col,.16);g.lineWidth=lw*.82;
+ g.beginPath();g.moveTo(x+s*.86,y+s*.14);g.lineTo(x+s*.14,y+s*.86);g.stroke();
+ /* 高光 */
+ if(state.shading){g.strokeStyle=shade(col,.34);g.lineWidth=lw*.3;
+  g.beginPath();g.moveTo(x+s*.2,y+s*.78);g.lineTo(x+s*.78,y+s*.2);g.stroke();}
+}
+function drawSatin(g,x,y,s,col,plump){
+ const n=3,lw=s*plump/n*1.5;
+ if(state.shading){g.strokeStyle=shade(col,-.22);g.lineCap='round';g.lineWidth=lw;
+  for(let i=0;i<n;i++){const yy=y+s*(0.2+0.6*i/(n-1))+1;g.beginPath();g.moveTo(x+s*.1,yy);g.lineTo(x+s*.9,yy);g.stroke()}}
+ g.strokeStyle=col;g.lineCap='round';g.lineWidth=lw*.95;
+ for(let i=0;i<n;i++){const yy=y+s*(0.18+0.64*i/(n-1));g.beginPath();g.moveTo(x+s*.08,yy);g.lineTo(x+s*.92,yy);g.stroke()}
+ if(state.shading){g.strokeStyle=shade(col,.25);g.lineWidth=lw*.4;
+  const yy=y+s*.34;g.beginPath();g.moveTo(x+s*.12,yy);g.lineTo(x+s*.88,yy);g.stroke()}
+}
+/* ———— 布料 ———— */
+function paintFabric(g,W,H){
+ g.fillStyle=state.fabric;g.fillRect(0,0,W,H);
+ const wv=state.weave;if(wv<=0)return;
+ const step=6;
+ g.globalAlpha=.16*wv*1.6;
+ for(let y=0;y<H;y+=step){g.fillStyle=(y/step)%2?shade(state.fabric,-.07):shade(state.fabric,.06);g.fillRect(0,y,W,step/2)}
+ for(let x=0;x<W;x+=step){g.fillStyle=(x/step)%2?shade(state.fabric,-.05):shade(state.fabric,.05);g.fillRect(x,0,step/2,H)}
+ g.globalAlpha=1;
+ /* 布纹噪点 */
+ const n=W*H/900;g.globalAlpha=.12*wv*1.6;
+ for(let i=0;i<n;i++){const x=rnd()*W,y=rnd()*H;g.fillStyle=rnd()>.5?shade(state.fabric,.2):shade(state.fabric,-.2);g.fillRect(x,y,1.6,1.6)}
+ g.globalAlpha=1;
+}
+function paintHoop(g,W,H){
+ const cx=W/2,cy=state.posY*H,R=Math.min(W,H)*.46;
+ g.save();
+ /* 外圈 */
+ g.strokeStyle=shade(state.hoopColor,-.18);g.lineWidth=Math.max(14,R*.06);g.beginPath();g.arc(cx,cy,R,0,Math.PI*2);g.stroke();
+ g.strokeStyle=state.hoopColor;g.lineWidth=Math.max(10,R*.045);g.beginPath();g.arc(cx,cy,R,0,Math.PI*2);g.stroke();
+ g.strokeStyle=shade(state.hoopColor,.25);g.lineWidth=Math.max(3,R*.012);g.beginPath();g.arc(cx,cy,R-Math.max(10,R*.045)/2,Math.PI*1.15,Math.PI*1.85);g.stroke();
+ /* 顶部螺丝扣 */
+ g.fillStyle='#8d8d92';g.fillRect(cx-7,cy-R-Math.max(14,R*.06)-6,14,16);g.fillStyle='#6f6f74';g.fillRect(cx-7,cy-R-Math.max(14,R*.06)+4,14,3);
+ g.restore();
+}
+/* ———— 渲染整幅 ———— */
+function threadFor(ci,total,i){
+ if(state.mode==='single')return state.thread;
+ if(state.mode==='rainbow'){const pal=['#b04a3c','#c97f3f','#c9a53f','#6f9a5f','#4f8a96','#5f6fae','#8a5f96','#b05f7f'];return pal[ci%pal.length]}
+ return mix(state.vari[0],state.vari[1],total>1?ci/(total-1):0);
+}
+function render(target,scaleOut=1,transparent=false){
+ const lay=layout();
+ const [rw,rh]=state.ratio;
+ /* 内容宽高（像素） */
+ let s=state.size*scaleOut;
+ let W,H;
+ if(rw>=rh){W=Math.round(760*scaleOut*(rw/rh));H=760*scaleOut}
+ else{W=760*scaleOut;H=Math.round(760*scaleOut*(rh/rw))}
+ if(state.fit){ /* 自动适配：绣字装进绣绷内接矩形 */
+  const box=state.hoop?Math.min(W,H)*.62:Math.min(W,H)*.72;
+  s=Math.max(2*scaleOut,Math.min(box/Math.max(1,lay.W),box*1.15/Math.max(1,lay.H)));
+ }
+ const contentW=Math.max(1,lay.W*s),contentH=Math.max(1,lay.H*s);
+ const pad=Math.max(contentW*.22,90*scaleOut);
+ /* 若内容溢出则放大画布 */
+ const needW=contentW+pad*2,needH=contentH+pad*2;
+ const f=Math.max(needW/W,needH/H,1);W=Math.round(W*f);H=Math.round(H*f);
+ const g=(target||cv).getContext('2d');
+ (target||cv).width=W;(target||cv).height=H;
+ seed=11;
+ if(!transparent)paintFabric(g,W,H);
+ if(state.hoop&&!transparent)paintHoop(g,W,H);
+ const ox=(W-contentW)/2,oy=state.posY*H-contentH/2;
+ let charIdx=0;const totalChars=lay.prepared.reduce((n,l)=>n+l.cells.filter(c=>!c.sp).length,0);
+ lay.prepared.forEach((line,li)=>{
+  let x=ox;
+  if(state.align==='center')x=ox+(contentW-line.w*s)/2;
+  if(state.align==='right')x=ox+contentW-line.w*s;
+  const y0=oy+li*lay.lh*s;
+  for(const cell of line.cells){
+   if(cell.sp){x+=(cell.w+state.tracking)*s;continue}
+   const col=threadFor(charIdx,totalChars);
+   for(let gy=0;gy<cell.h;gy++)for(let gx=0;gx<cell.w;gx++){
+    if(!cell.on[gy*cell.w+gx])continue;
+    const j=(rnd()-.5)*.14,c=shade(col,j);
+    if(state.stitch==='cross')drawCross(g,x+gx*s,y0+gy*s,s,c,state.plump);
+    else drawSatin(g,x+gx*s,y0+gy*s,s,c,state.plump);
+   }
+   x+=(cell.w+state.tracking)*s;charIdx++;
+  }
+ });
+ $('#preview-info').textContent=W+' × '+H;
+ return{W,H};
+}
+/* ———— 控件 ———— */
+let raf=0;function schedule(){cancelAnimationFrame(raf);raf=requestAnimationFrame(()=>render())}
+$$('.tab').forEach(t=>t.onclick=()=>{$$('.tab').forEach(x=>{x.classList.toggle('active',x===t);x.setAttribute('aria-selected',x===t)});$$('.panel').forEach(p=>p.classList.toggle('active',p.id==='panel-'+t.dataset.tab))});
+$('#text').addEventListener('input',e=>{state.text=e.target.value;schedule()});
+$('#font').addEventListener('change',e=>{const v=e.target.value;$('#font-upload').hidden=v!=='custom';if(v!=='custom'){state.font=v;schedule()}});
+$('#font-file').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;const buf=await f.arrayBuffer();const ff=new FontFace('gu-custom-'+Date.now(),buf);await ff.load();document.fonts.add(ff);state.font='"'+ff.family+'"';state.customFont=ff.family;schedule()});
+$('#tracking').addEventListener('input',e=>{state.tracking=+e.target.value;schedule()});
+$('#leading').addEventListener('input',e=>{state.leading=+e.target.value;schedule()});
+$('#align').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;$$('#align button').forEach(x=>x.classList.toggle('active',x===b));state.align=b.dataset.v;schedule()});
+$('#cells').addEventListener('input',e=>{state.cells=+e.target.value;$('#cells-label').textContent='每字 '+state.cells+' 针';schedule()});
+$$('[data-stitch]').forEach(b=>b.onclick=()=>{$$('[data-stitch]').forEach(x=>x.classList.toggle('active',x===b));state.stitch=b.dataset.stitch;schedule()});
+$('#stitch-size').addEventListener('input',e=>{state.size=+e.target.value;$('#size-label').textContent='针目 '+state.size+' px';schedule()});
+$('#fit-hoop').addEventListener('change',e=>{state.fit=e.target.checked;$('#size-box').hidden=state.fit;schedule()});
+$('#plump').addEventListener('input',e=>{state.plump=+e.target.value/100;schedule()});
+/* 线色 */
+const THREADS=['#983e32','#b04a3c','#c97f3f','#8a5a2b','#6f9a5f','#355c4c','#4f8a96','#3f5f9a','#5f6fae','#8a5f96','#b05f7f','#4c4035'];
+$('#thread-presets').innerHTML=THREADS.map(c=>'<button class="swatch" data-c="'+c+'"><i style="background:'+c+'"></i></button>').join('');
+$('#thread-presets').addEventListener('click',e=>{const b=e.target.closest('[data-c]');if(!b)return;state.thread=b.dataset.c;$('#thread').value=b.dataset.c;schedule()});
+$('#thread').addEventListener('input',e=>{state.thread=e.target.value;schedule()});
+const VARIS=[['#983e32','#d9a648','红茶渐变'],['#4f8a96','#8fd0b0','溪绿渐变'],['#3f5f9a','#b05f7f','暮紫渐变'],['#355c4c','#c9a53f','苔金渐变'],['#b04a3c','#5f6fae','晚秋渐变'],['#8a5a2b','#e8c98f','麦浪渐变']];
+$('#vari-presets').innerHTML=VARIS.map((v,i)=>'<button class="preset" data-i="'+i+'"><span class="sw" style="background:linear-gradient(90deg,'+v[0]+','+v[1]+')"></span><b>'+v[2]+'</b></button>').join('');
+$('#vari-presets').addEventListener('click',e=>{const b=e.target.closest('[data-i]');if(!b)return;state.vari=[VARIS[+b.dataset.i][0],VARIS[+b.dataset.i][1]];$$('#vari-presets .preset').forEach(x=>x.classList.toggle('active',x===b));schedule()});
+$('#thread-mode').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;$$('#thread-mode button').forEach(x=>x.classList.toggle('active',x===b));state.mode=b.dataset.v;
+ $('#single-box').hidden=state.mode!=='single';$('#variegated-box').hidden=state.mode!=='variegated';schedule()});
+$('#shading').addEventListener('change',e=>{state.shading=e.target.checked;schedule()});
+/* 布料 */
+const FABRICS=[['#ece3d2','米白棉麻'],['#e8dcc0','燕麦'],['#d8c9ae','粗麻'],['#cfe0d4','水绿'],['#c8d6e0','雾蓝'],['#e8d2cc','粉衫'],['#3d4a42','深林'],['#2f3b4a','夜航'],['#f2ead8','生绢']];
+$('#fabric-presets').innerHTML=FABRICS.map((f,i)=>'<button class="swatch" data-c="'+f[0]+'" title="'+f[1]+'"><i style="background:'+f[0]+'"></i><b style="'+(i>5?'':'color:#6b5b45;text-shadow:none')+'">'+f[1]+'</b></button>').join('');
+$('#fabric-presets').addEventListener('click',e=>{const b=e.target.closest('[data-c]');if(!b)return;state.fabric=b.dataset.c;$('#fabric').value=b.dataset.c;schedule()});
+$('#fabric').addEventListener('input',e=>{state.fabric=e.target.value;schedule()});
+$('#weave').addEventListener('input',e=>{state.weave=+e.target.value/100;schedule()});
+$('#hoop').addEventListener('change',e=>{state.hoop=e.target.checked;schedule()});
+$('#hoop-color').addEventListener('input',e=>{state.hoopColor=e.target.value;schedule()});
+$('#ratios').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;$$('#ratios button').forEach(x=>x.classList.toggle('active',x===b));state.ratio=b.dataset.v.split(':').map(Number);$('#ratio-label').textContent=b.dataset.v.replace(':',' : ');schedule()});
+$('#pos-y').addEventListener('input',e=>{state.posY=+e.target.value/100;schedule()});
+/* 导出 */
+async function savePng(transparent){
+ const k=+$('#scale-out').value;
+ const out=document.createElement('canvas');render(out,k,transparent);
+ const blob=await new Promise(r=>out.toBlob(r,'image/png'));
+ const name='绣字铺-'+(transparent?'线稿-':'')+Date.now()+'.png';
+ const url=URL.createObjectURL(blob);
+ const a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();
+ const img=document.createElement('img');img.src=url;img.alt=name;
+ $('#result').prepend(img);
+ setTimeout(()=>URL.revokeObjectURL(url),60000);
+}
+$('#save-png').onclick=()=>savePng(false);
+$('#save-alpha').onclick=()=>savePng(true);
+$('#go-export').onclick=()=>{$$('.tab').forEach(x=>x.classList.toggle('active',x.dataset.tab==='export'));$$('.panel').forEach(p=>p.classList.toggle('active',p.id==='panel-export'));$('#save-png').focus()};
+$('#zoom-fit').onclick=render;
+/* 默认氛围 */
+document.querySelector('[data-stitch="cross"]').classList.add('active');
+render();
+})();
+</script>
+</body>
+</html>
