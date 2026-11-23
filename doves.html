@@ -228,7 +228,9 @@ stage.addEventListener('pointerup',e=>{if(!dragging)return;dragging=false;
    else if(s){e.preventDefault();openDetail(s.it)}}}
  else snapTo(idx())});
 stage.addEventListener('pointercancel',()=>{dragging=false;snapTo(idx())});
-ring.addEventListener('click',e=>{const c=e.target.closest('.card');if(c)e.preventDefault()});
+ring.addEventListener('click',e=>{const c=e.target.closest('.card');if(!c)return;
+ e.preventDefault();const s=slots.find(x=>x.card===c);if(!s||!s.it.id)return;
+ if(s.i!==cur)snapTo(s.i);else openDetail(s.it)});
 $('#arr-l').onclick=()=>{tgt=null;snapTo(idx()-1)};
 $('#arr-r').onclick=()=>{tgt=null;snapTo(idx()+1)};
 addEventListener('keydown',e=>{if(e.key==='ArrowLeft')$('#arr-l').click();if(e.key==='ArrowRight')$('#arr-r').click();
