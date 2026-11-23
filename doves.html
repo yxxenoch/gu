@@ -253,7 +253,7 @@ function applyFilter(){LIST=ITEMS.filter(i=>(cat==='all'||i.cat===cat)&&(!q||i.n
  if(!LIST.length){LIST=[{id:'',name:'没有找到',sub:'换个词试试',cat:'x',sym:'?',c:['#aaa','#888'],empty:1}]}
  buildRing();rot=0;tgt=null;vel=0;focus(0)}
 Object.entries(CATS).forEach(([k,v])=>{const b=document.createElement('button');b.className='cat'+(k==='all'?' on':'');
- b.textContent=v;b.onclick=()=>{cat=k;document.querySelectorAll('.cat').forEach(x=>x.classList.toggle('on',x===b));applyFilter()};
+ b.textContent=v;b.onclick=()=>{cat=k;q='';$('#ov-q').value='';document.querySelectorAll('.cat').forEach(x=>x.classList.toggle('on',x===b));applyFilter()};
  $('#cats').append(b)});
 function buildOv(){const g=$('#ov-grid');g.innerHTML='';
  const list=ITEMS.filter(i=>(cat==='all'||i.cat===cat)&&(!q||i.name.includes(q)||i.sub.includes(q)));
