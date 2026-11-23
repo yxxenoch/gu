@@ -3,271 +3,200 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
-<meta name="theme-color" content="#8fb5ae">
-<meta name="description" content="咕的小岛：一座座漂在海上的小房子，每间都是一个返图小工具。推开房门，开始创作。">
-<title>咕的小岛 · 咕の返图</title>
+<meta name="theme-color" content="#dcebf2">
+<meta name="description" content="咕的鸽群：每只鸽子衔着一张小卡片，卡片就是每间小屋的门。点卡片，鸽子松嘴送你过去。">
+<title>咕的鸽群 · 咕の返图</title>
 <style>
-:root{--ink:#31514a;--deep:#274742;--tag:#fdf9ec;--line:#e4dcc8;--accent:#c97f6a;color-scheme:light}
+:root{--ink:#4c4035;--muted:#7d7668;--paper:#f6efe2;color-scheme:light}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;height:100%;overflow:hidden}
-body{font:14px/1.5 -apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans SC",sans-serif;color:var(--ink);background:#a7c9c3}
-button,a{font:inherit;-webkit-tap-highlight-color:transparent}
-button:focus-visible,a:focus-visible{outline:3px solid #e8c98f;outline-offset:2px}
-#viewport{position:fixed;inset:0;overflow:hidden;touch-action:none;
- background:linear-gradient(180deg,#f4e7cf 0%,#eddcc0 26%,#cfe0d8 40%,#a9cdc5 62%,#86b3ab 100%)}
-#viewport:before{content:"";position:absolute;left:0;right:0;top:0;height:40%;pointer-events:none;
- background:radial-gradient(circle at 78% 20%,#fff6dd 0 6.5%,#ffe9b355 7%,transparent 16%)}
-#world{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform}
-.sea-ring{position:absolute;border-radius:50%;pointer-events:none;opacity:.5;
- background:radial-gradient(ellipse at center,transparent 58%,#ffffff22 62%,transparent 70%)}
-.cloud{position:absolute;pointer-events:none;opacity:.85;animation:drift linear infinite}
-.cloud i{position:absolute;background:#fbf6ea;border-radius:50px;box-shadow:inset -4px -6px 0 #eee2cc}
-@keyframes drift{from{transform:translateX(-10vw)}to{transform:translateX(115vw)}}
-.wave{position:absolute;pointer-events:none;border-top:2px dashed #ffffff2e;border-radius:50%;animation:sway 7s ease-in-out infinite}
-@keyframes sway{0%,100%{transform:translateX(0)}50%{transform:translateX(14px)}}
-.region{position:absolute;transform:translate(-50%,-50%);pointer-events:none;text-align:center;color:#3c6b60}
-.region b{display:block;font:600 22px/1.4 "Songti SC","Noto Serif SC",serif;letter-spacing:.35em;text-indent:.35em;opacity:.8}
-.region small{font:10px Georgia,serif;letter-spacing:.3em;opacity:.55}
-.isle{position:absolute;transform:translate(-50%,-50%);width:150px;display:block;text-decoration:none;color:inherit;cursor:pointer}
-.isle .bob{animation:bob 5.5s ease-in-out infinite;transform-origin:50% 70%}
-@keyframes bob{0%,100%{transform:translateY(0) rotate(-.6deg)}50%{transform:translateY(-7px) rotate(.6deg)}}
-.isle .shadow{position:absolute;left:50%;top:calc(100% - 12px);width:120px;height:22px;transform:translateX(-50%);border-radius:50%;background:#3d6b6333;filter:blur(3px);animation:shrink 5.5s ease-in-out infinite}
-@keyframes shrink{0%,100%{transform:translateX(-50%) scale(1);opacity:.8}50%{transform:translateX(-50%) scale(.86);opacity:.5}}
-.land{position:relative;display:block}
-.mound{display:block;height:34px;border-radius:50% 50% 46% 46%/62% 62% 40% 40%;background:linear-gradient(180deg,#cfe0b4,#a9c48c 62%,#8fae78);box-shadow:inset 0 6px 0 #e7f0d2,inset 0 -8px 0 #7d9c6a}
-.base{display:block;margin:-6px 8px 0;height:40px;border-radius:0 0 46% 46%/0 0 100% 100%;background:linear-gradient(180deg,#c9a684,#a8815f 55%,#8a6847);clip-path:polygon(4% 0,96% 0,82% 78%,60% 100%,40% 100%,18% 78%);box-shadow:inset 0 6px 0 #b08f6d}
-.deco{position:absolute;left:50%;bottom:26px;transform:translateX(-50%);width:84px;height:66px;display:grid;place-items:end center;pointer-events:none}
-.deco svg{width:100%;height:100%;overflow:visible}
-.tag{position:absolute;left:50%;top:100%;transform:translate(-50%,6px);white-space:nowrap;background:var(--tag);border:1px solid #d9cfa8;border-radius:20px;padding:4px 12px;font-size:11px;letter-spacing:.08em;color:#5a5140;box-shadow:0 3px 8px #2b524a26;transition:transform .2s}
-.isle:hover .tag,.isle:focus-visible .tag{transform:translate(-50%,2px);background:#fffef7}
-.isle.new .tag{border-color:#e4b98c;color:#a05a3e;font-weight:600}
-.isle.new .tag:after{content:" · 新"}
-.isle.sel .bob{animation-play-state:paused}
-.isle.sel .land .mound{filter:brightness(1.06)}
-.boat{position:absolute;width:96px;pointer-events:none;animation:sail 80s linear infinite}
-@keyframes sail{from{transform:translateX(-15vw)}to{transform:translateX(118vw)}}
-.gull{position:absolute;pointer-events:none;animation:gull 46s linear infinite}
-@keyframes gull{from{transform:translate(110vw,0)}to{transform:translate(-16vw,-6vh)}}
-/* HUD */
-.hud{position:fixed;z-index:40;display:flex;gap:8px;align-items:center}
-.hud.top{top:calc(12px + env(safe-area-inset-top));left:14px;right:14px;justify-content:space-between;pointer-events:none}
-.hud.top>*{pointer-events:auto}
-.brand{display:flex;align-items:center;gap:10px;background:#fdf9ecdb;border:1px solid #e0d4b0;border-radius:16px;padding:8px 14px 8px 10px;backdrop-filter:blur(6px);box-shadow:0 6px 18px #2f5b5330}
-.brand .mark{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:#31514a;color:#f4ead0;font:17px "Songti SC",serif}
-.brand b{font:600 15px "Songti SC","Noto Serif SC",serif;letter-spacing:.1em;color:var(--deep)}
-.brand small{display:block;font-size:9px;letter-spacing:.16em;color:#7a8b7f;margin-top:1px}
-.hud .tools{display:flex;gap:8px}
-.hbtn{min-height:40px;padding:8px 13px;border-radius:12px;border:1px solid #e0d4b0;background:#fdf9ecdb;color:var(--deep);font-size:12px;cursor:pointer;backdrop-filter:blur(6px);box-shadow:0 6px 18px #2f5b5330;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
-.hbtn:hover{background:#fffef7}
-.zoom{position:fixed;right:14px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:40;display:grid;gap:7px}
-.zoom .hbtn{min-width:42px;min-height:42px;justify-content:center;font-size:15px;padding:8px}
-.hint-pill{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:35;background:#274742c9;color:#f4ecd8;border-radius:30px;padding:9px 17px;font-size:12px;letter-spacing:.06em;pointer-events:none;transition:opacity .6s;white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis}
-/* popover card */
-.card-pop{position:fixed;z-index:50;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%);width:min(400px,calc(100vw - 28px));background:#fdfaf0;border:1px solid #ddcfab;border-radius:18px;box-shadow:0 20px 50px #1f423b45;padding:15px 16px 14px;display:none}
-.card-pop.show{display:block;animation:pop .22s ease}
-@keyframes pop{from{transform:translate(-50%,10px);opacity:0}to{transform:translateX(-50%);opacity:1}}
-.card-pop h2{margin:0;font:600 17px "Songti SC","Noto Serif SC",serif;letter-spacing:.08em;color:var(--deep)}
-.card-pop p{margin:4px 0 12px;font-size:12px;color:#75816f}
-.card-pop .row{display:flex;gap:8px}
-.card-pop .go{flex:1;background:#31514a;color:#f6efdb;border:0;border-radius:11px;min-height:42px;font-size:13px;font-weight:600;cursor:pointer}
-.card-pop .go:hover{background:#3c6158}
-.card-pop .close{background:#efe9d5;border:0;border-radius:11px;min-width:46px;cursor:pointer;color:#6b6a58}
-.card-pop .flag{font:9px Georgia,serif;letter-spacing:.2em;color:#a08c5f}
-/* catalog sheet */
-.sheet{position:fixed;inset:0;z-index:60;background:#1d3a35a8;display:none;align-items:flex-end;justify-content:center}
-.sheet.show{display:flex}
-.sheet-box{background:#faf6ea;width:min(560px,100%);max-height:82dvh;border-radius:22px 22px 0 0;padding:20px 20px calc(22px + env(safe-area-inset-bottom));overflow-y:auto;box-shadow:0 -18px 60px #12302b66}
-.sheet-box h2{margin:0 0 4px;font:600 18px "Songti SC",serif;color:var(--deep);letter-spacing:.1em}
-.sheet-box>p{margin:0 0 14px;font-size:11px;color:#8b947f}
-.sheet h3{font-size:12px;color:#9c8c62;margin:16px 0 8px;letter-spacing:.15em}
-.sheet .links{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px}
-.sheet .links a{display:block;text-decoration:none;background:#fffdf5;border:1px solid #e3d8ba;border-radius:12px;padding:10px 10px 8px;color:var(--ink)}
-.sheet .links a b{display:block;font-size:12.5px}
-.sheet .links a small{font-size:10px;color:#8b947f}
-.sheet .links a[href="islands.html"],.sheet .links a.new{border-color:#e4b98c;background:#fdf4e4}
-.sheet .dismiss{width:100%;margin-top:16px;min-height:44px;border:1px solid #ddd0ae;border-radius:12px;background:#f0e9d4;color:#6b6247;cursor:pointer}
-@media(max-width:640px){.brand small{display:none}.brand b{font-size:13px}.hbtn{padding:8px 10px;font-size:11px}.region b{font-size:16px}}
-@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
+html,body{height:100%}
+body{margin:0;overflow:hidden;font:14px/1.6 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--ink);
+ background:linear-gradient(180deg,#cfe4ef 0%,#e6f0ee 38%,#f7eeda 78%,#f5e3c8 100%)}
+button{font:inherit;cursor:pointer;border:0;touch-action:manipulation}
+#viewport{position:fixed;inset:0;touch-action:none;overflow:hidden}
+#flock{position:absolute;left:50%;top:50%;width:0;height:0;will-change:transform}
+/* ———— 天空装饰 ———— */
+.sun{position:fixed;top:9%;right:11%;width:120px;height:120px;border-radius:50%;pointer-events:none;
+ background:radial-gradient(circle,#ffe9b8 0%,#ffe9b855 45%,transparent 70%)}
+.cloud{position:fixed;border-radius:50%;background:#fffdf8;opacity:.75;filter:blur(2px);pointer-events:none;animation:drift var(--cd,60s) linear infinite}
+@keyframes drift{from{transform:translateX(-15vw)}to{transform:translateX(115vw)}}
+.gull{position:fixed;color:#8ca3ad;font-size:15px;pointer-events:none;animation:gfly var(--gd,26s) linear infinite}
+@keyframes gfly{from{transform:translate(-8vw,var(--gy))}to{transform:translate(108vw,var(--gy))}}
+/* ———— 鸽子 + 卡片 ———— */
+.unit{position:absolute;left:0;top:0}
+.unit .fly{transform:translate(-170vw,var(--fy,-6vh));opacity:0;transition:transform 1.6s cubic-bezier(.2,.85,.25,1) var(--d),opacity .8s ease var(--d)}
+.unit.in .fly{transform:none;opacity:1}
+.bob{animation:bob var(--bt,5.4s) ease-in-out infinite;animation-delay:var(--bd)}
+@keyframes bob{0%,100%{transform:translateY(0) rotate(var(--r,0deg))}50%{transform:translateY(-10px) rotate(var(--r,0deg))}}
+.dove{position:absolute;left:-78px;top:-46px;width:156px;transition:transform .9s cubic-bezier(.4,0,.6,1),opacity .9s;filter:drop-shadow(0 8px 14px #55667733)}
+.dove .wing{transform-box:view-box;transform-origin:60px 52px;animation:flap var(--ft,1.05s) ease-in-out infinite;animation-delay:var(--bd)}
+@keyframes flap{0%,100%{transform:rotate(-17deg)}50%{transform:rotate(15deg)}}
+.card{position:absolute;left:14px;top:-6px;width:98px;transform:rotate(-4deg);background:#fdfaf2;border:1px solid #e4d7c2;border-radius:7px;
+ padding:5px 5px 6px;box-shadow:0 12px 26px #5a4a302e;cursor:pointer;color:var(--ink);text-decoration:none;
+ transition:transform .3s,box-shadow .3s,opacity .5s}
+.card:hover{transform:rotate(-1deg) translateY(-4px) scale(1.05);box-shadow:0 18px 34px #5a4a3040;z-index:5}
+.card .pic{display:block;width:100%;height:70px;border-radius:4px;object-fit:cover;background:#e9e2d4}
+.card .fb{display:grid;place-items:center;width:100%;height:70px;border-radius:4px;font:26px/1 Georgia,serif;color:#fffef9;text-shadow:0 1px 3px #0003}
+.card b{display:block;font-size:11.5px;font-weight:650;margin-top:5px;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card i{display:block;font-size:9.5px;color:var(--muted);font-style:normal;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.grip{position:absolute;top:-7px;left:-9px;width:16px;height:16px;transform:rotate(-32deg);
+ background:#e8d9b8;clip-path:polygon(50% 0,100% 100%,0 100%)}
+.fresh{position:absolute;top:-8px;right:-9px;transform:rotate(8deg);background:#c96f52;color:#fff8ec;font-size:9.5px;
+ padding:2px 7px;border-radius:9px;letter-spacing:.08em;box-shadow:0 4px 10px #0002}
+/* 放飞动画 */
+.unit.go{pointer-events:none;z-index:40}
+.unit.go .dove{transform:translate(72vw,-34vh) rotate(-12deg) scale(.9);opacity:0;transition-duration:1.05s}
+.unit.go .card{transform:rotate(-14deg) translateY(64px);opacity:0;transition:transform .55s ease-in,opacity .45s}
+/* 卡片放大过渡 */
+.veil{position:fixed;inset:0;background:#fdfaf2;opacity:0;pointer-events:none;transition:opacity .5s .25s;z-index:98}
+.veil.on{opacity:1}
+.zoom-card{position:fixed;z-index:99;background:#fdfaf2;border-radius:10px;box-shadow:0 24px 60px #5a4a3050;overflow:hidden;
+ display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+ transition:left .62s cubic-bezier(.5,0,.2,1),top .62s cubic-bezier(.5,0,.2,1),width .62s cubic-bezier(.5,0,.2,1),height .62s cubic-bezier(.5,0,.2,1),border-radius .62s}
+.zoom-card img{max-width:100%;max-height:100%}
+/* ———— 中央标题 ———— */
+.hero{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;width:300px}
+.hero .mark{font:600 44px/1.1 "Songti SC","Noto Serif CJK SC",serif;letter-spacing:8px;color:#5a4a38;text-shadow:0 2px 0 #fff8}
+.hero p{margin:8px 0 0;font-size:12px;color:#6b6253;letter-spacing:.12em}
+.hero .divider{width:56px;height:1px;background:#b9a98866;margin:10px auto}
+/* ———— HUD ———— */
+.hud{position:fixed;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:flex-start;padding:16px 18px;z-index:60;pointer-events:none}
+.hud>*{pointer-events:auto}
+.chip{display:flex;gap:10px;align-items:center;background:#fffaf0d9;border:1px solid #e0d2b8;border-radius:16px;padding:8px 14px;backdrop-filter:blur(6px)}
+.chip .m{width:30px;height:30px;border:1px solid #b7a99a;border-radius:50%;display:grid;place-items:center;font:18px Georgia,serif;color:#7a5c40}
+.chip h1{font:600 15px "Songti SC",serif;letter-spacing:3px;margin:0}
+.chip small{display:block;font-size:9px;letter-spacing:1.5px;color:var(--muted)}
+.hbtn{min-height:38px;padding:8px 15px;border-radius:12px;background:#fdfaf0e0;border:1px solid #ddcfb4;font-size:12.5px;color:var(--ink);text-decoration:none;display:inline-flex;align-items:center;gap:6px;backdrop-filter:blur(6px)}
+.hbtn:hover{background:#fff}
+.hbtns{display:flex;gap:8px}
+.hint{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#4c4035d0;color:#f4ecd8;
+ border-radius:20px;padding:7px 16px;font-size:12px;z-index:60;pointer-events:none;transition:opacity .8s;white-space:nowrap}
+/* ———— 目录 ———— */
+#sheet{position:fixed;inset:0;z-index:80;display:none}
+#sheet.open{display:block}
+.sheet-bg{position:absolute;inset:0;background:#3d322750;backdrop-filter:blur(3px)}
+.sheet-box{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:min(560px,96vw);max-height:74svh;overflow-y:auto;
+ background:#fdfaf2;border:1px solid #e0d2b8;border-radius:22px 22px 0 0;padding:20px 22px calc(24px + env(safe-area-inset-bottom));box-shadow:0 -10px 40px #4f3f2c33}
+.sheet-box h3{font:600 13px "Songti SC",serif;letter-spacing:.2em;color:#8a7257;margin:14px 0 9px}
+.sheet-box h3:first-child{margin-top:0}
+.links{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
+.links a{display:block;padding:9px 11px;border:1px solid #e4d9c4;border-radius:11px;text-decoration:none;color:var(--ink);background:#fff}
+.links a b{font-size:12.5px;display:block}
+.links a small{font-size:10px;color:var(--muted)}
+.links a.new{border-color:#e0ac8c;background:#fdf2e4}
+.sheet-x{float:right;min-width:36px;min-height:36px;border-radius:50%;background:#f0e8d6;font-size:16px}
+@media(max-width:640px){.dove{left:-64px;top:-38px;width:128px}.card{left:8px;top:-2px;width:82px}.card .pic,.card .fb{height:58px}.hero .mark{font-size:30px;letter-spacing:5px}.hero{width:200px}.hero p{font-size:10.5px}.chip small{display:none}}
+@media(prefers-reduced-motion:reduce){.unit .fly{transition:none}.bob,.dove .wing,.cloud,.gull{animation:none}.zoom-card,.veil{transition-duration:.01s}}
 </style>
 </head>
 <body>
-<div id="viewport" aria-label="小岛地图：拖动海面移动，双指缩放">
- <div id="world"></div>
+<div class="sun"></div>
+<div id="viewport"><div id="flock"></div></div>
+<div class="hud">
+ <div class="chip"><span class="m">鸽</span><div><h1>咕的鸽群</h1><small>COURIER DOVES · PICK A CARD</small></div></div>
+ <div class="hbtns"><button class="hbtn" id="btn-sheet">全部小屋</button><a class="hbtn" href="./index.html">返图画册 →</a></div>
 </div>
-<div class="hud top">
- <div class="brand"><span class="mark">咕</span><div><b>咕的小岛</b><small>LITTLE ISLES · GU</small></div></div>
- <div class="tools">
-  <button class="hbtn" id="catalog">☰ 小岛目录</button>
-  <a class="hbtn" href="./index.html">返图画册 →</a>
- </div>
-</div>
-<div class="zoom">
- <button class="hbtn" id="zin" aria-label="放大">＋</button>
- <button class="hbtn" id="zout" aria-label="缩小">－</button>
- <button class="hbtn" id="zfit" aria-label="看全图">⤢</button>
-</div>
-<div class="hint-pill" id="hint">拖动海面逛逛小岛 · 双指捏合缩放 · 点一座岛看看里面</div>
-<div class="card-pop" id="pop" role="dialog" aria-live="polite">
- <span class="flag" id="pop-flag">GU STUDIO</span>
- <h2 id="pop-name"></h2>
- <p id="pop-sub"></p>
- <div class="row"><button class="close" id="pop-close" aria-label="关闭">×</button><button class="go" id="pop-go">推开房门 →</button></div>
-</div>
-<div class="sheet" id="sheet"><div class="sheet-box">
- <h2>小岛目录</h2><p>所有的房间都在这里了，挑一间进去。</p>
- <div id="sheet-groups"></div>
- <button class="dismiss" id="sheet-close">回到海上</button>
-</div></div>
+<div class="hint" id="hint">点卡片，鸽子松嘴送你过去 · 拖动看看四周</div>
+<div id="sheet"><div class="sheet-bg"></div>
+ <div class="sheet-box"><button class="sheet-x" id="sheet-x" aria-label="关闭">×</button>
+  <h3>✨ 新做的小屋</h3><div class="links" id="links-new"></div>
+  <h3>全部小屋</h3><div class="links" id="links-all"></div>
+ </div></div>
+<div class="veil" id="veil"></div>
 <script>
 (()=>{'use strict';
-/* ————— 小岛名册 —————
-   id：对应 <id>.html；pos 为世界坐标（世界 1900×1240） */
-const WORLD={w:1900,h:1240};
-const REGIONS=[
- {name:'纸 屿',en:'PAPER ISLES',x:430,y:150},
- {name:'手 作 屿',en:'HANDMADE ISLES',x:1410,y:150},
- {name:'光 影 屿',en:'LIGHT & SHADOW',x:420,y:680},
- {name:'新 鲜 小 岛',en:'NEW TOYS',x:1400,y:680},
+const $=s=>document.querySelector(s);
+const COVER='assets/gallery-covers/';
+const ITEMS=[
+ {id:'xiuzi',name:'绣字铺',sub:'把字一针一线绣在布上',fresh:1,sym:'绣',c:['#983e32','#5e2922']},
+ {id:'xiaowu',name:'布置小屋',sub:'家具摆一摆，安个小家',fresh:1,sym:'屋',c:['#b98d5f','#7a5c40']},
+ {id:'fuguang',name:'浮光碎影',sub:'碎片 · 光影 · 拼贴',sym:'✳',c:['#78948c','#e5dfc8']},
+ {id:'collage',name:'散漫ins风',sub:'随性 · 胶片 · 照片墙',sym:'◒',c:['#c9b29d','#efdcd0']},
+ {id:'guzhe',name:'古风折页',sub:'折页 · 金线 · 古纸',sym:'折',c:['#55644f','#e4d2a5']},
+ {id:'stitch',name:'缝合艺术',sub:'绣线 · 针脚 · 手作',sym:'✣',c:['#b77d7b','#eed3c1']},
+ {id:'sunlit',name:'天气好',sub:'晴日 · 轻快 · 明信片',sym:'☼',c:['#9cbdb5','#f5d9a2']},
+ {id:'food',name:'零食小铺',sub:'零食包装 · 小店趣味',sym:'♡',c:['#d8b2a7','#f7ead6']},
+ {id:'zipbag',name:'拉链袋',sub:'透明材质 · 透明封装',sym:'▧',c:['#a0bbbf','#e8e6d6']},
+ {id:'magazine',name:'旧刊杂志',sub:'编辑排版 · 复古刊物',sym:'M',c:['#a49583','#e5dac2']},
+ {id:'huajian',name:'花笺',sub:'花叶 · 纸品 · 书信',sym:'❦',c:['#6e9880','#e6ead9']},
+ {id:'origami',name:'东南西北',sub:'立体折纸 · 双面展开',sym:'◇',c:['#7895b8','#e7d5cc']},
+ {id:'petal-post-return',name:'折花寄影',sub:'花瓣 · 纸张 · 折叠',sym:'❀',c:['#b89aab','#efe2d7']},
+ {id:'yan',name:'焰',sub:'暖色 · 炽光 · 层叠',sym:'✧',c:['#a55a43','#edc49e']},
+ {id:'theme',name:'主题预览专供',sub:'主题截图 · 动态展示',sym:'▣',c:['#506b6a','#adbfc1']},
+ {id:'pink-paint',name:'千禧桌面',sub:'复古画图 · CRT 闪烁',sym:'▣',c:['#e4aec9','#dbb6c8']},
+ {id:'lake',name:'湖中倒影',sub:'细雪 · 水波倒影',sym:'≈',c:['#779ac3','#dae8f3']},
+ {id:'retro-green-emoji',name:'古早绿色emoji',sub:'韩系复古 · 摇摇贴纸',sym:'☻',c:['#b6e581','#f8f8ec']},
+ {id:'dark',name:'信号丢失',sub:'故障美学 · 雾面玻璃',sym:'⌁',c:['#242933','#85829b']},
+ {id:'ukiyo',name:'浮世三景',sub:'和风 · 屏风 · 花瓣',sym:'三',c:['#355e75','#c6a18a']},
+ {id:'relics',name:'绣样帖',sub:'布绣 · 拼布 · 古董样帖',sym:'帖',c:['#29464a','#e9dfd0']},
+ {id:'zhiwen',name:'纸纹研究室',sub:'纸张纹理 · 调色实验',sym:'纸',c:['#8c7a5c','#e8dcc0']},
+ {id:'image-ai-enhance',name:'AI 图片修复',sub:'老照片 · 变清晰',sym:'✚',c:['#7a8fa0','#dfe8ee']}
 ];
-const ISLES=[
- /* 纸屿 */
- {id:'fuguang',name:'浮光碎影',sub:'碎片 · 光影 · 拼贴',x:255,y:270,s:1.06,d:'frame'},
- {id:'huajian',name:'花笺',sub:'花叶 · 纸品 · 书信',x:520,y:220,s:.98,d:'letter'},
- {id:'guzhe',name:'古风折页',sub:'折页 · 金线 · 古纸',x:415,y:400,s:1.02,d:'book'},
- {id:'magazine',name:'旧刊杂志',sub:'编辑排版 · 复古刊物',x:190,y:480,s:.94,d:'press'},
- {id:'petal-post-return',name:'折花寄影',sub:'花瓣 · 纸张 · 折叠',x:640,y:390,s:1,d:'flower'},
- {id:'ukiyo',name:'浮世三景',sub:'和风 · 屏风 · 花瓣',x:330,y:570,s:.96,d:'screen'},
- {id:'relics',name:'绣样帖',sub:'布绣 · 拼布 · 古董样帖',x:690,y:190,s:.92,d:'album'},
- /* 手作屿 */
- {id:'stitch',name:'缝合艺术',sub:'绣线 · 针脚 · 手作',x:1150,y:260,s:1.02,d:'needle'},
- {id:'origami',name:'东南西北',sub:'立体折纸 · 双面展开',x:1420,y:215,s:.96,d:'bird'},
- {id:'zipbag',name:'拉链袋',sub:'透明材质 · 透明封装',x:1600,y:330,s:.94,d:'bag'},
- {id:'food',name:'零食小铺',sub:'零食包装 · 小店趣味',x:1290,y:440,s:1.05,d:'shop'},
- {id:'retro-green-emoji',name:'古早绿emoji',sub:'韩系复古 · 摇摇贴纸',x:1520,y:510,s:.96,d:'smile'},
- /* 光影屿 */
- {id:'collage',name:'散漫ins风',sub:'随性 · 胶片 · 照片墙',x:215,y:790,s:1,d:'film'},
- {id:'yan',name:'焰',sub:'暖色 · 炽光 · 层叠',x:410,y:760,s:.94,d:'flame'},
- {id:'sunlit',name:'天气好',sub:'晴日 · 轻快 · 明信片',x:580,y:850,s:1,d:'sun'},
- {id:'dark',name:'信号丢失',sub:'故障美学 · 雾面玻璃',x:295,y:960,s:.96,d:'tv'},
- {id:'pink-paint',name:'千禧桌面',sub:'复古画图 · CRT 闪烁',x:520,y:1050,s:.98,d:'crt'},
- {id:'lake',name:'湖中倒影',sub:'细雪 · 水波倒影',x:700,y:970,s:1.04,d:'pond'},
- /* 新鲜小岛 */
- {id:'xiuzi',name:'绣字铺',sub:'把字一针一线绣在布上',x:1160,y:790,s:1.08,d:'hoop',fresh:true},
- {id:'xiaowu',name:'布置小屋',sub:'家具摆一摆，安个小家',x:1400,y:760,s:1.08,d:'cottage',fresh:true},
- {id:'zhiwen',name:'纸纹研究室',sub:'纸张纸纹 · 尺寸导出',x:1600,y:860,s:.98,d:'papers'},
- {id:'image-ai-enhance',name:'图片清晰化',sub:'本地修复 · 手机照片',x:1300,y:950,s:.96,d:'wand'},
- {id:'theme',name:'主题预览',sub:'主题截图 · 动态展示',x:1150,y:1010,s:.9,d:'mask'},
-];
-/* 灯塔：画册主页 */
-const LIGHT={id:'index',name:'返图画册',sub:'全部模板的老家 · 灯塔',x:930,y:560,s:1.15};
-/* ————— 小景（每座岛上的一间“房间”）————— */
-const INK='#4c6356',ROOF='#b96f5e',WALL='#f2e7cd',WOOD='#8a6847',ACC='#d9a648';
-const DECO={
-frame:`<svg viewBox="0 0 84 66"><g transform="rotate(-6 42 40)"><rect x="24" y="14" width="38" height="30" rx="2" fill="${WALL}" stroke="${WOOD}" stroke-width="3"/><rect x="30" y="20" width="26" height="18" fill="#a9c8be"/><path d="M30 38l9-9 6 6 6-8 5 11z" fill="#7fa98f"/><circle cx="54" cy="25" r="2.4" fill="#f2d38a"/></g><path d="M18 50h48" stroke="${WOOD}" stroke-width="3" stroke-linecap="round"/></svg>`,
-letter:`<svg viewBox="0 0 84 66"><rect x="20" y="20" width="44" height="28" rx="3" fill="${WALL}" stroke="${WOOD}" stroke-width="2.4" transform="rotate(-4 42 34)"/><path d="M22 24l20 14 20-14" fill="none" stroke="${WOOD}" stroke-width="2.4" transform="rotate(-4 42 34)"/><path d="M58 14q8-8 14-2" stroke="#7fa98f" stroke-width="2.6" fill="none" stroke-linecap="round"/><ellipse cx="70" cy="12" rx="5" ry="3" fill="#a9c48c" transform="rotate(-30 70 12)"/></svg>`,
-book:`<svg viewBox="0 0 84 66"><path d="M42 18c-7-5-16-6-24-4v34c8-2 17-1 24 4 7-5 16-6 24-4V14c-8-2-17-1-24 4z" fill="${WALL}" stroke="${WOOD}" stroke-width="2.6"/><path d="M42 18v34" stroke="${WOOD}" stroke-width="2"/><path d="M26 22h10M26 29h10M48 22h10M48 29h10" stroke="#b9a77e" stroke-width="2" stroke-linecap="round"/></svg>`,
-press:`<svg viewBox="0 0 84 66"><rect x="18" y="18" width="48" height="34" rx="2" fill="${WALL}" stroke="${WOOD}" stroke-width="2.6"/><rect x="24" y="24" width="16" height="14" fill="#a9c8be"/><path d="M46 25h14M46 30h14M24 43h36M24 47h36" stroke="#8f8272" stroke-width="2.2"/><circle cx="60" cy="46" r="4" fill="#c98a6d"/></svg>`,
-flower:`<svg viewBox="0 0 84 66"><path d="M42 52c0-10 0-16 2-24" stroke="#6d8f74" stroke-width="2.6" fill="none"/><g fill="#d9979b"><circle cx="44" cy="20" r="6"/><circle cx="36" cy="24" r="6"/><circle cx="52" cy="26" r="6"/><circle cx="42" cy="30" r="6"/></g><circle cx="44" cy="25" r="4" fill="#f2d38a"/><path d="M44 44q-10-2-14 4M44 46q10-1 13 5" stroke="#6d8f74" stroke-width="2.4" fill="none" stroke-linecap="round"/></svg>`,
-screen:`<svg viewBox="0 0 84 66"><g stroke="${WOOD}" stroke-width="2.4"><rect x="14" y="18" width="18" height="32" fill="#e9ddba"/><rect x="33" y="14" width="18" height="36" fill="#f2e7cd"/><rect x="52" y="18" width="18" height="32" fill="#e9ddba"/></g><path d="M17 40q6-8 11 0M37 36q6-9 11 0M56 40q6-8 11 0" stroke="#8fae78" stroke-width="2" fill="none"/><circle cx="42" cy="24" r="3.4" fill="#d9979b"/></svg>`,
-album:`<svg viewBox="0 0 84 66"><circle cx="42" cy="33" r="21" fill="none" stroke="#b98d5f" stroke-width="4"/><circle cx="42" cy="33" r="16" fill="#f6efdb"/><path d="M34 33h16M42 25v16M33 28l18 10M51 28L33 38" stroke="#b96f5e" stroke-width="2" stroke-linecap="round" stroke-dasharray="3 3"/></svg>`,
-needle:`<svg viewBox="0 0 84 66"><path d="M26 52Q50 40 60 16" stroke="#9aa7a0" stroke-width="3.4" fill="none" stroke-linecap="round"/><ellipse cx="61" cy="14" rx="3" ry="4.6" fill="none" stroke="#9aa7a0" stroke-width="2.4" transform="rotate(32 61 14)"/><path d="M28 50q-8 2-10 8 6-4 11-3" fill="none" stroke="${ROOF}" stroke-width="2.6" stroke-linecap="round"/><path d="M34 34h16l-2 18H36z" fill="${WALL}" stroke="${WOOD}" stroke-width="2.2"/><path d="M36 38h12M36 42h12" stroke="#c98a6d" stroke-width="2" stroke-dasharray="2.6 2.6"/></svg>`,
-bird:`<svg viewBox="0 0 84 66"><g stroke="${WOOD}" stroke-width="2.2" stroke-linejoin="round"><path d="M42 16L24 34l18 6z" fill="#e9ddba"/><path d="M42 16l18 18-18 6z" fill="#f6efdb"/><path d="M42 40l-14 12h28z" fill="#dfe8c9"/></g><circle cx="42" cy="30" r="2.2" fill="${INK}"/></svg>`,
-bag:`<svg viewBox="0 0 84 66"><rect x="22" y="20" width="40" height="30" rx="7" fill="#dcebe6" opacity=".85" stroke="#7fa4a0" stroke-width="2.6"/><rect x="22" y="20" width="40" height="9" rx="4" fill="#9dc2bb"/><path d="M30 36h24M30 42h16" stroke="#7fa4a0" stroke-width="2.4" stroke-linecap="round"/><circle cx="58" cy="24.5" r="2.6" fill="#fff"/></svg>`,
-shop:`<svg viewBox="0 0 84 66"><path d="M20 30h44l-4-12H24z" fill="#d98d7e"/><path d="M20 30h44v4q-5.5 5-11 0-5.5 5-11 0-5.5 5-11 0-5.5 5-11 0z" fill="#e8a89b"/><rect x="26" y="34" width="32" height="18" fill="${WALL}" stroke="${WOOD}" stroke-width="2.4"/><rect x="31" y="39" width="9" height="9" fill="#a9c8be"/><rect x="45" y="39" width="9" height="9" fill="#f2d38a"/></svg>`,
-smile:`<svg viewBox="0 0 84 66"><circle cx="42" cy="33" r="19" fill="#b7d977"/><circle cx="35" cy="29" r="2.6" fill="#3d4d2a"/><circle cx="49" cy="29" r="2.6" fill="#3d4d2a"/><path d="M33 38q9 8 18 0" stroke="#3d4d2a" stroke-width="2.6" fill="none" stroke-linecap="round"/><path d="M28 18l-5-6M56 18l5-6M42 15v-8" stroke="#8fae62" stroke-width="2.4" stroke-linecap="round"/></svg>`,
-film:`<svg viewBox="0 0 84 66"><g transform="rotate(-7 42 33)"><rect x="16" y="20" width="52" height="26" rx="3" fill="#57534e"/><g fill="#f2e7cd"><rect x="20" y="23" width="5" height="5"/><rect x="20" y="38" width="5" height="5"/><rect x="59" y="23" width="5" height="5"/><rect x="59" y="38" width="5" height="5"/></g><rect x="30" y="24" width="24" height="18" fill="#a9c8be"/></g></svg>`,
-flame:`<svg viewBox="0 0 84 66"><path d="M42 12q14 12 12 26-1 12-12 14-11-2-12-14-1-8 5-14 1 8 5 9-2-11 2-21z" fill="#d9774f"/><path d="M42 30q6 6 5 12-1 6-5 7-4-1-5-7-1-5 5-12z" fill="#f2c078"/></svg>`,
-sun:`<svg viewBox="0 0 84 66"><circle cx="42" cy="30" r="13" fill="#f2c96f"/><g stroke="#e0a94f" stroke-width="2.6" stroke-linecap="round"><path d="M42 12v-6M42 54v-6M24 30h-6M66 30h-6M29 17l-4-4M59 47l-4-4M29 43l-4 4M59 13l-4 4"/></g><rect x="30" y="42" width="24" height="10" rx="2" fill="${WALL}" stroke="${WOOD}" stroke-width="2"/></svg>`,
-tv:`<svg viewBox="0 0 84 66"><rect x="20" y="20" width="44" height="30" rx="5" fill="#4a4f5c"/><rect x="25" y="25" width="34" height="20" rx="3" fill="#9fb2c8"/><path d="M25 32l8-4M25 40l14-8M40 45l14-9" stroke="#e8ecf2" stroke-width="2.6"/><path d="M34 20l-8-8M50 20l8-8" stroke="#4a4f5c" stroke-width="2.6" stroke-linecap="round"/></svg>`,
-crt:`<svg viewBox="0 0 84 66"><rect x="18" y="14" width="48" height="34" rx="5" fill="#cfc4b0" stroke="#8a7f68" stroke-width="2.4"/><rect x="23" y="19" width="38" height="23" rx="3" fill="#7d92c4"/><path d="M28 36l7-7 5 5 6-7 7 9" stroke="#eaf0fb" stroke-width="2.2" fill="none"/><rect x="30" y="50" width="24" height="6" rx="2" fill="#cfc4b0" stroke="#8a7f68" stroke-width="2"/></svg>`,
-pond:`<svg viewBox="0 0 84 66"><ellipse cx="42" cy="36" rx="26" ry="13" fill="#9dc2d4"/><ellipse cx="42" cy="36" rx="18" ry="8" fill="#b7d4e2"/><path d="M30 30q4-9 8-1M48 28q5-8 9 0" stroke="#7fa98f" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M24 42q18 6 36 0" stroke="#eaf4f8" stroke-width="2" fill="none" stroke-linecap="round"/></svg>`,
-hoop:`<svg viewBox="0 0 84 66"><circle cx="42" cy="33" r="22" fill="none" stroke="#c99a67" stroke-width="5"/><rect x="36" y="6" width="12" height="7" rx="2" fill="#a8815f"/><circle cx="42" cy="33" r="16" fill="#f6efdb"/><path d="M33 27l18 12M51 27L33 39" stroke="#b04a3c" stroke-width="2.6" stroke-linecap="round" stroke-dasharray="4 3"/></svg>`,
-cottage:`<svg viewBox="0 0 84 66"><rect x="24" y="30" width="36" height="22" fill="${WALL}" stroke="${WOOD}" stroke-width="2.6"/><path d="M18 32L42 14l24 18z" fill="${ROOF}" stroke="${WOOD}" stroke-width="2.4" stroke-linejoin="round"/><rect x="38" y="38" width="9" height="14" fill="#a8815f"/><rect x="28" y="36" width="8" height="8" fill="#a9c8be"/><rect x="49" y="36" width="8" height="8" fill="#f2d38a"/></svg>`,
-papers:`<svg viewBox="0 0 84 66"><g stroke="${WOOD}" stroke-width="2.2"><rect x="22" y="26" width="36" height="24" fill="#e9ddba" transform="rotate(-5 40 38)"/><rect x="26" y="20" width="36" height="24" fill="#f2e7cd" transform="rotate(3 44 32)"/><rect x="24" y="16" width="36" height="24" fill="#faf3e0"/></g><path d="M30 24h24M30 30h24M30 36h16" stroke="#b9a77e" stroke-width="2"/></svg>`,
-wand:`<svg viewBox="0 0 84 66"><rect x="20" y="18" width="38" height="28" rx="3" fill="${WALL}" stroke="${WOOD}" stroke-width="2.6"/><circle cx="32" cy="28" r="4" fill="#f2d38a"/><path d="M20 40l11-10 8 8 8-9 11 11" fill="#a9c8be"/><path d="M60 16l3-6 3 6 6 3-6 3-3 6-3-6-6-3z" fill="#f2d38a"/></svg>`,
-mask:`<svg viewBox="0 0 84 66"><rect x="24" y="16" width="36" height="34" rx="6" fill="${WALL}" stroke="${WOOD}" stroke-width="2.6"/><circle cx="42" cy="30" r="9" fill="#d9a648" opacity=".85"/><path d="M33 42q9-6 18 0" stroke="${INK}" stroke-width="2.4" fill="none" stroke-linecap="round"/></svg>`,
-};
-/* 灯塔小景（独占画法，比普通岛高） */
-const LIGHT_DECO=`<svg viewBox="0 0 84 96"><path d="M30 88L35 30h14l5 58z" fill="#f2e7cd" stroke="${WOOD}" stroke-width="2.6"/><path d="M33 66h18M34.5 52h15M36 38h12" stroke="#c98a6d" stroke-width="4"/><rect x="33" y="18" width="18" height="12" rx="3" fill="#3d5a52"/><path d="M31 18h22l-4-8H35z" fill="#b96f5e"/><circle cx="42" cy="24" r="3" fill="#f6e3a0"/><path d="M14 22q10-6 20-3M50 19q10-3 20 3" stroke="#f6e3a0" stroke-width="2.6" fill="none" stroke-linecap="round" opacity=".8"/></svg>`;
-/* ————— 渲染世界 ————— */
-const world=document.getElementById('world'),vp=document.getElementById('viewport');
-world.style.width=WORLD.w+'px';world.style.height=WORLD.h+'px';
-const frag=document.createDocumentFragment();
-for(const r of REGIONS){const el=document.createElement('div');el.className='region';el.style.left=r.x+'px';el.style.top=r.y+'px';el.innerHTML='<b>'+r.name+'</b><small>'+r.en+'</small>';frag.append(el);}
-/* 水纹 */
-for(let i=0;i<16;i++){const w=document.createElement('i');w.className='wave';const x=Math.random()*WORLD.w,y=520+Math.random()*(WORLD.h-560);w.style.cssText=`left:${x}px;top:${y}px;width:${60+Math.random()*90}px;height:${16+Math.random()*14}px;animation-delay:${-Math.random()*7}s`;frag.append(w);}
-/* 云 */
-for(let i=0;i<6;i++){const c=document.createElement('span');c.className='cloud';const s=.7+Math.random()*.9,y=40+Math.random()*300,dur=90+Math.random()*80;
- c.style.cssText=`top:${y}px;animation-duration:${dur}s;animation-delay:${-Math.random()*dur}s;transform:scale(${s})`;
- c.innerHTML='<i style="width:90px;height:26px"></i><i style="left:16px;top:-13px;width:44px;height:34px"></i><i style="left:44px;top:-8px;width:38px;height:28px"></i>';frag.append(c);}
-function isleNode(it){const a=document.createElement('a');a.className='isle'+(it.fresh?' new':'');a.href=encodeURIComponent(it.id)+'.html';a.dataset.id=it.id;
- a.style.left=it.x+'px';a.style.top=it.y+'px';
- const bob=document.createElement('span');bob.className='bob';bob.style.animationDelay=(-Math.random()*6)+'s';
- const land=document.createElement('span');land.className='land';land.style.transform=`scale(${it.s||1})`;land.style.transformOrigin='50% 100%';
- land.innerHTML='<span class="deco">'+(DECO[it.d]||DECO.cottage)+'</span><span class="mound"></span><span class="base"></span>';
- const sh=document.createElement('span');sh.className='shadow';sh.style.animationDelay=bob.style.animationDelay;
- bob.append(land);a.append(bob,sh);
- const tag=document.createElement('span');tag.className='tag';tag.textContent=it.name;a.append(tag);
- a.addEventListener('click',e=>{e.preventDefault();select(it,a)});return a;}
-for(const it of ISLES)frag.append(isleNode(it));
-/* 灯塔岛 */
-const lh=document.createElement('a');lh.className='isle';lh.href='./index.html';lh.dataset.id='index';lh.style.left=LIGHT.x+'px';lh.style.top=LIGHT.y+'px';lh.setAttribute('aria-label','返图画册 · 全部模板');
-{const bob=document.createElement('span');bob.className='bob';const land=document.createElement('span');land.className='land';
- land.innerHTML='<span class="deco" style="width:96px;height:96px;bottom:24px">'+LIGHT_DECO+'</span><span class="mound"></span><span class="base"></span>';
- const sh=document.createElement('span');sh.className='shadow';bob.append(land);lh.append(bob,sh);
- const tag=document.createElement('span');tag.className='tag';tag.textContent=LIGHT.name;lh.append(tag);
- lh.addEventListener('click',e=>{e.preventDefault();select(LIGHT,lh)});frag.append(lh);}
-/* 海鸥与纸船 */
-const g=document.createElement('span');g.className='gull';g.style.top='140px';g.innerHTML='<svg width="60" height="26" viewBox="0 0 60 26"><path d="M4 14q11-12 22-2M26 12q4-6 8 0M34 12q11-10 22-2" stroke="#5d7a72" stroke-width="2.4" fill="none" stroke-linecap="round"/></svg>';frag.append(g);
-const bt=document.createElement('span');bt.className='boat';bt.style.top='1080px';bt.innerHTML='<svg width="96" height="46" viewBox="0 0 96 46"><path d="M12 26h72l-10 14H24z" fill="#c99a67"/><path d="M48 4v22" stroke="#8a6847" stroke-width="3"/><path d="M48 6l-22 20h22z" fill="#f2e7cd"/><path d="M50 10l16 16h-16z" fill="#e8d9b8"/></svg>';frag.append(bt);
-world.append(frag);
-/* ————— 平移 / 缩放 ————— */
-let scale=.6,tx=0,ty=0;const pts=new Map();let moved=false,downAt=0,pinch0=0,scale0=1;
-const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-function apply(){world.style.transform=`translate(${tx}px,${ty}px) scale(${scale})`}
-function bounds(){const r=vp.getBoundingClientRect();tx=clamp(tx,Math.min(0,r.width-WORLD.w*scale-40),40);ty=clamp(ty,Math.min(0,r.height-WORLD.h*scale-40),40);}
-function fit(){const r=vp.getBoundingClientRect();scale=clamp(Math.min(r.width/WORLD.w,(r.height-70)/WORLD.h)*1.06,.3,1.15);
- tx=(r.width-WORLD.w*scale)/2;ty=(r.height-WORLD.h*scale)/2+10;bounds();apply();}
-function zoomAt(cx,cy,f){const ns=clamp(scale*f,.28,2.4);tx=cx-(cx-tx)*ns/scale;ty=cy-(cy-ty)*ns/scale;scale=ns;bounds();apply();}
-vp.addEventListener('pointerdown',e=>{vp.setPointerCapture(e.pointerId);pts.set(e.pointerId,{x:e.clientX,y:e.clientY});moved=false;downAt=performance.now();if(pts.size===2){const [p,q]=[...pts.values()];pinch0=Math.hypot(p.x-q.x,p.y-q.y);scale0=scale;}});
-vp.addEventListener('pointermove',e=>{if(!pts.has(e.pointerId))return;const p=pts.get(e.pointerId),dx=e.clientX-p.x,dy=e.clientY-p.y;p.x=e.clientX;p.y=e.clientY;
- if(pts.size===1){tx+=dx;ty+=dy;if(Math.hypot(dx,dy)>3)moved=true;bounds();apply();}
- else if(pts.size===2){const [a,b]=[...pts.values()];const d=Math.hypot(a.x-b.x,a.y-b.y);if(pinch0>0)zoomAt((a.x+b.x)/2,(a.y+b.y)/2,scale0*(d/pinch0)/scale);}});
-const up=e=>{pts.delete(e.pointerId);if(pts.size<2)pinch0=0;
- if(performance.now()-downAt<300&&!moved){const el=document.elementFromPoint(e.clientX,e.clientY),isle=el&&el.closest('.isle');
-  if(isle){const it=byId[isle.dataset.id||'index'];select(it,isle);return}
-  if(el&&!el.closest('.hbtn,.card-pop,.sheet-box'))hidePop();}};
-vp.addEventListener('pointerup',up);vp.addEventListener('pointercancel',up);
-vp.addEventListener('wheel',e=>{e.preventDefault();zoomAt(e.clientX,e.clientY,e.deltaY<0?1.12:0.9)},{passive:false});
-document.getElementById('zin').onclick=()=>zoomAt(innerWidth/2,innerHeight/2,1.25);
-document.getElementById('zout').onclick=()=>zoomAt(innerWidth/2,innerHeight/2,.8);
-document.getElementById('zfit').onclick=fit;
-addEventListener('resize',()=>{bounds();apply()});
-/* ————— 弹卡 ————— */
-const pop=document.getElementById('pop');let selEl=null;
-function select(it,a){document.querySelectorAll('.isle.sel').forEach(x=>x.classList.remove('sel'));a.classList.add('sel');selEl=a;
- document.getElementById('pop-name').textContent=it.name;
- document.getElementById('pop-sub').textContent=(it.sub||'');
- document.getElementById('pop-flag').textContent=it.fresh?'NEW ROOM · 新房间':(it.id==='index'?'LIGHTHOUSE · 灯塔':'GU STUDIO');
- document.getElementById('pop-go').onclick=()=>{location.href=it.id==='index'?'./index.html':encodeURIComponent(it.id)+'.html'};
- pop.classList.add('show');document.getElementById('hint').style.opacity=0;}
-function hidePop(){pop.classList.remove('show');document.querySelectorAll('.isle.sel').forEach(x=>x.classList.remove('sel'))}
-document.getElementById('pop-close').onclick=hidePop;
-/* ————— 目录 ————— */
-const sheet=document.getElementById('sheet'),groups=document.getElementById('sheet-groups');
-const grouped=[['纸 屿',['fuguang','huajian','guzhe','magazine','petal-post-return','ukiyo','relics']],
- ['手 作 屿',['stitch','origami','zipbag','food','retro-green-emoji']],
- ['光 影 屿',['collage','yan','sunlit','dark','pink-paint','lake']],
- ['新 鲜 小 岛',['xiuzi','xiaowu','zhiwen','image-ai-enhance','theme']],
- ['灯 塔',['index']]];
-const byId=Object.fromEntries([...ISLES,LIGHT].map(i=>[i.id,i]));
-groups.innerHTML=grouped.map(([t,ids])=>'<h3>'+t+'</h3><div class="links">'+ids.map(id=>{const i=byId[id];return '<a href="'+(id==='index'?'./index.html':encodeURIComponent(id)+'.html')+'" class="'+(i.fresh?'new':'')+'"><b>'+i.name+'</b><small>'+(i.sub||'')+'</small></a>'}).join('')+'</div>').join('');
-document.getElementById('catalog').onclick=()=>sheet.classList.add('show');
-document.getElementById('sheet-close').onclick=()=>sheet.classList.remove('show');
-sheet.addEventListener('click',e=>{if(e.target===sheet)sheet.classList.remove('show')});
-addEventListener('keydown',e=>{if(e.key==='Escape'){hidePop();sheet.classList.remove('show')}});
-setTimeout(()=>{document.getElementById('hint').style.opacity=0},9000);
-fit();
+const dove=`<svg class="dove" viewBox="0 0 160 92" aria-hidden="true">
+ <path d="M26 46 Q2 44 -12 34 Q4 52 24 54" fill="#e9e3d6"/>
+ <path d="M28 50 Q6 52 -6 48 Q8 60 26 56" fill="#ded7c8"/>
+ <path d="M22 48 Q40 24 78 24 Q110 24 120 36 Q130 26 142 26 Q152 26 156 34 Q144 34 140 42 Q146 52 134 60 Q110 72 76 70 Q46 68 22 48 Z" fill="#fdfbf5" stroke="#d9d2c2" stroke-width="1.6"/>
+ <g class="wing"><path d="M60 52 Q78 18 118 12 Q104 40 84 54 Q72 58 60 52 Z" fill="#ece7db" stroke="#d4cdbd" stroke-width="1.4"/></g>
+ <path d="M154 33 L170 36 L154 42 Z" fill="#d9a648"/>
+ <circle cx="142" cy="33" r="2.6" fill="#4c4035"/>
+</svg>`;
+const flock=$('#flock'),vp=$('#viewport'),mobile=matchMedia('(max-width:640px)');
+/* 编排队形：外环衔小卡，中上方站标题 */
+function slots(){const n=ITEMS.length;
+ let rx,ry;if(mobile.matches){rx=430;ry=330}else{rx=Math.min(innerWidth*.44,540);ry=Math.min(innerHeight*.36,340)}
+ rx=Math.max(rx,300);ry=Math.max(ry,240);
+ return ITEMS.map((it,i)=>{const t=-Math.PI/2+i/n*Math.PI*2;
+  const rr=i%2?0.92:1.02;
+  return{x:Math.cos(t)*rx*rr,y:Math.sin(t)*ry*rr}});}
+function cardHTML(it){const pic=`<span class="fb" style="background:linear-gradient(135deg,${it.c[0]},${it.c[1]})">${it.sym}</span>`;
+ return`<span class="grip"></span><img class="pic" src="${COVER+it.id}.webp" alt="" loading="lazy" onerror="this.outerHTML=this.dataset.fb" data-fb='${pic.replace(/'/g,"&#39;")}'><b>${it.name}</b><i>${it.sub}</i>${it.fresh?'<span class="fresh">新</span>':''}`;}
+const pos=slots(),units=[];
+ITEMS.forEach((it,i)=>{
+ const u=document.createElement('div');u.className='unit';u.style.transform=`translate(${pos[i].x}px,${pos[i].y}px)`;
+ u.style.setProperty('--d',(0.25+i*0.11)+'s');u.style.setProperty('--bd',(-i*0.7)+'s');
+ u.style.setProperty('--r',((i%5)-2)*1.6+'deg');u.style.setProperty('--fy',((i%4)-2)*4+'vh');
+ u.innerHTML=`<div class="fly"><div class="bob">${dove}<a class="card" href="./${it.id}.html" data-id="${it.id}">${cardHTML(it)}</a></div></div>`;
+ flock.append(u);units.push(u);});
+/* 中央标题 */
+const hero=document.createElement('div');hero.className='hero';
+hero.innerHTML='<div class="mark">咕的鸽群</div><div class="divider"></div><p>每只鸽子衔着一张卡片<br>卡片就是每间小屋的门</p>';
+flock.append(hero);
+/* 云朵与远鸟 */
+const vpEl=vp;[['8%',260,26,9],['30%',380,34,14],['58%',300,30,11],['80%',420,40,18]].forEach((c,i)=>{
+ const d=document.createElement('div');d.className='cloud';d.style.cssText=`top:${c[0]};width:${c[1]}px;height:${c[1]*.32}px;left:-20vw;--cd:${46+i*17}s;animation-delay:${-i*13}s`;vpEl.append(d)});
+[['12%',18],['22%',11],['70%',15]].forEach((g,i)=>{const d=document.createElement('div');d.className='gull';d.textContent='∿';d.style.cssText=`--gy:${g[0]};font-size:${g[1]}px;--gd:${22+i*9}s;animation-delay:${-i*8}s;top:0`;vpEl.append(d)});
+/* 平移 */
+let tx=0,ty=0,downAt=0,moved=false,px=0,py=0,down=false;
+function apply(){flock.style.transform=`translate(${tx}px,${ty}px)`}
+function bounds(){const bx=Math.max(...pos.map(p=>Math.abs(p.x)))+160-vp.clientWidth/2,by=Math.max(...pos.map(p=>Math.abs(p.y)))+140-vp.clientHeight/2;
+ tx=Math.max(-Math.max(bx,40),Math.min(Math.max(bx,40),tx));ty=Math.max(-Math.max(by,40),Math.min(Math.max(by,40),ty))}
+vp.addEventListener('pointerdown',e=>{down=true;moved=false;px=e.clientX-tx;py=e.clientY-ty;downAt=performance.now();vp.setPointerCapture(e.pointerId)});
+vp.addEventListener('pointermove',e=>{if(!down)return;const nx=e.clientX-px,ny=e.clientY-py;
+ if(Math.hypot(nx-tx,ny-ty)>4)moved=true;tx=nx;ty=ny;bounds();apply()});
+vp.addEventListener('pointerup',e=>{down=false;
+ if(performance.now()-downAt<400&&!moved){const el=document.elementFromPoint(e.clientX,e.clientY),card=el&&el.closest('.card');
+  if(card){e.preventDefault();release(card)}}});
+flock.addEventListener('click',e=>{const c=e.target.closest('.card');if(!c)return;e.preventDefault();release(c)});
+/* 点卡片：鸽子松嘴 → 卡片放大 → 进小屋 */
+function release(card){if(document.querySelector('.zoom-card'))return;
+ const unit=card.closest('.unit');unit.classList.add('go');
+ const r=card.getBoundingClientRect(),clone=document.createElement('div');clone.className='zoom-card';
+ clone.style.cssText=`left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px`;
+ const img=card.querySelector('.pic');clone.innerHTML=img?`<img src="${img.src}" style="width:100%;height:100%;object-fit:cover">`:`<div style="font:600 34px 'Songti SC',serif;color:#5a4a38">${card.querySelector('b').textContent}</div>`;
+ document.body.append(clone);$('#veil').classList.add('on');
+ requestAnimationFrame(()=>requestAnimationFrame(()=>{
+  clone.style.cssText=`left:0;top:0;width:100vw;height:100vh;border-radius:0`}));
+ setTimeout(()=>{location.href=card.getAttribute('href')},860);}
+/* 目录 */
+$('#links-new').innerHTML=ITEMS.filter(i=>i.fresh).map(linkHTML).join('');
+$('#links-all').innerHTML=ITEMS.map(linkHTML).join('')+`<a href="./index.html"><b>返图画册</b><small>画廊式首页 · 全部模板</small></a>`;
+function linkHTML(i){return`<a href="./${i.id}.html" class="${i.fresh?'new':''}"><b>${i.name}</b><small>${i.sub}</small></a>`}
+$('#btn-sheet').onclick=()=>$('#sheet').classList.add('open');
+$('#sheet-x').onclick=()=>$('#sheet').classList.remove('open');
+document.querySelector('.sheet-bg').onclick=()=>$('#sheet').classList.remove('open');
+/* 入场 */
+requestAnimationFrame(()=>units.forEach(u=>u.classList.add('in')));
+setTimeout(()=>{$('#hint').style.opacity=0},7000);
 })();
 </script>
 </body>
