@@ -80,6 +80,12 @@ a{color:var(--green)}[hidden]{display:none!important}
     <div id="wall"></div><div id="wallpaper"></div><div id="floor"></div><div id="baseboard"></div>
     <div id="items"></div>
     <div class="hint" id="hint">点下面的家具放进小屋 · 拖动摆放</div>
+    <div class="itembar" id="itembar" hidden>
+     <button data-op="smaller" title="缩小">－</button><button data-op="bigger" title="放大">＋</button>
+     <button data-op="down" title="下移一层">⬇</button><button data-op="up" title="上移一层">⬆</button>
+     <button data-op="flip" title="左右翻转">⇋</button><button data-op="copy" title="再来一件">⧉</button>
+     <button data-op="del" class="del" title="拿走">🗑</button>
+    </div>
    </div>
   </div>
  </section>
@@ -95,12 +101,6 @@ a{color:var(--green)}[hidden]{display:none!important}
   </div>
  </aside>
 </main>
-<div class="itembar" id="itembar" hidden>
- <button data-op="smaller" title="缩小">－</button><button data-op="bigger" title="放大">＋</button>
- <button data-op="down" title="下移一层">⬇</button><button data-op="up" title="上移一层">⬆</button>
- <button data-op="flip" title="左右翻转">⇋</button><button data-op="copy" title="再来一件">⧉</button>
- <button data-op="del" class="del" title="拿走">🗑</button>
-</div>
 <a href="./islands.html" class="return-home">🏝 回小岛</a>
 <script>
 (()=>{'use strict';
@@ -160,7 +160,8 @@ function renderItems(){itemsBox.replaceChildren();items.forEach((it,i)=>{
 function positionBar(){if(sel==null){bar.hidden=true;return}bar.hidden=false;
  const el=itemsBox.children[sel];if(!el)return;
  const r=el.getBoundingClientRect(),sr=stage.getBoundingClientRect();
- bar.style.left=((r.left+r.right)/2-sr.left)+'px';bar.style.bottom=(sr.bottom-r.top+8)+'px';}
+ const bw=bar.offsetWidth||250,cx=(r.left+r.right)/2-sr.left;
+ bar.style.left=Math.max(bw/2+4,Math.min(sr.width-bw/2-4,cx))+'px';bar.style.bottom=(sr.bottom-r.top+8)+'px';}
 function addItem(t){pushUndo();
  items.push({t,x:.42,y:.4,s:1,f:0});sel=items.length-1;renderItems();$('#hint').style.opacity=0}
 /* palette */
@@ -218,10 +219,11 @@ async function exportPNG(){const c=document.createElement('canvas');c.width=W2;c
  /* 与屏幕上一致：家具像素尺寸按舞台实测比例换算，避免异形舞台裁掉边缘家具；
     舞台被挤成一条线（手机横屏）时用参考尺寸兜底 */
  const collapsed=stage.clientWidth<20||stage.clientHeight<20;
- const sx=collapsed?W2/810:W2/stage.clientWidth,sy=collapsed?H2/600:H2/stage.clientHeight,
-       ek=collapsed?Math.min(W2/810,H2/600):stageK();
+ const sx=W2/Math.max(1,stage.clientWidth),sy=H2/Math.max(1,stage.clientHeight),
+       ek=collapsed?0:stageK(),ek0=Math.min(W2/810,H2/600);
  for(const it of items){const f=FURN[it.t];const img=await svgImage(f.s,f.w,f.h);
-  const w=f.w*it.s*ek*sx,h=f.h*it.s*ek*sy,px=it.x*W2,py=it.y*H2;
+  const w=collapsed?f.w*it.s*ek0:f.w*it.s*ek*sx,
+        h=collapsed?f.h*it.s*ek0:f.h*it.s*ek*sy,px=it.x*W2,py=it.y*H2;
   g.save();if(it.f){g.translate(px+w,py);g.scale(-1,1)}else g.translate(px,py);
   g.drawImage(img,0,0,w,h);g.restore();}
  const a=document.createElement('a');a.download='咕的小屋-'+Date.now()+'.png';a.href=c.toDataURL('image/png');a.click();}
