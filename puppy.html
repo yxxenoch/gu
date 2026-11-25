@@ -178,7 +178,9 @@ function samplerFor(geometry){
   }
 }
 const UP=new THREE.Vector3(0,1,0);
+const RIBBON_GUARD_HAIRS=location.search.includes('ribbonfur');
 function addFur(mesh,count,options={}){
+  if(!RIBBON_GUARD_HAIRS)return null;
   if(location.search.includes('nofur'))return null;
   const density=innerWidth<620?.68:1;count=Math.max(12,Math.round(count*density));
   const sample=samplerFor(mesh.geometry);
@@ -204,7 +206,7 @@ function addFur(mesh,count,options={}){
   inst.instanceMatrix.needsUpdate=true;if(inst.instanceColor)inst.instanceColor.needsUpdate=true;
   mesh.add(inst);return inst;
 }
-const lineFurMaterial=new THREE.LineBasicMaterial({vertexColors:true,transparent:true,opacity:.42});
+const lineFurMaterial=new THREE.LineBasicMaterial({vertexColors:true,transparent:true,opacity:.55});
 function addLineFur(mesh,count,options={}){
   if(location.search.includes('nofur'))return null;
   const density=innerWidth<620?.62:1;count=Math.max(20,Math.round(count*density));
@@ -312,11 +314,11 @@ addFur(body,520,{
   },
   direction:(p,n)=>{const f=p.z>.15?V3(0,-.75,.28):V3(0,-.32,-.82);return alongSurface(n,f.x,f.y,f.z,.2)}
 });
-addLineFur(body,2600,{length:(p)=>p.z>.2&&p.y<.2?rr(.025,.052):(rand()<.18?rr(.065,.105):rr(.03,.065)),color:(p)=>{const front=clamp((p.z+.18)/.62,0,1),low=clamp((.35-p.y)/1.1,0,1),side=clamp((Math.abs(p.x)-.42)/.36,0,1);let c=colorMix(0x8c8884,0xf0ece5,front*low*.92);if(side>.45&&p.z>-.05&&p.y<.15)c=c.lerp(new THREE.Color(0xdfcaa5),side*.22);return jitterColor(c,.028)},direction:(p,n)=>{const f=p.z>.15?V3(0,-.75,.28):V3(0,-.32,-.82);return alongSurface(n,f.x,f.y,f.z,.12)}});
+addLineFur(body,3600,{length:(p)=>p.z>.2&&p.y<.2?rr(.025,.052):(rand()<.18?rr(.065,.105):rr(.03,.065)),color:(p)=>{const front=clamp((p.z+.18)/.62,0,1),low=clamp((.35-p.y)/1.1,0,1),side=clamp((Math.abs(p.x)-.42)/.36,0,1);let c=colorMix(0x8c8884,0xf0ece5,front*low*.92);if(side>.45&&p.z>-.05&&p.y<.15)c=c.lerp(new THREE.Color(0xdfcaa5),side*.22);return jitterColor(c,.028)},direction:(p,n)=>{const f=p.z>.15?V3(0,-.75,.28):V3(0,-.32,-.82);return alongSurface(n,f.x,f.y,f.z,.12)}});
 const chest=scaledMesh(new THREE.SphereGeometry(1,42,30),MAT.cream,[.35,.3,.17],'chest');
 chest.position.set(0,.65,.43);bodyGroup.add(chest);clickable.push(chest);
 addFur(chest,260,{spread:.24,length:()=>rand()<.22?rr(.065,.125):rr(.035,.07),width:()=>rr(.95,1.5),color:()=>jitterColor(0xf0ece5,.025),direction:(p,n)=>alongSurface(n,0,-.78,.18,.19)});
-addLineFur(chest,1250,{length:()=>rr(.025,.06),color:()=>jitterColor(0xf0ece5,.018),direction:(p,n)=>alongSurface(n,0,-.78,.18,.1)});
+addLineFur(chest,1700,{length:()=>rr(.025,.06),color:()=>jitterColor(0xf0ece5,.018),direction:(p,n)=>alongSurface(n,0,-.78,.18,.1)});
 
 const tailPivot=new THREE.Group();tailPivot.position.set(.65,.55,-.42);bodyGroup.add(tailPivot);
 function makeTailGeometry(){
@@ -356,7 +358,7 @@ addFur(head,900,{
   length:(p)=>p.z>.28&&Math.abs(p.x)<.58&&p.y<.25?rr(.026,.055):(p.y<-.58?(rand()<.3?rr(.095,.17):rr(.04,.08)):(Math.abs(p.x)>.82||p.y>.55?(rand()<.28?rr(.09,.165):rr(.035,.075)):rr(.038,.085))),
   width:()=>rr(.86,1.38),color:headColor,direction:headDirection
 });
-addLineFur(head,4300,{length:(p)=>p.z>.28&&Math.abs(p.x)<.58&&p.y<.25?rr(.018,.038):(Math.abs(p.x)>.82||p.y>.55?(rand()<.22?rr(.065,.115):rr(.028,.06)):rr(.022,.052)),color:headColor,direction:headDirection});
+addLineFur(head,5600,{length:(p)=>p.z>.28&&Math.abs(p.x)<.58&&p.y<.25?rr(.018,.038):(Math.abs(p.x)>.82||p.y>.55?(rand()<.22?rr(.065,.115):rr(.028,.06)):rr(.022,.052)),color:headColor,direction:headDirection});
 
 function makeEar(side){
   const pivot=new THREE.Group();pivot.position.set(side*.65,.79,-.1);pivot.rotation.z=side*-.32;pivot.rotation.y=side*.16;pivot.rotation.x=-.05;headGroup.add(pivot);
@@ -371,7 +373,7 @@ const earL=makeEar(-1),earR=makeEar(1);
 
 const lowerFace=scaledMesh(new THREE.SphereGeometry(1,42,30),MAT.cream,[.43,.26,.16],'lowerFace');lowerFace.position.set(0,-.34,.68);headGroup.add(lowerFace);clickable.push(lowerFace);
 addFur(lowerFace,190,{spread:.18,length:()=>rr(.032,.068),width:()=>rr(.9,1.3),color:(p)=>{const t=clamp((p.y-.02)/.22,0,1)*.25+clamp((Math.abs(p.x)-.42)/.22,0,1)*.16;return jitterColor(colorMix(0xf0ece5,0x9a9692,t),.014)},direction:(p,n)=>alongSurface(n,p.x*.8,-.5,.16,.17)});
-addLineFur(lowerFace,760,{length:()=>rr(.018,.042),color:(p)=>{const t=clamp((p.y-.02)/.22,0,1)*.25+clamp((Math.abs(p.x)-.42)/.22,0,1)*.16;return jitterColor(colorMix(0xf0ece5,0x9a9692,t),.012)},direction:(p,n)=>alongSurface(n,p.x*.8,-.5,.16,.09)});
+addLineFur(lowerFace,1000,{length:()=>rr(.018,.042),color:(p)=>{const t=clamp((p.y-.02)/.22,0,1)*.25+clamp((Math.abs(p.x)-.42)/.22,0,1)*.16;return jitterColor(colorMix(0xf0ece5,0x9a9692,t),.012)},direction:(p,n)=>alongSurface(n,p.x*.8,-.5,.16,.09)});
 const cheekL=scaledMesh(new THREE.SphereGeometry(1,42,30),MAT.cream,[.22,.17,.085],'cheekL');cheekL.position.set(-.2,-.34,.73);headGroup.add(cheekL);clickable.push(cheekL);
 const cheekR=scaledMesh(new THREE.SphereGeometry(1,42,30),MAT.cream,[.22,.17,.085],'cheekR');cheekR.position.set(.2,-.34,.73);headGroup.add(cheekR);clickable.push(cheekR);
 for(const cheek of [cheekL,cheekR]){
