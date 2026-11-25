@@ -116,8 +116,8 @@ function roundedTriangleGeometry(w=.7,h=.7,depth=.12){
   const s=new THREE.Shape();
   s.moveTo(-w*.46,-h*.34);
   s.quadraticCurveTo(-w*.48,h*.02,-w*.24,h*.3);
-  s.quadraticCurveTo(-w*.12,h*.43,0,h*.45);
-  s.quadraticCurveTo(w*.12,h*.43,w*.24,h*.3);
+  s.quadraticCurveTo(-w*.18,h*.48,0,h*.42);
+  s.quadraticCurveTo(w*.18,h*.48,w*.24,h*.3);
   s.quadraticCurveTo(w*.48,h*.02,w*.46,-h*.34);
   s.quadraticCurveTo(w*.2,-h*.49,0,-h*.43);
   s.quadraticCurveTo(-w*.2,-h*.49,-w*.45,-h*.34);
@@ -312,7 +312,7 @@ addFur(body,520,{
   },
   direction:(p,n)=>{const f=p.z>.15?V3(0,-.75,.28):V3(0,-.32,-.82);return alongSurface(n,f.x,f.y,f.z,.2)}
 });
-addLineFur(body,2600,{length:(p)=>p.z>.2&&p.y<.2?rr(.025,.052):rr(.03,.07),color:(p)=>{const front=clamp((p.z+.18)/.62,0,1),low=clamp((.35-p.y)/1.1,0,1),side=clamp((Math.abs(p.x)-.42)/.36,0,1);let c=colorMix(0x8c8884,0xf0ece5,front*low*.92);if(side>.45&&p.z>-.05&&p.y<.15)c=c.lerp(new THREE.Color(0xdfcaa5),side*.22);return jitterColor(c,.028)},direction:(p,n)=>{const f=p.z>.15?V3(0,-.75,.28):V3(0,-.32,-.82);return alongSurface(n,f.x,f.y,f.z,.12)}});
+addLineFur(body,2600,{length:(p)=>p.z>.2&&p.y<.2?rr(.025,.052):(rand()<.18?rr(.065,.105):rr(.03,.065)),color:(p)=>{const front=clamp((p.z+.18)/.62,0,1),low=clamp((.35-p.y)/1.1,0,1),side=clamp((Math.abs(p.x)-.42)/.36,0,1);let c=colorMix(0x8c8884,0xf0ece5,front*low*.92);if(side>.45&&p.z>-.05&&p.y<.15)c=c.lerp(new THREE.Color(0xdfcaa5),side*.22);return jitterColor(c,.028)},direction:(p,n)=>{const f=p.z>.15?V3(0,-.75,.28):V3(0,-.32,-.82);return alongSurface(n,f.x,f.y,f.z,.12)}});
 const chest=scaledMesh(new THREE.SphereGeometry(1,42,30),MAT.cream,[.35,.3,.17],'chest');
 chest.position.set(0,.65,.43);bodyGroup.add(chest);clickable.push(chest);
 addFur(chest,260,{spread:.24,length:()=>rand()<.22?rr(.065,.125):rr(.035,.07),width:()=>rr(.95,1.5),color:()=>jitterColor(0xf0ece5,.025),direction:(p,n)=>alongSurface(n,0,-.78,.18,.19)});
@@ -356,13 +356,13 @@ addFur(head,900,{
   length:(p)=>p.z>.28&&Math.abs(p.x)<.58&&p.y<.25?rr(.026,.055):(p.y<-.58?(rand()<.3?rr(.095,.17):rr(.04,.08)):(Math.abs(p.x)>.82||p.y>.55?(rand()<.28?rr(.09,.165):rr(.035,.075)):rr(.038,.085))),
   width:()=>rr(.86,1.38),color:headColor,direction:headDirection
 });
-addLineFur(head,4300,{length:(p)=>p.z>.28&&Math.abs(p.x)<.58&&p.y<.25?rr(.018,.038):(Math.abs(p.x)>.82||p.y>.55?rr(.03,.07):rr(.022,.052)),color:headColor,direction:headDirection});
+addLineFur(head,4300,{length:(p)=>p.z>.28&&Math.abs(p.x)<.58&&p.y<.25?rr(.018,.038):(Math.abs(p.x)>.82||p.y>.55?(rand()<.22?rr(.065,.115):rr(.028,.06)):rr(.022,.052)),color:headColor,direction:headDirection});
 
 function makeEar(side){
   const pivot=new THREE.Group();pivot.position.set(side*.65,.79,-.1);pivot.rotation.z=side*-.32;pivot.rotation.y=side*.16;pivot.rotation.x=-.05;headGroup.add(pivot);
   const outer=scaledMesh(roundedTriangleGeometry(.63,.73,.12),MAT.gray,[1,1,1],'earOuter');outer.rotation.y=side*.3;pivot.add(outer);clickable.push(outer);
   addFur(outer,115,{spread:.31,length:(p)=>p.y>.25?(rand()<.34?rr(.085,.16):rr(.035,.075)):rr(.035,.075),width:()=>rr(.9,1.4),color:(p)=>jitterColor(p.z>.02?0xa8a19a:0xaaa7a3,.04),direction:(p,n)=>alongSurface(n,side*.48,.78,.02,.24)});
-  addLineFur(outer,520,{length:(p)=>p.y>.25?rr(.028,.065):rr(.018,.045),color:(p)=>jitterColor(p.z>.02?0xa8a19a:0xaaa7a3,.03),direction:(p,n)=>alongSurface(n,side*.48,.78,.02,.13)});
+  addLineFur(outer,520,{length:(p)=>p.y>.25?(rand()<.24?rr(.06,.105):rr(.026,.055)):rr(.018,.045),color:(p)=>jitterColor(p.z>.02?0xa8a19a:0xaaa7a3,.03),direction:(p,n)=>alongSurface(n,side*.48,.78,.02,.13)});
   const inner=scaledMesh(roundedTriangleGeometry(.32,.5,.03),MAT.apricot,[1,1,1],'earInner');inner.position.set(0,-.03,.085);inner.scale.z=.65;pivot.add(inner);
   addFur(inner,55,{spread:.24,length:()=>rr(.028,.055),width:()=>rr(.75,1.08),color:()=>jitterColor(0xdfcaa5,.025),direction:(p,n)=>alongSurface(n,side*.22,.58,.22,.18)});
   return pivot;
