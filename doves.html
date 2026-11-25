@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#e9f1f4">
+<meta name="description" content="咕的鸽群 · 毛绒鸽子收藏馆：鸽子守着一圈模板卡片，滑一滑换一个。">
+<title>咕的鸽群 · 毛绒鸽子收藏馆</title>
+<style>
+:root{--ink:#4c4035;--muted:#8a8074;--paper:#fdfaf2;color-scheme:light}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overscroll-behavior:none}
+body{margin:0;overflow:hidden;font:14px/1.6 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--ink);
+ background:linear-gradient(180deg,#cfe4ee 0%,#e9f0ee 30%,#f6eedd 66%,#f2e2c8 100%)}
+button,input{font:inherit}
+button{cursor:pointer;border:0;touch-action:manipulation}
+/* ———— 氛围背景 ———— */
+.amb{position:fixed;inset:0;pointer-events:none}
+.glow-tl{position:absolute;top:-18%;left:-12%;width:60vw;height:60vw;border-radius:50%;
+ background:radial-gradient(circle,#fff8eccc,transparent 65%)}
+.glow-br{position:absolute;bottom:-24%;right:-16%;width:70vw;height:70vw;border-radius:50%;
+ background:radial-gradient(circle,#ffe2c266,transparent 62%)}
+.cloud{position:absolute;border-radius:50%;background:#fffdf8;filter:blur(14px);opacity:.55;animation:drift var(--cd,70s) linear infinite}
+@keyframes drift{from{transform:translateX(-18vw)}to{transform:translateX(112vw)}}
+.floor{position:absolute;left:50%;top:74%;width:min(92vw,760px);height:18%;transform:translateX(-50%);
+ background:radial-gradient(ellipse 50% 50% at 50% 50%,#8a73581f 0%,transparent 70%)}
+/* ———— 舞台与展台 ———— */
+#stage{position:fixed;inset:0;display:grid;place-items:center;touch-action:pan-y}
+#scene{position:relative}
+#ring{position:absolute;inset:0;perspective:var(--per);will-change:transform}
+.slot{position:absolute;left:50%;top:50%;will-change:transform,opacity}
+.card{position:absolute;left:0;top:0;transform:translate(-50%,-58%);width:var(--cw);border-radius:18px;
+ background:var(--paper);border:1px solid #e6dbc8;box-shadow:0 18px 44px #5a4a3026,0 2px 6px #5a4a3018;
+ padding:10px 10px 12px;cursor:pointer;color:var(--ink);text-decoration:none;backface-visibility:hidden;
+ transition:box-shadow .3s}
+.card .pic{display:block;width:100%;aspect-ratio:4/3.1;border-radius:11px;object-fit:cover;background:#e9e2d4}
+.card .fb{display:grid;place-items:center;width:100%;aspect-ratio:4/3.1;border-radius:11px;font:44px/1 Georgia,serif;color:#fffef9;text-shadow:0 1px 4px #0003}
+.card .meta{padding:8px 6px 0}
+.card b{display:block;font-size:16px;font-weight:650;letter-spacing:.03em}
+.card i{display:block;font-size:11px;color:var(--muted);font-style:normal;margin-top:1px}
+.card .fresh{position:absolute;top:16px;right:16px;transform:rotate(6deg);background:#c96f52;color:#fff8ec;
+ font-size:10px;padding:3px 9px;border-radius:10px;letter-spacing:.08em;box-shadow:0 4px 10px #0003}
+.card.focus{box-shadow:0 30px 70px #5a4a3038,0 4px 12px #5a4a3022}
+.dcard-shadow{position:absolute;left:50%;top:100%;transform:translate(-50%,-40%);width:78%;height:26px;
+ background:radial-gradient(ellipse,#4c3c2850 0%,transparent 70%);filter:blur(6px);z-index:-1}
+#plush{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:30}
+/* ———— HUD ———— */
+.hud{position:fixed;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;
+ padding:14px 16px;z-index:60;pointer-events:none}
+.hud>*{pointer-events:auto}
+.chip{display:flex;gap:10px;align-items:center;background:#fffaf0d9;border:1px solid #e0d2b8;border-radius:18px;
+ padding:8px 14px;backdrop-filter:blur(8px);box-shadow:0 4px 14px #4c3c2812}
+.chip .m{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 35% 30%,#fff,#e9ddc4);font:17px Georgia,serif;color:#7a5c40;border:1px solid #d8c8ab}
+.chip h1{font:600 15px "Songti SC",serif;letter-spacing:3px;margin:0}
+.chip small{display:block;font-size:9px;letter-spacing:1.5px;color:var(--muted)}
+.hbtns{display:flex;gap:8px}
+.hbtn{min-height:40px;padding:9px 16px;border-radius:14px;background:#fdfaf0e0;border:1px solid #ddcfb4;
+ font-size:12.5px;color:var(--ink);text-decoration:none;display:inline-flex;align-items:center;gap:6px;
+ backdrop-filter:blur(8px);box-shadow:0 4px 14px #4c3c2810}
+.hbtn:hover{background:#fff}
+/* ———— 底部控件 ———— */
+.dock{position:fixed;left:0;right:0;bottom:calc(12px + env(safe-area-inset-bottom));display:flex;flex-direction:column;
+ align-items:center;gap:10px;z-index:60;pointer-events:none}
+.dock>*{pointer-events:auto}
+.counter{font-size:12px;letter-spacing:.18em;color:#6b5f4e;background:#fffaf0cc;border:1px solid #e0d2b8;
+ border-radius:14px;padding:4px 14px;backdrop-filter:blur(6px)}
+.cats{display:flex;gap:8px;max-width:94vw;overflow-x:auto;padding:2px 8px;scrollbar-width:none}
+.cats::-webkit-scrollbar{display:none}
+.cat{flex:none;min-height:34px;padding:6px 15px;border-radius:16px;background:#fdfaf0b8;border:1px solid #ddcfb4;
+ font-size:12px;color:#6b5f4e;backdrop-filter:blur(6px);transition:all .25s}
+.cat.on{background:#4c4035;color:#f6efe2;border-color:#4c4035;box-shadow:0 6px 16px #4c40352e}
+.arrows{display:flex;gap:10px}
+.arr{width:44px;height:44px;border-radius:50%;background:#fdfaf0d9;border:1px solid #ddcfb4;font-size:17px;
+ color:#6b5f4e;backdrop-filter:blur(6px);box-shadow:0 6px 16px #4c3c2814;transition:transform .15s}
+.arr:active{transform:scale(.92)}
+/* ———— 详情放大 ———— */
+#detail{position:fixed;inset:0;z-index:80;display:grid;place-items:center;visibility:hidden}
+#detail.open{visibility:visible}
+.det-bg{position:absolute;inset:0;background:#3d322744;backdrop-filter:blur(6px);opacity:0;transition:opacity .35s}
+#detail.open .det-bg{opacity:1}
+.det-card{position:relative;width:min(86vw,420px);background:var(--paper);border:1px solid #e6dbc8;border-radius:24px;
+ padding:18px;box-shadow:0 40px 90px #3d2f2055;transform:translateY(30px) scale(.92);opacity:0;
+ max-height:88svh;overflow-y:auto;overscroll-behavior:contain;
+ transition:transform .38s cubic-bezier(.2,.9,.3,1.2),opacity .3s}
+#detail.open .det-card{transform:none;opacity:1}
+.det-card .dpic{display:block;width:100%;aspect-ratio:4/3;border-radius:14px;object-fit:cover;background:#e9e2d4}
+.det-card .dfb{display:grid;place-items:center;width:100%;aspect-ratio:4/3;border-radius:14px;font:72px/1 Georgia,serif;color:#fffef9}
+.det-card h2{font:600 22px "Songti SC",serif;margin:14px 0 2px;letter-spacing:.04em}
+.det-card p{margin:0 0 14px;font-size:12.5px;color:var(--muted)}
+.det-card .go{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:50px;
+ border-radius:16px;background:#4c4035;color:#f6efe2;font-size:15px;letter-spacing:.14em;text-decoration:none;
+ box-shadow:0 10px 24px #4c403530}
+.det-x{position:absolute;top:12px;right:12px;width:36px;height:36px;border-radius:50%;background:#00000022;
+ color:#fff;font-size:17px;backdrop-filter:blur(4px)}
+/* ———— 总览 sheet ———— */
+#ov{position:fixed;inset:0;z-index:70;visibility:hidden}
+#ov.open{visibility:visible}
+.ov-bg{position:absolute;inset:0;background:#3d322750;backdrop-filter:blur(4px);opacity:0;transition:opacity .3s}
+#ov.open .ov-bg{opacity:1}
+.ov-box{position:absolute;left:50%;bottom:0;transform:translate(-50%,20px);width:min(720px,100vw);max-height:80svh;
+ overflow-y:auto;background:#fdfaf2;border:1px solid #e0d2b8;border-radius:26px 26px 0 0;
+ padding:18px 18px calc(26px + env(safe-area-inset-bottom));box-shadow:0 -16px 60px #4f3f2c40;opacity:0;
+ transition:transform .35s,opacity .3s}
+#ov.open .ov-box{transform:translateX(-50%);opacity:1}
+.ov-head{display:flex;gap:10px;align-items:center;position:sticky;top:-18px;background:#fdfaf2;padding:4px 0 10px;z-index:2}
+.ov-head input{flex:1;min-height:44px;padding:10px 16px;border-radius:16px;border:1px solid #ddd0b8;background:#fff;
+ font-size:14px;outline:none}
+.ov-head input:focus{border-color:#b9a988}
+.ov-x{width:40px;height:40px;border-radius:50%;background:#f0e8d6;font-size:17px;flex:none}
+.ov-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px}
+.ov-it{display:block;padding:8px 8px 10px;border:1px solid #e4d9c4;border-radius:16px;text-decoration:none;
+ color:var(--ink);background:#fff;transition:transform .2s}
+.ov-it:hover{transform:translateY(-3px)}
+.ov-it img,.ov-it .fb{display:block;width:100%;aspect-ratio:4/2.8;border-radius:9px;object-fit:cover;background:#e9e2d4}
+.ov-it .fb{display:grid;place-items:center;font:30px/1 Georgia,serif;color:#fffef9}
+.ov-it b{display:block;font-size:12.5px;margin-top:6px}
+.ov-it small{font-size:10.5px;color:var(--muted)}
+.ov-it.new{border-color:#e0ac8c;background:#fdf2e4}
+.ov-none{grid-column:1/-1;text-align:center;color:var(--muted);font-size:13px;padding:24px 0}
+@media(max-width:640px){.chip small{display:none}.chip{padding:7px 12px}.hbtn{padding:8px 12px;font-size:12px}}
+@media(prefers-reduced-motion:reduce){.cloud{animation:none}.det-card,.det-bg,.ov-box,.ov-bg,.card{transition-duration:.01s}}
+</style>
+</head>
+<body>
+<div class="amb">
+ <div class="glow-tl"></div><div class="glow-br"></div>
+ <div class="cloud" style="top:10%;width:300px;height:90px;left:-20vw;--cd:80s"></div>
+ <div class="cloud" style="top:58%;width:360px;height:100px;left:-30vw;--cd:105s;animation-delay:-30s"></div>
+ <div class="cloud" style="top:34%;width:220px;height:70px;left:-25vw;--cd:95s;animation-delay:-62s"></div>
+ <div class="floor"></div>
+</div>
+<div id="stage"><div id="scene"><div id="ring"></div></div></div>
+<canvas id="plush"></canvas>
+<div class="hud">
+ <div class="chip"><span class="m">咕</span><div><h1>毛绒鸽子收藏馆</h1><small>PLUSH DOVE GALLERY</small></div></div>
+ <div class="hbtns"><button class="hbtn" id="btn-ov">⌗ 全部</button><a class="hbtn" href="./index.html">画册 →</a></div>
+</div>
+<div class="dock">
+ <div class="counter" id="counter">1 / 23</div>
+ <div class="arrows"><button class="arr" id="arr-l" aria-label="上一个">←</button><button class="arr" id="arr-r" aria-label="下一个">→</button></div>
+ <div class="cats" id="cats"></div>
+</div>
+<div id="detail"><div class="det-bg"></div>
+ <div class="det-card"><button class="det-x" id="det-x">×</button><div id="det-body"></div></div></div>
+<div id="ov"><div class="ov-bg"></div>
+ <div class="ov-box"><div class="ov-head"><input id="ov-q" placeholder="搜模板名字…" autocomplete="off"><button class="ov-x" id="ov-x">×</button></div>
+ <div class="ov-grid" id="ov-grid"></div></div></div>
+<script>
+(()=>{'use strict';
+const $=s=>document.querySelector(s);
+const COVER='assets/gallery-covers/';
+const CATS={n:'✨ 新做的',p:'纸与布',l:'光与影',f:'玩味',all:'全部'};
+const ITEMS=[
+ {id:'xiuzi',name:'绣字铺',sub:'把字一针一线绣在布上',cat:'n',sym:'绣',c:['#983e32','#5e2922']},
+ {id:'xiaowu',name:'布置小屋',sub:'家具摆一摆，安个小家',cat:'n',sym:'屋',c:['#b98d5f','#7a5c40']},
+ {id:'fuguang',name:'浮光碎影',sub:'碎片 · 光影 · 拼贴',cat:'l',sym:'✳',c:['#78948c','#e5dfc8']},
+ {id:'collage',name:'散漫ins风',sub:'随性 · 胶片 · 照片墙',cat:'p',sym:'◒',c:['#c9b29d','#efdcd0']},
+ {id:'guzhe',name:'古风折页',sub:'折页 · 金线 · 古纸',cat:'p',sym:'折',c:['#55644f','#e4d2a5']},
+ {id:'stitch',name:'缝合艺术',sub:'绣线 · 针脚 · 手作',cat:'p',sym:'✣',c:['#b77d7b','#eed3c1']},
+ {id:'sunlit',name:'天气好',sub:'晴日 · 轻快 · 明信片',cat:'l',sym:'☼',c:['#9cbdb5','#f5d9a2']},
+ {id:'food',name:'零食小铺',sub:'零食包装 · 小店趣味',cat:'f',sym:'♡',c:['#d8b2a7','#f7ead6']},
+ {id:'zipbag',name:'拉链袋',sub:'透明材质 · 透明封装',cat:'p',sym:'▧',c:['#a0bbbf','#e8e6d6']},
+ {id:'magazine',name:'旧刊杂志',sub:'编辑排版 · 复古刊物',cat:'f',sym:'M',c:['#a49583','#e5dac2']},
+ {id:'huajian',name:'花笺',sub:'花叶 · 纸品 · 书信',cat:'p',sym:'❦',c:['#6e9880','#e6ead9']},
+ {id:'origami',name:'东南西北',sub:'立体折纸 · 双面展开',cat:'p',sym:'◇',c:['#7895b8','#e7d5cc']},
+ {id:'petal-post-return',name:'折花寄影',sub:'花瓣 · 纸张 · 折叠',cat:'p',sym:'❀',c:['#b89aab','#efe2d7']},
+ {id:'yan',name:'焰',sub:'暖色 · 炽光 · 层叠',cat:'l',sym:'✧',c:['#a55a43','#edc49e']},
+ {id:'theme',name:'主题预览专供',sub:'主题截图 · 动态展示',cat:'f',sym:'▣',c:['#506b6a','#adbfc1']},
+ {id:'pink-paint',name:'千禧桌面',sub:'复古画图 · CRT 闪烁',cat:'f',sym:'▣',c:['#e4aec9','#dbb6c8']},
+ {id:'lake',name:'湖中倒影',sub:'细雪 · 水波倒影',cat:'l',sym:'≈',c:['#779ac3','#dae8f3']},
+ {id:'retro-green-emoji',name:'古早绿色emoji',sub:'韩系复古 · 摇摇贴纸',cat:'f',sym:'☻',c:['#b6e581','#f8f8ec']},
+ {id:'dark',name:'信号丢失',sub:'故障美学 · 雾面玻璃',cat:'l',sym:'⌁',c:['#242933','#85829b']},
+ {id:'ukiyo',name:'浮世三景',sub:'和风 · 屏风 · 花瓣',cat:'f',sym:'三',c:['#355e75','#c6a18a']},
+ {id:'relics',name:'绣样帖',sub:'布绣 · 拼布 · 古董样帖',cat:'p',sym:'帖',c:['#29464a','#e9dfd0']},
+ {id:'zhiwen',name:'纸纹研究室',sub:'纸张纹理 · 调色实验',cat:'p',sym:'纸',c:['#8c7a5c','#e8dcc0']},
+ {id:'image-ai-enhance',name:'AI 图片修复',sub:'老照片 · 变清晰',cat:'f',sym:'✚',c:['#7a8fa0','#dfe8ee']}
+];
+let LIST=ITEMS.slice(),cat='all',q='';
+const scene=$('#scene'),ring=$('#ring'),stage=$('#stage'),canvas=$('#plush'),ctx=canvas.getContext('2d');
+/* ============ 展台布局 ============ */
+let CW,R,PER,STEP,cardH;
+function layout(){
+ const mob=innerWidth<640;
+ CW=Math.min(mob?innerWidth*.66:innerWidth*.30,mob?340:460);
+ cardH=CW*0.775+62;
+ STEP=Math.PI/(mob?9:11);
+ R=(CW*1.16)/(2*Math.sin(STEP/2));
+ PER=Math.max(innerWidth,innerHeight)*1.15;
+ rot=Math.max(0,Math.min(LIST.length-1,cur))*STEP;tgt=null;
+ scene.style.setProperty('--per',PER+'px');
+ scene.style.width=innerWidth+'px';scene.style.height=innerHeight+'px';
+ document.documentElement.style.setProperty('--cw',CW+'px');
+}
+addEventListener('resize',()=>{layout();fitCanvas()});
+/* ============ 卡片 DOM ============ */
+function cardHTML(it,cls){const pic=`<span class="fb" style="background:linear-gradient(135deg,${it.c[0]},${it.c[1]})">${it.sym}</span>`;
+ return`<${it.id?'a':'span'} class="card ${cls||''}" ${it.id?`href="./${it.id}.html"`:''} data-id="${it.id}">
+ <span class="dcard-shadow"></span>
+ <img class="pic" src="${COVER+it.id}.webp" alt="" loading="lazy" onerror="this.outerHTML=this.dataset.fb" data-fb='${pic.replace(/'/g,"&#39;")}'>
+ <div class="meta"><b>${it.name}</b><i>${it.sub}</i></div>${it.cat==='n'?'<span class="fresh">新</span>':''}</${it.id?'a':'span'}>`}
+function buildRing(){ring.innerHTML='';slots.length=0;
+ LIST.forEach((it,i)=>{const s=document.createElement('div');s.className='slot';
+  s.innerHTML=cardHTML(it);ring.append(s);slots.push({el:s,card:s.firstElementChild,it,i});});}
+const slots=[];
+buildRing();
+/* ============ 旋转状态 ============ */
+let cur=0,rot=0,vel=0,dragging=false,downX=0,downRot=0,downT=0,movedPx=0,tgt=null;
+const MAXV=9;
+function clampRot(r){const max=(LIST.length-1)*STEP;return Math.max(-STEP*.7,Math.min(max+STEP*.7,r))}
+function idx(){return Math.max(0,Math.min(LIST.length-1,Math.round(rot/STEP)))}
+function snapTo(i){tgt=Math.max(0,Math.min(LIST.length-1,i))*STEP}
+function focus(i){cur=i;$('#counter').textContent=(i+1)+' / '+LIST.length;
+ slots.forEach(s=>{s.card.classList.toggle('focus',s.i===cur);
+  const off=s.i-cur;s.el.style.zIndex=100-Math.abs(off);});}
+/* 拖动 + 惯性 + 吸附 */
+stage.addEventListener('pointerdown',e=>{if(e.target.closest('.hud,.dock,#detail,#ov'))return;
+ dragging=true;movedPx=0;downX=e.clientX;downRot=rot;downT=performance.now();vel=0;tgt=null;
+ stage.setPointerCapture(e.pointerId)});
+stage.addEventListener('pointermove',e=>{if(!dragging)return;
+ const dx=e.clientX-downX;movedPx=Math.max(movedPx,Math.abs(dx));
+ const n=clampRot(downRot-dx/R);
+ vel=(n-rot)*60;rot=n});
+stage.addEventListener('pointerup',e=>{if(!dragging)return;dragging=false;
+ const now=performance.now(),dt=Math.max(16,now-downT);
+ const vx=(e.clientX-downX)/dt;vel=vx===0?0:-vx*16.7/(R*STEP); // px/ms → slot-units/frame
+ vel=Math.max(-MAXV,Math.min(MAXV,vel));
+ if(movedPx<7&&dt<350){const el=document.elementFromPoint(e.clientX,e.clientY),c=el&&el.closest('.card');
+  if(c){const s=slots.find(x=>x.card===c);
+   if(s&&s.i!==cur){e.preventDefault();snapTo(s.i)}
+   else if(s){e.preventDefault();openDetail(s.it)}}}
+ else snapTo(idx())});
+stage.addEventListener('pointercancel',()=>{dragging=false;snapTo(idx())});
+ring.addEventListener('click',e=>{const c=e.target.closest('.card');if(!c)return;
+ e.preventDefault();const s=slots.find(x=>x.card===c);if(!s||!s.it.id)return;
+ if(s.i!==cur)snapTo(s.i);else openDetail(s.it)});
+$('#arr-l').onclick=()=>{tgt=null;snapTo(idx()-1)};
+$('#arr-r').onclick=()=>{tgt=null;snapTo(idx()+1)};
+addEventListener('keydown',e=>{if(e.key==='ArrowLeft')$('#arr-l').click();if(e.key==='ArrowRight')$('#arr-r').click();
+ if(e.key==='Escape'){$('#detail').classList.remove('open');$('#ov').classList.remove('open')}});
+/* ============ 每帧更新卡片姿态 ============ */
+function pose(){for(const s of slots){const d=s.i*STEP-rot;
+  const vis=Math.abs(d)<STEP*3.4;
+  s.el.style.transform=`translate3d(${R*Math.sin(d)}px,0,${R*(Math.cos(d)-1)}px) rotateY(${d*.9}rad)`;
+  const op=vis?(Math.abs(d)<STEP*.05?1:Math.max(0,1-(Math.abs(d)/(STEP*3.2))**1.4)):0;
+  s.el.style.opacity=op;s.el.style.pointerEvents=op>.25?'auto':'none';}}
+/* ============ 详情 ============ */
+function openDetail(it){if(!it.id)return;const pic=`<span class="dfb" style="background:linear-gradient(135deg,${it.c[0]},${it.c[1]})">${it.sym}</span>`;
+ $('#det-body').innerHTML=`<img class="dpic" src="${COVER+it.id}.webp" alt="" onerror="this.outerHTML=this.dataset.fb" data-fb='${pic.replace(/'/g,"&#39;")}'>
+ <h2>${it.name}</h2><p>${it.sub}</p><a class="go" href="./${it.id}.html">打开模板 →</a>`;
+ $('.det-card').scrollTop=0;
+ $('#detail').classList.add('open')}
+$('#det-x').onclick=()=>$('#detail').classList.remove('open');
+document.querySelector('.det-bg').onclick=()=>$('#detail').classList.remove('open');
+/* ============ 分类 + 搜索 + 总览 ============ */
+function applyFilter(){LIST=ITEMS.filter(i=>(cat==='all'||i.cat===cat)&&(!q||i.name.includes(q)||i.sub.includes(q)));
+ if(!LIST.length){LIST=[{id:'',name:'没有找到',sub:'换个词试试',cat:'x',sym:'?',c:['#aaa','#888'],empty:1}]}
+ buildRing();rot=0;tgt=null;vel=0;focus(0)}
+Object.entries(CATS).forEach(([k,v])=>{const b=document.createElement('button');b.className='cat'+(k==='all'?' on':'');
+ b.textContent=v;b.onclick=()=>{cat=k;q='';$('#ov-q').value='';document.querySelectorAll('.cat').forEach(x=>x.classList.toggle('on',x===b));applyFilter()};
+ $('#cats').append(b)});
+function buildOv(){const g=$('#ov-grid');g.innerHTML='';
+ const list=ITEMS.filter(i=>(cat==='all'||i.cat===cat)&&(!q||i.name.includes(q)||i.sub.includes(q)));
+ if(!list.length)g.innerHTML='<div class="ov-none">没有找到这个模板，换个词试试</div>';
+ list.forEach(it=>{const a=document.createElement('a');a.href='./'+it.id+'.html';a.className='ov-it'+(it.cat==='n'?' new':'');
+  const fb=`<span class="fb" style="background:linear-gradient(135deg,${it.c[0]},${it.c[1]})">${it.sym}</span>`;
+  a.innerHTML=`<img src="${COVER+it.id}.webp" loading="lazy" alt="" onerror="this.outerHTML=this.dataset.fb" data-fb='${fb.replace(/'/g,"&#39;")}'><b>${it.name}</b><small>${it.sub}</small>`;
+  a.onclick=e=>{e.preventDefault();$('#ov').classList.remove('open');
+   const idx2=LIST.indexOf(it);if(idx2>=0)snapTo(idx2);else{q='';cat='all';applyFilter();snapTo(LIST.indexOf(it))}};
+  g.append(a)})}
+$('#ov-q').addEventListener('input',e=>{q=e.target.value.trim();buildOv()});
+$('#btn-ov').onclick=()=>{buildOv();$('#ov').classList.add('open');setTimeout(()=>$('#ov-q').focus(),80)};
+$('#ov-x').onclick=()=>$('#ov').classList.remove('open');
+document.querySelector('.ov-bg').onclick=()=>$('#ov').classList.remove('open');
+/* ============ 毛绒鸽子 ============ */
+function sph(cx,cy,cz,rx,ry,rz,ln,la,col,part,out){const v0=out.v.length;
+ for(let i=0;i<=la;i++){const th=i/la*Math.PI;
+  for(let j=0;j<ln;j++){const ph=j/ln*Math.PI*2;
+   out.v.push([cx+rx*Math.sin(th)*Math.cos(ph),cy-ry*Math.cos(th),cz+rz*Math.sin(th)*Math.sin(ph)])}}
+ for(let i=0;i<la;i++)for(let j=0;j<ln;j++){const j1=(j+1)%ln,a=v0+i*ln+j,b=a+ln,a1=v0+i*ln+j1,b1=a1+ln;
+  out.f.push({a,b,c:a1,col,part},{a:a1,b,c:b1,col,part})}}
+function coneZ(cx,cy,tipz,len,r,ln,col,out){const v0=out.v.length;
+ out.v.push([cx,cy,tipz]);
+ for(let j=0;j<ln;j++){const ph=j/ln*Math.PI*2;
+  out.v.push([cx+r*Math.cos(ph),cy+r*Math.sin(ph)*.75,tipz-len])}
+ for(let j=0;j<ln;j++)out.f.push({a:v0,b:v0+1+j,c:v0+1+(j+1)%ln,col,part:'beak'});
+ for(let j=0;j<ln-2;j++)out.f.push({a:v0+1,b:v0+2+j,c:v0+3+j,col,part:'beak'})}
+const MESH={v:[],f:[]};
+(function build(){ // 面向 +z（用户）：毛绒小鸽
+ sph(0,0,.05,.8,.85,.95,16,10,'#fbfaf5','body',MESH);       // 梨形身体，胸饱满
+ sph(0,.52,.08,.42,.38,.4,12,7,'#f8f5ed','body',MESH);      // 脖子
+ sph(.05,.9,.16,.4,.38,.38,14,9,'#fdfcf8','head',MESH);     // 小圆头
+ sph(.32,.98,.44,.055,.075,.055,8,5,'#2f2a25','eye',MESH);  // 侧位小眼
+ sph(-.17,1,.5,.055,.075,.055,8,5,'#2f2a25','eye',MESH);
+ sph(.345,1.02,.485,.02,.026,.02,6,4,'#ffffff','eye',MESH); // 眼里高光
+ sph(-.145,1.04,.545,.02,.026,.02,6,4,'#ffffff','eye',MESH);
+ sph(.38,.8,.38,.055,.04,.035,6,4,'#f2c4ae','blush',MESH);  // 淡腮红
+ sph(-.22,.82,.44,.055,.04,.035,6,4,'#f2c4ae','blush',MESH);
+ coneZ(.07,.9,.82,.3,.07,7,'#b0715a',MESH);                 // 细长喙
+ coneZ(.07,.94,.62,.14,.05,7,'#d3a088',MESH);               // 喙基部腊膜
+ sph(.6,-.1,-.28,.26,.48,.7,10,7,'#e6e2d3','wingL',MESH);   // 收拢贴身的翅膀
+ sph(-.6,-.1,-.28,.26,.48,.7,10,7,'#dfdcce','wingR',MESH);
+ sph(0,-.42,-.95,.42,.26,.55,10,6,'#d8d3c2','tail',MESH);   // 扇形尾
+ sph(0,-.5,-1.28,.38,.2,.22,8,5,'#b3ac9b','tail',MESH);     // 尾端灰带
+ sph(.28,-.82,.3,.15,.08,.18,7,4,'#d98f85','foot',MESH);    // 粉脚
+ sph(-.28,-.82,.3,.15,.08,.18,7,4,'#d98f85','foot',MESH);
+})();
+/* 顶点法线（平滑光照）+ 面法线（备用） */
+const vn=MESH.v.map(()=>[0,0,0]);
+MESH.f.forEach(f=>{const a=MESH.v[f.a],b=MESH.v[f.b],c=MESH.v[f.c];
+ const u=[b[0]-a[0],b[1]-a[1],b[2]-a[2]],v=[c[0]-a[0],c[1]-a[1],c[2]-a[2]];
+ const n=[u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]];f.n=n;
+ [f.a,f.b,f.c].forEach(i=>{vn[i][0]+=n[0];vn[i][1]+=n[1];vn[i][2]+=n[2]})});
+vn.forEach(n=>{const l=Math.hypot(...n)||1;n[0]/=l;n[1]/=l;n[2]/=l});
+const LIGHT=[-.55,.7,.55];{const l=Math.hypot(...LIGHT);LIGHT[0]/=l;LIGHT[1]/=l;LIGHT[2]/=l}
+function shade3(hex,k){const n=parseInt(hex.slice(1),16);
+ return`rgb(${Math.min(255,(n>>16)*k)|0},${Math.min(255,(n>>8&255)*k)|0},${Math.min(255,(n&255)*k)|0})`}
+const tris=[];
+function drawPlush(d){ // d:{x,y,scale,yaw,roll,lean,t,alpha}
+ const t=d.t,roll=d.roll,breath=1+Math.sin(t*2.1)*.012;
+ const cy=Math.cos(d.yaw),sy=Math.sin(d.yaw),cr=Math.cos(roll),sr=Math.sin(roll),S=d.scale;
+ const bob=Math.sin(t*1.9)*.035;
+ const headTilt=Math.sin(t*.9)*.04+d.lean;
+ const P=[],K=[];
+ for(let i=0;i<MESH.v.length;i++){const v=MESH.v[i];let x=v[0],y=v[1],z=v[2];
+  // 头部连带眼睛喙腮红，整体轻微摆动
+  const headPart=y>.35&&z>-0.05;
+  if(headPart){const a=headTilt,c2=Math.cos(a),s2=Math.sin(a),pz=z-.2;
+   const ny=(y-.4)*c2-pz*s2,nz=(y-.4)*s2+pz*c2;y=.4+ny;z=.2+nz}
+  y*=breath;
+  let y2=y*cr-z*sr,z2=y*sr+z*cr;
+  const x3=x*cy+z2*sy,z3=-x*sy+z2*cy;
+  const yy=y2*.96-z3*.2,zz2=y2*.2+z3*.96;
+  P[i]=[d.x+x3*S,d.y-(yy+bob)*S,zz2];
+  const n=vn[i],nl=n[0]*LIGHT[0]+n[1]*LIGHT[1]+n[2]*LIGHT[2];
+  K[i]=.7+.3*Math.max(0,nl)}
+ for(const f of MESH.f){
+  const A=P[f.a],B=P[f.b],C=P[f.c],z=(A[2]+B[2]+C[2])/3;
+  tris.push({p:[A,B,C],k:[K[f.a],K[f.b],K[f.c]],col:f.col,z})}}
+function paintPlush(){tris.sort((a,b)=>a.z-b.z); // 远的先画
+ for(const q of tris){const[A,B,C]=q.p,[ka,kb,kc]=q.k;
+  // 顶点渐变填三角（近似 Gouraud）
+  let lo=0,hi=0;const ks=[ka,kb,kc],vs=[A,B,C];
+  for(let i=1;i<3;i++){if(ks[i]<ks[lo])lo=i;if(ks[i]>ks[hi])hi=i}
+  const mid=3-lo-hi;
+  ctx.beginPath();ctx.moveTo(A[0],A[1]);ctx.lineTo(B[0],B[1]);ctx.lineTo(C[0],C[1]);ctx.closePath();
+  const d=vs[lo],l=vs[hi],m=vs[mid],dx=l[0]-d[0],dy=l[1]-d[1],L2=dx*dx+dy*dy;
+  if(L2<.5||Math.abs(ks[hi]-ks[lo])<.02){ctx.fillStyle=shade3(q.col,(ka+kb+kc)/3);ctx.fill();continue}
+  let tt=((m[0]-d[0])*dx+(m[1]-d[1])*dy)/L2;tt=Math.max(.02,Math.min(.98,tt));
+  const g=ctx.createLinearGradient(d[0],d[1],l[0],l[1]);
+  g.addColorStop(0,shade3(q.col,ks[lo]));g.addColorStop(tt,shade3(q.col,ks[mid]));g.addColorStop(1,shade3(q.col,ks[hi]));
+  ctx.fillStyle=g;ctx.fill()}}
+/* ============ 主循环 ============ */
+let fitR=1;
+function fitCanvas(){fitR=Math.min(devicePixelRatio||1,2);canvas.width=innerWidth*fitR;canvas.height=innerHeight*fitR;
+ ctx.setTransform(fitR,0,0,fitR,0,0)}
+layout();fitCanvas();
+const reduced=matchMedia('(prefers-reduced-motion:reduce)');
+function frame(now){const t=reduced.matches?4.4:now/1000;
+ /* 惯性 + 吸附 */
+ if(!dragging){
+  if(tgt!==null){const d=tgt-rot;rot+=d*.12;vel=d*.12;
+   if(Math.abs(d)<.0004){rot=tgt;tgt=null;vel=0}}
+  else{vel*=.93;rot=clampRot(rot+vel*STEP);
+   if(Math.abs(vel)<.01){const s=idx()*STEP;
+    if(Math.abs(rot-s)>.0004)tgt=s}}}
+ const ni=idx();if(ni!==cur)focus(ni);
+ pose();
+ /* 鸽子：坐在当前卡片顶边上，随拖动倾斜 */
+ ctx.clearRect(0,0,innerWidth,innerHeight);tris.length=0;
+ const frac=rot/STEP-cur; // 拖动中的离轴量
+ const lean=Math.max(-.4,Math.min(.4,-frac*.9+vel*.06));
+ const cr=slots[cur]&&slots[cur].card.getBoundingClientRect();
+ if(cr){const S=Math.min(cr.width*.3,innerHeight*.13);
+  const dx=cr.left+cr.width*.72,dy=cr.top-S*.8;
+  ctx.fillStyle='#4c3c2826';ctx.beginPath();
+  ctx.ellipse(dx,cr.top+S*.04,S*.62,S*.09,0,0,7);ctx.fill();
+  drawPlush({x:dx,y:dy,scale:S,yaw:-.1+frac*.4,roll:0,lean,t});}
+ paintPlush();
+ requestAnimationFrame(frame)}
+focus(0);pose();requestAnimationFrame(frame);
+/* 初始问候：标题淡入已由 CSS/HUD 承担 */
+})();
+</script>
+</body>
+</html>
