@@ -425,8 +425,10 @@ for(const h of [haunchL,haunchR])addFur(h,260,{spread:.3,length:()=>rr(.04,.09),
 /* —— 视角、注视与交互 —— */
 const qs=new URLSearchParams(location.search);let azimuth=parseFloat(qs.get('az')||'0'),elevation=.16,distance=7.05,targetY=1.43;
 function updateCamera(){
-  const ce=Math.cos(elevation);
-  camera.position.set(Math.sin(azimuth)*distance*ce,targetY+Math.sin(elevation)*distance,Math.cos(azimuth)*distance*ce+.12);
+  const aspect=innerWidth/innerHeight,portrait=aspect<.9;
+  camera.fov=portrait?46:38;camera.updateProjectionMatrix();
+  const fit=portrait?clamp(1.04/aspect,1,1.45):1,d=distance*fit,ce=Math.cos(elevation);
+  camera.position.set(Math.sin(azimuth)*d*ce,targetY+Math.sin(elevation)*d,Math.cos(azimuth)*d*ce+.12);
   camera.lookAt(0,targetY,.08);
 }
 updateCamera();
